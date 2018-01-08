@@ -16,7 +16,7 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QWidget" name="chartWidget" native="true"/>
+     <widget class="ChartWidget" name="chartWidget" native="true"/>
     </item>
    </layout>
   </widget>
@@ -62,6 +62,14 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>ChartWidget</class>
+   <extends>QWidget</extends>
+   <header>chartwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
