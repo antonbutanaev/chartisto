@@ -26,11 +26,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    chartwidget.cpp
+    chartwidget.cpp \
+    macdform.cpp
 
 HEADERS += \
         mainwindow.h \
-    chartwidget.h
+    chartwidget.h \
+    macdform.h
 
 FORMS += \
-        mainwindow.ui
+        mainwindow.ui \
+    macdform.ui
