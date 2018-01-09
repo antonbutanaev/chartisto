@@ -18,6 +18,8 @@ public:
 private slots:
     void on_actionMACD_triggered();
 
+    void on_actionNew_2_triggered();
+
 private:
     Ui::MainWindow *ui;
 };

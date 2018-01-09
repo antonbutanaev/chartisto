@@ -26,7 +26,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWindow">
@@ -35,6 +35,7 @@
     </property>
     <addaction name="actionNew"/>
     <addaction name="actionChange_instrument"/>
+    <addaction name="actionNew_2"/>
    </widget>
    <widget class="QMenu" name="menuIndicators">
     <property name="title">
@@ -58,6 +59,11 @@
   <action name="actionMACD">
    <property name="text">
     <string>MACD</string>
+   </property>
+  </action>
+  <action name="actionNew_2">
+   <property name="text">
+    <string>New 2</string>
    </property>
   </action>
  </widget>

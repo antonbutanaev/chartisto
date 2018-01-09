@@ -16,7 +16,7 @@ void WindowList::add(std::unique_ptr<QWidget> widget) {
 }
 
 void WindowList::onTimeout() {
-    qDebug() << "onTimeout " << windowList_.size();
+    //qDebug() << "onTimeout " << windowList_.size();
 
     for (auto it = windowList_.begin(); it != windowList_.end(); ) {
         if (!(*it)->isVisible())
@@ -24,5 +24,4 @@ void WindowList::onTimeout() {
         else
             ++it;
     }
-
 }
