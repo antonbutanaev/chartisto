@@ -19,9 +19,12 @@ void ChartWidget::paintEvent(QPaintEvent *)
     setPalette(pal);
 
     QPainter painter(this);
-    QRect rect(0, 0, size_.width(), size_.height());
     painter.setRenderHint(QPainter::Antialiasing, true);
+
+    QRect rect(0, 0, size_.width(), size_.height());
     painter.drawRect(rect);
+    painter.drawLine(rect.topLeft(), rect.bottomRight());
+    painter.drawLine(rect.bottomLeft(), rect.topRight());
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
