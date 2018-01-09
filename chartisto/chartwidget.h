@@ -11,10 +11,13 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *) override;
+    void resizeEvent(QResizeEvent *) override;
 
 signals:
 
 public slots:
+private:
+    QSize size_;
 };
 
 #endif // CHARTWIDGET_H
