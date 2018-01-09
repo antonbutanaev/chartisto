@@ -21,12 +21,14 @@ void MainWindow::on_actionMACD_triggered() {
     WindowList::instance().add(std::move(macdForm));
 }
 
-void MainWindow::on_actionNew_2_triggered() {
+void MainWindow::on_actionLoad_triggered()
+{
     static int n = 0;
     ++n;
     qDebug() << "Open " << n << " new windows";
     for (int i = 0; i < n; ++i) {
         std::unique_ptr<MainWindow> mw(new MainWindow);
+        mw->setWindowTitle("Window " + QString::number(n) + "/" + QString::number(i));
         mw->show();
         WindowList::instance().add(std::move(mw));
     }

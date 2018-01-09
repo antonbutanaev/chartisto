@@ -15,6 +15,18 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>2</number>
+    </property>
+    <property name="bottomMargin">
+     <number>2</number>
+    </property>
     <item>
      <widget class="ChartWidget" name="chartWidget" native="true"/>
     </item>
@@ -26,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWindow">
@@ -34,8 +46,12 @@
      <string>Window</string>
     </property>
     <addaction name="actionNew"/>
-    <addaction name="actionChange_instrument"/>
-    <addaction name="actionNew_2"/>
+    <addaction name="actionChange_instrument_2"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSave_as"/>
+    <addaction name="separator"/>
    </widget>
    <widget class="QMenu" name="menuIndicators">
     <property name="title">
@@ -51,11 +67,6 @@
     <string>New</string>
    </property>
   </action>
-  <action name="actionChange_instrument">
-   <property name="text">
-    <string>Change instrument</string>
-   </property>
-  </action>
   <action name="actionMACD">
    <property name="text">
     <string>MACD</string>
@@ -64,6 +75,26 @@
   <action name="actionNew_2">
    <property name="text">
     <string>New 2</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionSave_as">
+   <property name="text">
+    <string>Save as</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionChange_instrument_2">
+   <property name="text">
+    <string>Change instrument</string>
    </property>
   </action>
  </widget>
