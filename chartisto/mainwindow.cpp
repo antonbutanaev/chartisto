@@ -1,4 +1,5 @@
 #include "macdform.h"
+#include "windowlist.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -9,12 +10,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::on_actionMACD_triggered()
-{
-    MACDForm ().exec();
+void MainWindow::on_actionMACD_triggered() {
+    std::unique_ptr<QWidget> macdForm(new MACDForm(this));
+    macdForm->show();
+    WindowList::instance().add(std::move(macdForm));
 }
