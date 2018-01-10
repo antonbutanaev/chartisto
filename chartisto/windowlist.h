@@ -12,7 +12,7 @@ private:
     WindowList();
 public:
     static WindowList &instance();
-    void add(std::unique_ptr<QWidget>);
+    void add(std::unique_ptr<QWidget> &&);
 private slots:
     void onTimeout();
 private:

@@ -8,7 +8,6 @@ MACDForm::MACDForm(QWidget *parent) :
     ui->setupUi(this);
 }
 
-MACDForm::~MACDForm()
-{
+MACDForm::~MACDForm() {
     delete ui;
 }

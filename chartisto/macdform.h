@@ -12,7 +12,7 @@ class MACDForm : public QDialog
     Q_OBJECT
 
 public:
-    explicit MACDForm(QWidget *parent = 0);
+    explicit MACDForm(QWidget *parent = nullptr);
     ~MACDForm();
 
 private:
