@@ -4,16 +4,12 @@
 #include <QDebug>
 #include <QResizeEvent>
 
-ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent)
-{
-
+ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent) {
 }
 
-void ChartWidget::paintEvent(QPaintEvent *)
-{
+void ChartWidget::paintEvent(QPaintEvent *) {
     QPalette pal = palette();
 
-    // set black background
     pal.setColor(QPalette::Background, Qt::white);
     setAutoFillBackground(true);
     setPalette(pal);
