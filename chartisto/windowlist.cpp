@@ -85,12 +85,7 @@ void WindowList::quit() {
         window["height"] = it->geometry().height();
         windowList.append(window);
 
-        //it->close();
-
-        std::stringstream ss;
-        ss << windowList;
-        qDebug() << "GGGGw " << ss.str().c_str();
-
+        it->close();
     }
 
     //windowList_.clear();

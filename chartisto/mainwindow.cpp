@@ -40,7 +40,7 @@ void MainWindow::on_actionLoad_triggered()
 void MainWindow::on_actionQuit_triggered() {
     WindowList::instance().quit();
     qDebug() << "quit";
-    close();
+    //close();
 }
 
 void MainWindow::on_actionNew_triggered() {

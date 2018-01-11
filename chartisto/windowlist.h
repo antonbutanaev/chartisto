@@ -16,6 +16,7 @@ public:
     void open();
     void save();
     void quit();
+    void clear() {windowList_.clear();}
 private slots:
     void onTimeout();
 private:

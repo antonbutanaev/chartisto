@@ -8,5 +8,7 @@
 int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
     WindowList::instance().open();
-    return a.exec();
+    const auto rc = a.exec();
+    WindowList::instance().clear();
+    return rc;
 }
