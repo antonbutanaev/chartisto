@@ -91,7 +91,7 @@ void WindowList::quit() {
     //windowList_.clear();
 
     std::ofstream ofs(configFile());
-    ofs << root;
+    ofs << root << std::endl;
 
     //QApplication::quit();
 
