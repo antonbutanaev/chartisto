@@ -1,6 +1,7 @@
 #include "macdform.h"
 #include "windowlist.h"
 #include "mainwindow.h"
+#include "main.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
 
@@ -34,4 +35,16 @@ void MainWindow::on_actionLoad_triggered()
     }
     qDebug() << "Close current window";
     close();
+}
+
+void MainWindow::on_actionQuit_triggered() {
+    WindowList::instance().quit();
+    qDebug() << "quit";
+    close();
+}
+
+void MainWindow::on_actionNew_triggered() {
+    auto window = std::make_unique<MainWindow>();
+    window->show();
+    WindowList::instance().add(std::move(window));
 }

@@ -13,6 +13,9 @@ private:
 public:
     static WindowList &instance();
     void add(std::unique_ptr<QWidget> &&);
+    void open();
+    void save();
+    void quit();
 private slots:
     void onTimeout();
 private:

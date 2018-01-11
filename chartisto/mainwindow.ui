@@ -38,7 +38,7 @@
      <x>0</x>
      <y>0</y>
      <width>878</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuWindow">
@@ -52,6 +52,7 @@
     <addaction name="actionSave"/>
     <addaction name="actionSave_as"/>
     <addaction name="separator"/>
+    <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuIndicators">
     <property name="title">
@@ -95,6 +96,11 @@
   <action name="actionChange_instrument_2">
    <property name="text">
     <string>Change instrument</string>
+   </property>
+  </action>
+  <action name="actionQuit">
+   <property name="text">
+    <string>Quit</string>
    </property>
   </action>
  </widget>

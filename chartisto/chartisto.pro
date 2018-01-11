@@ -24,6 +24,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 QMAKE_CXXFLAGS += -std=c++17
 
+LIBS += -ljsoncpp
+
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
@@ -35,7 +37,8 @@ HEADERS += \
         mainwindow.h \
     chartwidget.h \
     macdform.h \
-    windowlist.h
+    windowlist.h \
+    main.h
 
 FORMS += \
         mainwindow.ui \
