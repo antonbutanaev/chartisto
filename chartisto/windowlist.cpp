@@ -47,16 +47,12 @@ void WindowList::open() {
         ifs >> root;
         std::stringstream ss;
         ss << root;
-        qDebug() << "GGGG " << ss.str().c_str();
         if (root["currentWindowSet"].isNull()) {
-            qDebug() << "GGGG2";
             openBareMainWindow();
         }
         else {
-            qDebug() << "GGGG3";
             for (const auto &it: root["windowSets"][root["currentWindowSet"].asString()]) {
                 auto mainWindow = std::make_unique<MainWindow>();
-                qDebug() << "GGGG4" << it["x"].asInt() << it["y"].asInt() << it["width"].asInt() << it["height"].asInt();
                 mainWindow->setGeometry(it["x"].asInt(), it["y"].asInt(), it["width"].asInt(), it["height"].asInt());
                 mainWindow->show();
                 add(std::move(mainWindow));
