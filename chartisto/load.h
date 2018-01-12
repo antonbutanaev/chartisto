@@ -20,7 +20,6 @@ private slots:
 
 private:
     Ui::Load *ui;
-    QStringList items_;
 };
 
 #endif // LOAD_H

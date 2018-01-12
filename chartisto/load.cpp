@@ -4,11 +4,10 @@
 
 Load::Load(QStringList &&items, QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::Load),
-    items_(std::move(items))
+    ui(new Ui::Load)
 {
     ui->setupUi(this);
-    ui->listWidget->addItems(items_);
+    ui->listWidget->addItems(std::move(items));
 }
 
 Load::~Load() {
