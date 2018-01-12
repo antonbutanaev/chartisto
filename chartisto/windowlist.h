@@ -14,12 +14,14 @@ public:
     static WindowList &instance();
     void add(std::unique_ptr<QWidget> &&);
     void open();
-    void save();
     void quit();
     void clear() {windowList_.clear();}
 private slots:
     void onTimeout();
 private:
+    enum class SaveMethod {JustSave, SaveAndClose};
+    void save(SaveMethod);
+
     std::list<std::unique_ptr<QWidget>> windowList_;
     QTimer timer_;
 };
