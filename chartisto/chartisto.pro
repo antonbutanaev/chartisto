@@ -31,15 +31,18 @@ SOURCES += \
         mainwindow.cpp \
     chartwidget.cpp \
     macdform.cpp \
-    windowlist.cpp
+    windowlist.cpp \
+    saveas.cpp
 
 HEADERS += \
         mainwindow.h \
     chartwidget.h \
     macdform.h \
     windowlist.h \
-    main.h
+    main.h \
+    saveas.h
 
 FORMS += \
         mainwindow.ui \
-    macdform.ui
+    macdform.ui \
+    saveas.ui

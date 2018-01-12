@@ -91,7 +91,8 @@ void WindowList::save(SaveMethod method) {
     windowList.clear();
 
     for (const auto &it: windowList_) {
-
+        if (!dynamic_cast<MainWindow*>(&*it)) // FIXME
+            continue;
         Json::Value window;
         window[tag::x] = it->geometry().topLeft().x();
         window[tag::y] = it->geometry().topLeft().y();
@@ -108,6 +109,13 @@ void WindowList::save(SaveMethod method) {
 
 void WindowList::quit() {
     save(SaveMethod::SaveAndClose);
+}
+
+void WindowList::saveAs(const QString &windowSet)
+{
+    auto config = getConfig();
+    config[tag::currentWindowSet] = windowSet.toStdString();
+    saveConfig(config);
 }
 
 void WindowList::onTimeout() {

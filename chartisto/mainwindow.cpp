@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include "main.h"
 #include "ui_mainwindow.h"
+#include "saveas.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -39,12 +40,17 @@ void MainWindow::on_actionLoad_triggered()
 
 void MainWindow::on_actionQuit_triggered() {
     WindowList::instance().quit();
-    qDebug() << "quit";
-    //close();
 }
 
 void MainWindow::on_actionNew_triggered() {
     auto window = std::make_unique<MainWindow>();
+    window->show();
+    WindowList::instance().add(std::move(window));
+}
+
+void MainWindow::on_actionSave_as_triggered()
+{
+    auto window = std::make_unique<SaveAs>();
     window->show();
     WindowList::instance().add(std::move(window));
 }
