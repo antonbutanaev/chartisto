@@ -17,6 +17,7 @@ public:
     void quit();
     void clear() {windowList_.clear();}
     void saveAs(const QString &);
+    void load(const QString &);
 private slots:
     void onTimeout();
 private:

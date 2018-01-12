@@ -12,11 +12,15 @@ class Load : public QDialog
     Q_OBJECT
 
 public:
-    explicit Load(QWidget *parent = 0);
+    explicit Load(QStringList &&items, QWidget *parent = nullptr);
     ~Load();
+
+private slots:
+    void on_pushButton_clicked();
 
 private:
     Ui::Load *ui;
+    QStringList items_;
 };
 
 #endif // LOAD_H

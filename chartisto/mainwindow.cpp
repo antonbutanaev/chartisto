@@ -1,9 +1,12 @@
+#include <memory>
 #include "macdform.h"
 #include "windowlist.h"
 #include "mainwindow.h"
 #include "main.h"
 #include "ui_mainwindow.h"
 #include "saveas.h"
+#include "load.h"
+#include "config.h"
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -24,6 +27,15 @@ void MainWindow::on_actionMACD_triggered() {
 }
 
 void MainWindow::on_actionLoad_triggered() {
+    QStringList windowSets;
+    Config config;
+    config.iterateWindowSets([&] (const std::string &windowSet) {
+        windowSets << QString::fromStdString(windowSet);
+    });
+
+    auto window = std::make_unique<Load>(std::move(windowSets));
+    window->show();
+    WindowList::instance().add(std::move(window));
 }
 
 void MainWindow::on_actionQuit_triggered() {

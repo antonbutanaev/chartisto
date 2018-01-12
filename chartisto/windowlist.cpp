@@ -64,6 +64,20 @@ void WindowList::quit() {
 
 void WindowList::saveAs(const QString &windowSet) {
     Config().setCurrentWindowSet(windowSet.toStdString());
+    save(SaveMethod::JustSave);
+}
+
+void WindowList::load(const QString &x) {
+    save(SaveMethod::SaveAndClose);
+    Config config;
+    config.setCurrentWindowSet(x.toStdString());
+    config.iterateCurrentWindowSet([&] (auto x, auto y, auto w, auto h) {
+        auto mainWindow = std::make_unique<MainWindow>();
+        mainWindow->setGeometry(x, y, w, h);
+        mainWindow->show();
+        add(std::move(mainWindow));
+    });
+
 }
 
 void WindowList::onTimeout() {

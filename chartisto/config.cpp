@@ -72,3 +72,9 @@ void Config::addToCurrentWindowSet(int x, int y, int w, int h) {
 void Config::setCurrentWindowSet(const std::string &windowSet) {
     config_[tag::currentWindowSet] = windowSet;
 }
+
+void Config::iterateWindowSets(const std::function<void(const std::string &)> &cb) {
+    const auto &windowSets = config_[tag::windowSets];
+    for (auto it = windowSets.begin(); it != windowSets.end(); ++it)
+        cb(it.key().asString());
+}

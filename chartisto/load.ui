@@ -22,7 +22,7 @@
      <item>
       <widget class="QPushButton" name="pushButton">
        <property name="text">
-        <string>Delete</string>
+        <string>Load</string>
        </property>
       </widget>
      </item>
@@ -42,7 +42,7 @@
      <item>
       <widget class="QPushButton" name="pushButton_2">
        <property name="text">
-        <string>Load</string>
+        <string>Delete</string>
        </property>
       </widget>
      </item>

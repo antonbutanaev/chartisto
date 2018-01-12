@@ -19,6 +19,7 @@ public:
     void clearCurrentWindowSet();
     void addToCurrentWindowSet(int x, int y, int w, int h);
     void setCurrentWindowSet(const std::string&);
+    void iterateWindowSets(const std::function<void(const std::string &)> &);
 private:
     Json::Value config_;
 };
