@@ -111,8 +111,7 @@ void WindowList::quit() {
     save(SaveMethod::SaveAndClose);
 }
 
-void WindowList::saveAs(const QString &windowSet)
-{
+void WindowList::saveAs(const QString &windowSet) {
     auto config = getConfig();
     config[tag::currentWindowSet] = windowSet.toStdString();
     saveConfig(config);

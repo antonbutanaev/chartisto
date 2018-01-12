@@ -9,13 +9,11 @@ SaveAs::SaveAs(QWidget *parent) :
     ui->setupUi(this);
 }
 
-SaveAs::~SaveAs()
-{
+SaveAs::~SaveAs() {
     delete ui;
 }
 
-void SaveAs::on_pushButton_clicked()
-{
+void SaveAs::on_pushButton_clicked() {
     WindowList::instance().saveAs(ui->saveAs->text());
     close();
 }
