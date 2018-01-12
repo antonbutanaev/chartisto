@@ -32,7 +32,9 @@ SOURCES += \
     chartwidget.cpp \
     macdform.cpp \
     windowlist.cpp \
-    saveas.cpp
+    saveas.cpp \
+    load.cpp \
+    config.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -40,9 +42,12 @@ HEADERS += \
     macdform.h \
     windowlist.h \
     main.h \
-    saveas.h
+    saveas.h \
+    load.h \
+    config.h
 
 FORMS += \
         mainwindow.ui \
     macdform.ui \
-    saveas.ui
+    saveas.ui \
+    load.ui

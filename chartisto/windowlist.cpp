@@ -5,44 +5,9 @@
 #include <QApplication>
 #include <QDebug>
 
+#include "config.h"
 #include "mainwindow.h"
 #include "windowlist.h"
-
-namespace {
-
-const char *configFile() {
-    static std::string file = std::getenv("HOME") + std::string("/.chartisto");
-    return file.c_str();
-}
-
-namespace tag {
-constexpr char currentWindowSet[] = "currentWindowSet";
-constexpr char windowSets[] = "windowSets";
-constexpr char x[] = "x";
-constexpr char y[] = "y";
-constexpr char width[] = "width";
-constexpr char height[] = "height";
-}
-
-auto getConfig() {
-    Json::Value root;
-    std::ifstream ifs(configFile());
-    if (!!ifs) {
-        ifs.seekg(0, std::ios::end);
-        if (0 != ifs.tellg()) {
-            ifs.seekg(0);
-            ifs >> root;
-        }
-    }
-    return root;
-}
-
-void saveConfig(const Json::Value &root) {
-    std::ofstream ofs(configFile());
-    ofs << root << std::endl;
-}
-
-}
 
 WindowList::WindowList() : timer_(this) {
     connect(&timer_, SIGNAL(timeout()), this, SLOT(onTimeout()));
@@ -59,52 +24,38 @@ void WindowList::add(std::unique_ptr<QWidget> &&widget) {
 }
 
 void WindowList::open() {
-    const auto openBareMainWindow = [&] {
+    Config config;
+    if (!config.hasCurrentWindowSet()) {
         auto mainWindow = std::make_unique<MainWindow>();
         mainWindow->show();
         add(std::move(mainWindow));
-    };
-
-    const auto root = getConfig();
-    if (!root.isMember(tag::currentWindowSet))
-        openBareMainWindow();
-    else
-        for (const auto &it: root[tag::windowSets][root[tag::currentWindowSet].asString()]) {
+    } else {
+        config.iterateCurrentWindowSet([&] (auto x, auto y, auto w, auto h) {
             auto mainWindow = std::make_unique<MainWindow>();
-            mainWindow->setGeometry(
-                it[tag::x].asInt(),
-                it[tag::y].asInt(),
-                it[tag::width].asInt(),
-                it[tag::height].asInt()
-            );
+            mainWindow->setGeometry(x, y, w, h);
             mainWindow->show();
             add(std::move(mainWindow));
-        }
+        });
+    }
 }
 
 void WindowList::save(SaveMethod method) {
-    auto root = getConfig();
-    if (!root.isMember(tag::currentWindowSet))
-        root[tag::currentWindowSet] = "default";
-
-    auto &windowList = root[tag::windowSets][root[tag::currentWindowSet].asString()];
-    windowList.clear();
-
+    Config config;
+    config.clearCurrentWindowSet();
     for (const auto &it: windowList_) {
         if (!dynamic_cast<MainWindow*>(&*it)) // FIXME
             continue;
-        Json::Value window;
-        window[tag::x] = it->geometry().topLeft().x();
-        window[tag::y] = it->geometry().topLeft().y();
-        window[tag::width] = it->geometry().width();
-        window[tag::height] = it->geometry().height();
-        windowList.append(window);
+
+        config.addToCurrentWindowSet(
+            it->geometry().topLeft().x(),
+            it->geometry().topLeft().y(),
+            it->geometry().width(),
+            it->geometry().height()
+        );
 
         if (method == SaveMethod::SaveAndClose)
             it->close();
     }
-
-    saveConfig(root);
 }
 
 void WindowList::quit() {
@@ -112,14 +63,10 @@ void WindowList::quit() {
 }
 
 void WindowList::saveAs(const QString &windowSet) {
-    auto config = getConfig();
-    config[tag::currentWindowSet] = windowSet.toStdString();
-    saveConfig(config);
+    Config().setCurrentWindowSet(windowSet.toStdString());
 }
 
 void WindowList::onTimeout() {
-    //qDebug() << "onTimeout " << windowList_.size();
-
     for (auto it = windowList_.begin(); it != windowList_.end(); ) {
         if (!(*it)->isVisible())
             windowList_.erase(it++);
