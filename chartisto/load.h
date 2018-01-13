@@ -9,8 +9,6 @@ namespace Ui {
 class Load;
 }
 
-class QCloseEvent;
-
 class Load : public GeometryRemember<QDialog>
 {
     Q_OBJECT
@@ -18,14 +16,11 @@ class Load : public GeometryRemember<QDialog>
 public:
     explicit Load();
     ~Load();
-
     void readWindowSets();
 
 private slots:
     void on_loadButton_clicked();
-
     void on_removeButton_clicked();
-
     void updateButtons();
 
 private:

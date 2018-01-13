@@ -2,7 +2,6 @@
 #include "macdform.h"
 #include "windowlist.h"
 #include "mainwindow.h"
-#include "main.h"
 #include "ui_mainwindow.h"
 #include "saveas.h"
 #include "load.h"

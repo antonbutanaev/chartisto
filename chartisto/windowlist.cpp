@@ -1,8 +1,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
-#include <json/json.h>
-#include <QApplication>
 #include <QDebug>
 
 #include "config.h"
@@ -47,9 +45,6 @@ void WindowList::save(SaveMethod method) {
     Config config;
     config.clearCurrentWindowSet();
     for (const auto &it: windowList_) {
-        if (!dynamic_cast<MainWindow*>(&*it)) // FIXME
-            continue;
-
         config.addToCurrentWindowSet({
             it->geometry().topLeft().x(),
             it->geometry().topLeft().y(),
@@ -64,10 +59,14 @@ void WindowList::save(SaveMethod method) {
 
 void WindowList::quit() {
     save(SaveMethod::SaveAndClose);
-    loadWindow_->close();
+    if (loadWindow_)
+        loadWindow_->close();
 }
 
-void WindowList::clear() {windowList_.clear();}
+void WindowList::clear() {
+    windowList_.clear();
+    loadWindow_.reset();
+}
 
 void WindowList::saveAs(const QString &windowSet) {
     Config().setCurrentWindowSet(windowSet.toStdString());
@@ -91,7 +90,6 @@ void WindowList::load(const QString &x) {
 void WindowList::showLoad() {
     if (!loadWindow_)
         loadWindow_.reset(new Load);
-
 
     loadWindow_->readWindowSets();
     loadWindow_->show();

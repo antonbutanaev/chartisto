@@ -18,18 +18,18 @@ public:
         int x, y, w, h;
     };
 
-    using GetGeometry = std::function<void(const Geometry&)>;
+    using GetGeometry = std::function<void(Geometry)>;
     void iterateCurrentWindowSet(GetGeometry) const;
     void clearCurrentWindowSet();
-    void addToCurrentWindowSet(const Geometry&);
-    void setCurrentWindowSet(const std::string&);
-    void iterateWindowSets(const std::function<void(const std::string &)> &) const;
+    void addToCurrentWindowSet(Geometry);
+    void setCurrentWindowSet(std::string);
+    void iterateWindowSets(std::function<void(std::string)>) const;
 
-    Geometry getWindowGeometry(const std::string &type) const;
-    void setWindowGeometry(const std::string &type, const Geometry &);
+    Geometry getWindowGeometry(std::string windowType) const;
+    void setWindowGeometry(std::string window, Geometry);
     std::string getCurrentWindowSet() const;
 
-    void removeWindowSet(const std::string &type);
+    void removeWindowSet(std::string window);
 private:
     Json::Value config_;
 };

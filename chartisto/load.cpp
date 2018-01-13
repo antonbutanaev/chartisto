@@ -3,13 +3,6 @@
 #include "ui_load.h"
 #include "windowlist.h"
 
-#include <QtDebug>
-
-namespace {
-
-
-}
-
 Load::Load() :
     GeometryRemember<QDialog>("loadWindow"),
     ui(new Ui::Load)

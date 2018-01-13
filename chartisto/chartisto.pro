@@ -41,7 +41,6 @@ HEADERS += \
     chartwidget.h \
     macdform.h \
     windowlist.h \
-    main.h \
     saveas.h \
     load.h \
     config.h \

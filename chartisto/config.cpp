@@ -60,7 +60,7 @@ void Config::clearCurrentWindowSet() {
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].clear();
 }
 
-void Config::addToCurrentWindowSet(const Geometry &g) {
+void Config::addToCurrentWindowSet(Geometry g) {
     Json::Value window;
     window[tag::x] = g.x;
     window[tag::y] = g.y;
@@ -69,20 +69,20 @@ void Config::addToCurrentWindowSet(const Geometry &g) {
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].append(window);
 }
 
-void Config::setCurrentWindowSet(const std::string &windowSet) {
+void Config::setCurrentWindowSet(std::string windowSet) {
     config_[tag::currentWindowSet] = windowSet;
 }
 
-void Config::iterateWindowSets(const std::function<void(const std::string &)> &cb) const {
+void Config::iterateWindowSets(std::function<void(std::string)> cb) const {
     const auto &windowSets = config_[tag::windowSets];
     for (auto it = windowSets.begin(); it != windowSets.end(); ++it)
         cb(it.key().asString());
 }
 
-Config::Geometry Config::getWindowGeometry(const std::string &type) const {
+Config::Geometry Config::getWindowGeometry(std::string windowType) const {
     Geometry g = {};
-    if (config_.isMember(type)) {
-        const auto &window = config_[type];
+    if (config_.isMember(windowType)) {
+        const auto &window = config_[windowType];
         g.x = window[tag::x].asInt();
         g.y = window[tag::y].asInt();
         g.w = window[tag::width].asInt();
@@ -91,8 +91,8 @@ Config::Geometry Config::getWindowGeometry(const std::string &type) const {
     return g;
 }
 
-void Config::setWindowGeometry(const std::string &type, const Geometry &g) {
-    auto &window = config_[type];
+void Config::setWindowGeometry(std::string windowType, Geometry g) {
+    auto &window = config_[windowType];
     window[tag::x] = g.x;
     window[tag::y] = g.y;
     window[tag::width] = g.w;
@@ -103,7 +103,7 @@ std::string Config::getCurrentWindowSet() const {
     return config_[tag::currentWindowSet].asString();
 }
 
-void Config::removeWindowSet(const std::string &windowSet) {
+void Config::removeWindowSet(std::string window) {
     Json::Value removed;
-    config_[tag::windowSets].removeMember(windowSet, &removed);
+    config_[tag::windowSets].removeMember(window, &removed);
 }
