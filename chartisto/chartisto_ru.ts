@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="ru_RU">
+<TS version="2.0" language="ru_RU">
 <context>
     <name>Load</name>
     <message>
@@ -63,12 +63,12 @@
     <message>
         <location filename="mainwindow.ui" line="58"/>
         <source>Indicators</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Индикаторы</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="67"/>
         <source>New</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Новое окно</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="70"/>
@@ -83,7 +83,7 @@
     <message>
         <location filename="mainwindow.ui" line="80"/>
         <source>Save</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Сохранить</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="83"/>
@@ -93,12 +93,12 @@
     <message>
         <location filename="mainwindow.ui" line="88"/>
         <source>Save as</source>
-        <translation>Сохранить как</translation>
+        <translation type="unfinished">Сохранить как</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="93"/>
         <source>Load</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Загрузить</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="96"/>
@@ -108,7 +108,7 @@
     <message>
         <location filename="mainwindow.ui" line="101"/>
         <source>Quit</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Выход</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="104"/>
