@@ -15,7 +15,8 @@ private:
     void showEvent(QShowEvent *ev) override {
         T::showEvent(ev);
         const auto g = Config().getWindowGeometry(type_);
-        T::setGeometry(g.x, g.y, g.w, g.h);
+        if (g.w && g.h)
+            T::setGeometry(g.x, g.y, g.w, g.h);
     }
 
     void closeEvent(QCloseEvent *ev) override {
