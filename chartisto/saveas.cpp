@@ -7,6 +7,9 @@ SaveAs::SaveAs(QWidget *parent) :
     ui(new Ui::SaveAs)
 {
     ui->setupUi(this);
+    const auto currentWindowSet = QString::fromStdString(Config().getCurrentWindowSet());
+    ui->saveAs->setText(currentWindowSet);
+    ui->saveAs->setSelection(0, currentWindowSet.length());
 }
 
 SaveAs::~SaveAs() {

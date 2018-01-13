@@ -44,7 +44,7 @@ bool Config::hasCurrentWindowSet()
     return config_.isMember(tag::currentWindowSet);
 }
 
-void Config::iterateCurrentWindowSet(GetGeometry cb) {
+void Config::iterateCurrentWindowSet(GetGeometry cb) const {
     for (const auto &it: config_[tag::windowSets][config_[tag::currentWindowSet].asString()])
         cb({
             it[tag::x].asInt(),
@@ -73,13 +73,13 @@ void Config::setCurrentWindowSet(const std::string &windowSet) {
     config_[tag::currentWindowSet] = windowSet;
 }
 
-void Config::iterateWindowSets(const std::function<void(const std::string &)> &cb) {
+void Config::iterateWindowSets(const std::function<void(const std::string &)> &cb) const {
     const auto &windowSets = config_[tag::windowSets];
     for (auto it = windowSets.begin(); it != windowSets.end(); ++it)
         cb(it.key().asString());
 }
 
-Config::Geometry Config::getWindowGeometry(const std::string &type) {
+Config::Geometry Config::getWindowGeometry(const std::string &type) const {
     Geometry g = {};
     if (config_.isMember(type)) {
         const auto &window = config_[type];
@@ -97,4 +97,8 @@ void Config::setWindowGeometry(const std::string &type, const Geometry &g) {
     window[tag::y] = g.y;
     window[tag::width] = g.w;
     window[tag::height] = g.h;
+}
+
+std::string Config::getCurrentWindowSet() const {
+    return config_[tag::currentWindowSet].asString();
 }
