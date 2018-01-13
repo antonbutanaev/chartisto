@@ -84,7 +84,6 @@ void WindowList::load(const QString &x) {
         mainWindow->show();
         add(std::move(mainWindow));
     });
-
 }
 
 void WindowList::showLoad() {

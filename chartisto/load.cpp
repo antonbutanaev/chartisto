@@ -18,12 +18,25 @@ Load::~Load() {
 void Load::readWindowSets() {
     ui->listWidget->clear();
     Config config;
+    const auto currentWindowSet = config.getCurrentWindowSet();
+    setWindowTitle(QString("Replace ") + currentWindowSet.c_str() + " with..");
     config.iterateWindowSets([&] (const std::string &windowSet) {
-        ui->listWidget->addItem(QString::fromStdString(windowSet));
+        if (windowSet != currentWindowSet)
+            ui->listWidget->addItem(QString::fromStdString(windowSet));
     });
 }
 
-void Load::on_pushButton_clicked() {
+void Load::on_loadButton_clicked() {
     WindowList::instance().load(ui->listWidget->currentItem()->text());
+    readWindowSets();
     activateWindow();
+
+}
+
+void Load::on_deleteButton_clicked() {
+    {
+        Config config;
+        config.removeWindowSet(ui->listWidget->currentItem()->text().toStdString());
+    }
+    readWindowSets();
 }

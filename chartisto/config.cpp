@@ -102,3 +102,7 @@ void Config::setWindowGeometry(const std::string &type, const Geometry &g) {
 std::string Config::getCurrentWindowSet() const {
     return config_[tag::currentWindowSet].asString();
 }
+
+void Config::removeWindowSet(const std::string &windowSet) {
+    config_[tag::windowSets].removeMember(windowSet);
+}

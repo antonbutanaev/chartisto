@@ -28,6 +28,8 @@ public:
     Geometry getWindowGeometry(const std::string &type) const;
     void setWindowGeometry(const std::string &type, const Geometry &);
     std::string getCurrentWindowSet() const;
+
+    void removeWindowSet(const std::string &type);
 private:
     Json::Value config_;
 };
