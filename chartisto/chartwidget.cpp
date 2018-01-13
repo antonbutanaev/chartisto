@@ -1,7 +1,6 @@
 #include "chartwidget.h"
 
 #include <QPainter>
-#include <QDebug>
 #include <QResizeEvent>
 
 ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent) {
@@ -24,7 +23,6 @@ void ChartWidget::paintEvent(QPaintEvent *) {
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
-    qDebug() << "Resize " << event->size();
     size_ = event->size();
 }
 

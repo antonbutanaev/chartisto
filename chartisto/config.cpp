@@ -104,5 +104,6 @@ std::string Config::getCurrentWindowSet() const {
 }
 
 void Config::removeWindowSet(const std::string &windowSet) {
-    config_[tag::windowSets].removeMember(windowSet);
+    Json::Value removed;
+    config_[tag::windowSets].removeMember(windowSet, &removed);
 }

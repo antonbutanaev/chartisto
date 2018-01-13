@@ -33,10 +33,8 @@ void Load::on_loadButton_clicked() {
 
 }
 
-void Load::on_deleteButton_clicked() {
-    {
-        Config config;
-        config.removeWindowSet(ui->listWidget->currentItem()->text().toStdString());
-    }
+void Load::on_removeButton_clicked() {
+    Config().removeWindowSet(ui->listWidget->currentItem()->text().toStdString());
     readWindowSets();
+
 }

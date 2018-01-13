@@ -72,6 +72,8 @@ void WindowList::clear() {windowList_.clear();}
 void WindowList::saveAs(const QString &windowSet) {
     Config().setCurrentWindowSet(windowSet.toStdString());
     save(SaveMethod::JustSave);
+    if (loadWindow_)
+        loadWindow_->readWindowSets();
 }
 
 void WindowList::load(const QString &x) {

@@ -23,7 +23,7 @@ public:
 private slots:
     void on_loadButton_clicked();
 
-    void on_deleteButton_clicked();
+    void on_removeButton_clicked();
 
 private:
     Ui::Load *ui;
