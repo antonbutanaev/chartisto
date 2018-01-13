@@ -12,7 +12,7 @@ class Load : public QDialog
     Q_OBJECT
 
 public:
-    explicit Load(QStringList &&items, QWidget *parent = nullptr);
+    explicit Load(QWidget *parent = nullptr);
     ~Load();
 
 private slots:

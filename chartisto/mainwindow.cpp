@@ -27,13 +27,7 @@ void MainWindow::on_actionMACD_triggered() {
 }
 
 void MainWindow::on_actionLoad_triggered() {
-    QStringList windowSets;
-    Config config;
-    config.iterateWindowSets([&] (const std::string &windowSet) {
-        windowSets << QString::fromStdString(windowSet);
-    });
-
-    auto window = std::make_unique<Load>(std::move(windowSets));
+    auto window = std::make_unique<Load>();
     window->show();
     WindowList::instance().add(std::move(window));
 }
