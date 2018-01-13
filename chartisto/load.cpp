@@ -3,16 +3,12 @@
 #include "ui_load.h"
 #include "windowlist.h"
 
-Load::Load(QWidget *parent) :
-    QDialog(parent),
+Load::Load() :
+    GeometryRemember<QDialog>("loadWindow"),
     ui(new Ui::Load)
 {
     ui->setupUi(this);
     readWindowSets();
-
-    Config config;
-    const auto g = config.getLoadWindowGeometry();
-    setGeometry(g.x, g.y, g.w, g.h);
 }
 
 Load::~Load() {
@@ -25,17 +21,6 @@ void Load::readWindowSets() {
     config.iterateWindowSets([&] (const std::string &windowSet) {
         ui->listWidget->addItem(QString::fromStdString(windowSet));
     });
-}
-
-void Load::closeEvent(QCloseEvent *) {
-    const auto g = geometry();
-    Config config;
-    config.setLoadWindowGeometry({
-        g.topLeft().x(),
-        g.topLeft().y(),
-        g.width(),
-        g.height()
-     });
 }
 
 void Load::on_pushButton_clicked() {

@@ -18,7 +18,6 @@ constexpr char y[] = "y";
 constexpr char width[] = "width";
 constexpr char height[] = "height";
 constexpr char noName[] = "no name";
-constexpr char loadWindow[] = "loadWindow";
 }
 }
 
@@ -80,22 +79,22 @@ void Config::iterateWindowSets(const std::function<void(const std::string &)> &c
         cb(it.key().asString());
 }
 
-Config::Geometry Config::getLoadWindowGeometry() {
+Config::Geometry Config::getWindowGeometry(const std::string &type) {
     Geometry g = {};
-    if (config_.isMember(tag::loadWindow)) {
-        const auto &loadWindow = config_[tag::loadWindow];
-        g.x = loadWindow[tag::x].asInt();
-        g.y = loadWindow[tag::y].asInt();
-        g.w = loadWindow[tag::width].asInt();
-        g.h = loadWindow[tag::height].asInt();
+    if (config_.isMember(type)) {
+        const auto &window = config_[type];
+        g.x = window[tag::x].asInt();
+        g.y = window[tag::y].asInt();
+        g.w = window[tag::width].asInt();
+        g.h = window[tag::height].asInt();
     }
     return g;
 }
 
-void Config::setLoadWindowGeometry(const Geometry &g) {
-    auto &loadWindow = config_[tag::loadWindow];
-    loadWindow[tag::x] = g.x;
-    loadWindow[tag::y] = g.y;
-    loadWindow[tag::width] = g.w;
-    loadWindow[tag::height] = g.h;
+void Config::setWindowGeometry(const std::string &type, const Geometry &g) {
+    auto &window = config_[type];
+    window[tag::x] = g.x;
+    window[tag::y] = g.y;
+    window[tag::width] = g.w;
+    window[tag::height] = g.h;
 }

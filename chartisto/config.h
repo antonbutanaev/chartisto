@@ -25,8 +25,8 @@ public:
     void setCurrentWindowSet(const std::string&);
     void iterateWindowSets(const std::function<void(const std::string &)> &);
 
-    Geometry getLoadWindowGeometry();
-    void setLoadWindowGeometry(const Geometry &);
+    Geometry getWindowGeometry(const std::string &type);
+    void setWindowGeometry(const std::string &type, const Geometry &);
 
 private:
     Json::Value config_;

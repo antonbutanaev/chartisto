@@ -1,6 +1,7 @@
 #ifndef LOAD_H
 #define LOAD_H
 
+#include "geometryremember.h"
 #include <QDialog>
 
 namespace Ui {
@@ -9,16 +10,15 @@ class Load;
 
 class QCloseEvent;
 
-class Load : public QDialog
+class Load : public GeometryRemember<QDialog>
 {
     Q_OBJECT
 
 public:
-    explicit Load(QWidget *parent = nullptr);
-    ~Load() override;
+    explicit Load();
+    ~Load();
 
     void readWindowSets();
-    void closeEvent(QCloseEvent *) override;
 
 private slots:
     void on_pushButton_clicked();

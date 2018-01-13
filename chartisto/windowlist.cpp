@@ -91,6 +91,7 @@ void WindowList::showLoad() {
     if (!loadWindow_)
         loadWindow_.reset(new Load);
 
+
     loadWindow_->readWindowSets();
     loadWindow_->show();
     loadWindow_->activateWindow();

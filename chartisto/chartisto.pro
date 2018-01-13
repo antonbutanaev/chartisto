@@ -44,7 +44,8 @@ HEADERS += \
     main.h \
     saveas.h \
     load.h \
-    config.h
+    config.h \
+    geometryremember.h
 
 FORMS += \
         mainwindow.ui \
