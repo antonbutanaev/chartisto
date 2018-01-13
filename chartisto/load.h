@@ -1,6 +1,7 @@
 #ifndef LOAD_H
 #define LOAD_H
 
+#include <functional>
 #include "geometryremember.h"
 #include <QDialog>
 
@@ -25,7 +26,11 @@ private slots:
 
     void on_removeButton_clicked();
 
+    void updateButtons();
+
 private:
+    void processSelected(std::function<void(QString)>);
+
     Ui::Load *ui;
 };
 

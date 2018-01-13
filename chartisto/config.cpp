@@ -6,7 +6,7 @@
 namespace {
 
 const char *configFile() {
-    static std::string file = std::getenv("HOME") + std::string("/.chartisto");
+    static std::string file = std::getenv("HOME") + std::string("/.chartisto.json");
     return file.c_str();
 }
 

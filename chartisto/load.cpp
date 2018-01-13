@@ -3,11 +3,19 @@
 #include "ui_load.h"
 #include "windowlist.h"
 
+#include <QtDebug>
+
+namespace {
+
+
+}
+
 Load::Load() :
     GeometryRemember<QDialog>("loadWindow"),
     ui(new Ui::Load)
 {
     ui->setupUi(this);
+    connect(ui->listWidget, SIGNAL(itemSelectionChanged()), this, SLOT(updateButtons()));
     readWindowSets();
 }
 
@@ -27,14 +35,29 @@ void Load::readWindowSets() {
 }
 
 void Load::on_loadButton_clicked() {
-    WindowList::instance().load(ui->listWidget->currentItem()->text());
-    readWindowSets();
-    activateWindow();
-
+    processSelected([&] (QString text) {
+        WindowList::instance().load(text);
+        readWindowSets();
+        activateWindow();
+    });
 }
 
 void Load::on_removeButton_clicked() {
-    Config().removeWindowSet(ui->listWidget->currentItem()->text().toStdString());
-    readWindowSets();
+    processSelected([&] (QString text) {
+        Config().removeWindowSet(text.toStdString());
+        readWindowSets();
+    });
+}
 
+void Load::updateButtons() {
+    const auto noSelectedItem = ui->listWidget->selectedItems().empty();
+    ui->loadButton->setEnabled(!noSelectedItem);
+    ui->removeButton->setEnabled(!noSelectedItem);
+
+}
+
+void Load::processSelected(std::function<void (QString)> cb) {
+    const auto selected = ui->listWidget->selectedItems();
+    if (!selected.empty())
+        cb(selected.front()->text());
 }
