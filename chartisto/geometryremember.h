@@ -4,12 +4,13 @@
 #include <string>
 #include "config.h"
 
+class QWidget;
 class QShowEvent;
 class QCloseEvent;
 
 template <class T> class GeometryRemember : public T {
 public:
-    GeometryRemember(std::string &&type) : type_(std::move(type)) { }
+    GeometryRemember(std::string &&type, QWidget *parent = nullptr) : T(parent), type_(std::move(type)) { }
 private:
     void showEvent(QShowEvent *ev) override {
         T::showEvent(ev);

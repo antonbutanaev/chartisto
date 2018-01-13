@@ -3,7 +3,7 @@
 #include "windowlist.h"
 
 SaveAs::SaveAs(QWidget *parent) :
-    QDialog(parent),
+    GeometryRemember<QDialog>("saveAsWindow", parent),
     ui(new Ui::SaveAs)
 {
     ui->setupUi(this);
