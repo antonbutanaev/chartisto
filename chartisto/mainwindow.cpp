@@ -23,13 +23,11 @@ MainWindow::~MainWindow() {
 void MainWindow::on_actionMACD_triggered() {
     auto macdForm = std::make_unique<MACDForm>(this);
     macdForm->show();
-    WindowList::instance().add(std::move(macdForm));
+    //WindowList::instance().add(std::move(macdForm));
 }
 
 void MainWindow::on_actionLoad_triggered() {
-    auto window = std::make_unique<Load>();
-    window->show();
-    WindowList::instance().add(std::move(window));
+    WindowList::instance().showLoad();
 }
 
 void MainWindow::on_actionQuit_triggered() {
@@ -42,9 +40,6 @@ void MainWindow::on_actionNew_triggered() {
     WindowList::instance().add(std::move(window));
 }
 
-void MainWindow::on_actionSave_as_triggered()
-{
-    auto window = std::make_unique<SaveAs>();
-    window->show();
-    WindowList::instance().add(std::move(window));
+void MainWindow::on_actionSave_as_triggered() {
+    SaveAs().exec();
 }

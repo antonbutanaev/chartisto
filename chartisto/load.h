@@ -7,13 +7,18 @@ namespace Ui {
 class Load;
 }
 
+class QCloseEvent;
+
 class Load : public QDialog
 {
     Q_OBJECT
 
 public:
     explicit Load(QWidget *parent = nullptr);
-    ~Load();
+    ~Load() override;
+
+    void readWindowSets();
+    void closeEvent(QCloseEvent *) override;
 
 private slots:
     void on_pushButton_clicked();

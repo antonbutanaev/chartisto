@@ -18,6 +18,7 @@ constexpr char y[] = "y";
 constexpr char width[] = "width";
 constexpr char height[] = "height";
 constexpr char noName[] = "no name";
+constexpr char loadWindow[] = "loadWindow";
 }
 }
 
@@ -46,12 +47,12 @@ bool Config::hasCurrentWindowSet()
 
 void Config::iterateCurrentWindowSet(GetGeometry cb) {
     for (const auto &it: config_[tag::windowSets][config_[tag::currentWindowSet].asString()])
-        cb(
+        cb({
             it[tag::x].asInt(),
             it[tag::y].asInt(),
             it[tag::width].asInt(),
             it[tag::height].asInt()
-        );
+        });
 }
 
 void Config::clearCurrentWindowSet() {
@@ -60,12 +61,12 @@ void Config::clearCurrentWindowSet() {
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].clear();
 }
 
-void Config::addToCurrentWindowSet(int x, int y, int w, int h) {
+void Config::addToCurrentWindowSet(const Geometry &g) {
     Json::Value window;
-    window[tag::x] = x;
-    window[tag::y] = y;
-    window[tag::width] = w;
-    window[tag::height] = h;
+    window[tag::x] = g.x;
+    window[tag::y] = g.y;
+    window[tag::width] = g.w;
+    window[tag::height] = g.h;
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].append(window);
 }
 
@@ -77,4 +78,24 @@ void Config::iterateWindowSets(const std::function<void(const std::string &)> &c
     const auto &windowSets = config_[tag::windowSets];
     for (auto it = windowSets.begin(); it != windowSets.end(); ++it)
         cb(it.key().asString());
+}
+
+Config::Geometry Config::getLoadWindowGeometry() {
+    Geometry g = {};
+    if (config_.isMember(tag::loadWindow)) {
+        const auto &loadWindow = config_[tag::loadWindow];
+        g.x = loadWindow[tag::x].asInt();
+        g.y = loadWindow[tag::y].asInt();
+        g.w = loadWindow[tag::width].asInt();
+        g.h = loadWindow[tag::height].asInt();
+    }
+    return g;
+}
+
+void Config::setLoadWindowGeometry(const Geometry &g) {
+    auto &loadWindow = config_[tag::loadWindow];
+    loadWindow[tag::x] = g.x;
+    loadWindow[tag::y] = g.y;
+    loadWindow[tag::width] = g.w;
+    loadWindow[tag::height] = g.h;
 }

@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "mainwindow.h"
+#include "load.h"
 #include "windowlist.h"
 
 WindowList::WindowList() : timer_(this) {
@@ -14,12 +15,15 @@ WindowList::WindowList() : timer_(this) {
     timer_.start(500);
 }
 
+WindowList::~WindowList() {
+}
+
 WindowList &WindowList::instance() {
     static WindowList windowList;
     return windowList;
 }
 
-void WindowList::add(std::unique_ptr<QWidget> &&widget) {
+void WindowList::add(std::unique_ptr<MainWindow> &&widget) {
     windowList_.push_back(std::move(widget));
 }
 
@@ -30,9 +34,9 @@ void WindowList::open() {
         mainWindow->show();
         add(std::move(mainWindow));
     } else {
-        config.iterateCurrentWindowSet([&] (auto x, auto y, auto w, auto h) {
+        config.iterateCurrentWindowSet([&] (const Config::Geometry &g) {
             auto mainWindow = std::make_unique<MainWindow>();
-            mainWindow->setGeometry(x, y, w, h);
+            mainWindow->setGeometry(g.x, g.y, g.w, g.h);
             mainWindow->show();
             add(std::move(mainWindow));
         });
@@ -46,12 +50,12 @@ void WindowList::save(SaveMethod method) {
         if (!dynamic_cast<MainWindow*>(&*it)) // FIXME
             continue;
 
-        config.addToCurrentWindowSet(
+        config.addToCurrentWindowSet({
             it->geometry().topLeft().x(),
             it->geometry().topLeft().y(),
             it->geometry().width(),
             it->geometry().height()
-        );
+        });
 
         if (method == SaveMethod::SaveAndClose)
             it->close();
@@ -60,7 +64,10 @@ void WindowList::save(SaveMethod method) {
 
 void WindowList::quit() {
     save(SaveMethod::SaveAndClose);
+    loadWindow_->close();
 }
+
+void WindowList::clear() {windowList_.clear();}
 
 void WindowList::saveAs(const QString &windowSet) {
     Config().setCurrentWindowSet(windowSet.toStdString());
@@ -71,13 +78,22 @@ void WindowList::load(const QString &x) {
     save(SaveMethod::SaveAndClose);
     Config config;
     config.setCurrentWindowSet(x.toStdString());
-    config.iterateCurrentWindowSet([&] (auto x, auto y, auto w, auto h) {
+    config.iterateCurrentWindowSet([&] (const Config::Geometry &g) {
         auto mainWindow = std::make_unique<MainWindow>();
-        mainWindow->setGeometry(x, y, w, h);
+        mainWindow->setGeometry(g.x, g.y, g.w, g.h);
         mainWindow->show();
         add(std::move(mainWindow));
     });
 
+}
+
+void WindowList::showLoad() {
+    if (!loadWindow_)
+        loadWindow_.reset(new Load);
+
+    loadWindow_->readWindowSets();
+    loadWindow_->show();
+    loadWindow_->activateWindow();
 }
 
 void WindowList::onTimeout() {

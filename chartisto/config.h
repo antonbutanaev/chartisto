@@ -14,12 +14,20 @@ public:
     void save();
     bool hasCurrentWindowSet();
 
-    using GetGeometry = std::function<void(int x, int y, int w, int h)>;
+    struct Geometry {
+        int x, y, w, h;
+    };
+
+    using GetGeometry = std::function<void(const Geometry&)>;
     void iterateCurrentWindowSet(GetGeometry);
     void clearCurrentWindowSet();
-    void addToCurrentWindowSet(int x, int y, int w, int h);
+    void addToCurrentWindowSet(const Geometry&);
     void setCurrentWindowSet(const std::string&);
     void iterateWindowSets(const std::function<void(const std::string &)> &);
+
+    Geometry getLoadWindowGeometry();
+    void setLoadWindowGeometry(const Geometry &);
+
 private:
     Json::Value config_;
 };
