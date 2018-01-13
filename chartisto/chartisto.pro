@@ -51,3 +51,5 @@ FORMS += \
     macdform.ui \
     saveas.ui \
     load.ui
+
+TRANSLATIONS = chartisto_ru.ts
