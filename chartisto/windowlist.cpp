@@ -43,7 +43,7 @@ void WindowList::open() {
 
 void WindowList::save(SaveMethod method) {
     Config config;
-    config.clearCurrentWindowSet();
+    config.clearCurrentWindowSet(tr("No name").toStdString());
     for (const auto &it: windowList_) {
         config.addToCurrentWindowSet({
             it->geometry().topLeft().x(),

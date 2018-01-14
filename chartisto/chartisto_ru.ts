@@ -136,4 +136,13 @@
         <translation type="unfinished">Сохранить</translation>
     </message>
 </context>
+<context>
+    <name>WindowList</name>
+    <message>
+        <location filename="windowlist.cpp" line="46"/>
+        <source>No name</source>
+        <oldsource>no name</oldsource>
+        <translation type="unfinished">Без имени</translation>
+    </message>
+</context>
 </TS>

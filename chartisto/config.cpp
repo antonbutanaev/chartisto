@@ -15,9 +15,9 @@ constexpr char currentWindowSet[] = "currentWindowSet";
 constexpr char windowSets[] = "windowSets";
 constexpr char x[] = "x";
 constexpr char y[] = "y";
-constexpr char width[] = "width";
-constexpr char height[] = "height";
-constexpr char noName[] = "no name";
+constexpr char w[] = "w";
+constexpr char h[] = "h";
+constexpr char geometry[] = "geometry";
 }
 }
 
@@ -45,27 +45,30 @@ bool Config::hasCurrentWindowSet()
 }
 
 void Config::iterateCurrentWindowSet(GetGeometry cb) const {
-    for (const auto &it: config_[tag::windowSets][config_[tag::currentWindowSet].asString()])
+    for (const auto &it: config_[tag::windowSets][config_[tag::currentWindowSet].asString()]) {
+        const auto &geometry = it[tag::geometry];
         cb({
-            it[tag::x].asInt(),
-            it[tag::y].asInt(),
-            it[tag::width].asInt(),
-            it[tag::height].asInt()
+            geometry[tag::x].asInt(),
+            geometry[tag::y].asInt(),
+            geometry[tag::w].asInt(),
+            geometry[tag::h].asInt()
         });
+    }
 }
 
-void Config::clearCurrentWindowSet() {
+void Config::clearCurrentWindowSet(std::string noName) {
     if (!config_.isMember(tag::currentWindowSet))
-        config_[tag::currentWindowSet] = tag::noName;
+        config_[tag::currentWindowSet] = noName;
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].clear();
 }
 
 void Config::addToCurrentWindowSet(Geometry g) {
     Json::Value window;
-    window[tag::x] = g.x;
-    window[tag::y] = g.y;
-    window[tag::width] = g.w;
-    window[tag::height] = g.h;
+    auto &geometry = window[tag::geometry];
+    geometry[tag::x] = g.x;
+    geometry[tag::y] = g.y;
+    geometry[tag::w] = g.w;
+    geometry[tag::h] = g.h;
     config_[tag::windowSets][config_[tag::currentWindowSet].asString()].append(window);
 }
 
@@ -82,21 +85,21 @@ void Config::iterateWindowSets(std::function<void(std::string)> cb) const {
 Config::Geometry Config::getWindowGeometry(std::string windowType) const {
     Geometry g = {};
     if (config_.isMember(windowType)) {
-        const auto &window = config_[windowType];
-        g.x = window[tag::x].asInt();
-        g.y = window[tag::y].asInt();
-        g.w = window[tag::width].asInt();
-        g.h = window[tag::height].asInt();
+        const auto &geometry = config_[windowType][tag::geometry];
+        g.x = geometry[tag::x].asInt();
+        g.y = geometry[tag::y].asInt();
+        g.w = geometry[tag::w].asInt();
+        g.h = geometry[tag::h].asInt();
     }
     return g;
 }
 
 void Config::setWindowGeometry(std::string windowType, Geometry g) {
-    auto &window = config_[windowType];
-    window[tag::x] = g.x;
-    window[tag::y] = g.y;
-    window[tag::width] = g.w;
-    window[tag::height] = g.h;
+    auto &geometry = config_[windowType][tag::geometry];
+    geometry[tag::x] = g.x;
+    geometry[tag::y] = g.y;
+    geometry[tag::w] = g.w;
+    geometry[tag::h] = g.h;
 }
 
 std::string Config::getCurrentWindowSet() const {

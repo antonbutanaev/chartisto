@@ -20,7 +20,7 @@ public:
 
     using GetGeometry = std::function<void(Geometry)>;
     void iterateCurrentWindowSet(GetGeometry) const;
-    void clearCurrentWindowSet();
+    void clearCurrentWindowSet(std::string noName);
     void addToCurrentWindowSet(Geometry);
     void setCurrentWindowSet(std::string);
     void iterateWindowSets(std::function<void(std::string)>) const;
