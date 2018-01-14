@@ -53,3 +53,7 @@ FORMS += \
     load.ui
 
 TRANSLATIONS = chartisto_ru.ts
+
+RESOURCES = chartisto.qrc
+
+

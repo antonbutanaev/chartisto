@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
     app.installTranslator(&qtTranslator);
 
     QTranslator myappTranslator;
-    myappTranslator.load("/y/anton/devel/arch/c++/chartisto/chartisto/chartisto_" + QLocale::system().name());
+    myappTranslator.load(":/chartisto_" + QLocale::system().name());
     app.installTranslator(&myappTranslator);
 
     WindowList::instance().open();
