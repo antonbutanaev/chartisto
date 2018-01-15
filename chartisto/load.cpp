@@ -20,7 +20,7 @@ void Load::readWindowSets() {
     ui->listWidget->clear();
     Config config;
     const auto currentWindowSet = config.getCurrentWindowSet();
-    setWindowTitle(tr("Replace") + " " + currentWindowSet.c_str());
+    setWindowTitle(tr("Replace %1 with:").arg(currentWindowSet.c_str()));
     config.iterateWindowSets([&] (const std::string &windowSet) {
         if (windowSet != currentWindowSet)
             ui->listWidget->addItem(QString::fromStdString(windowSet));

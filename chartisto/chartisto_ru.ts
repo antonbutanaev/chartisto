@@ -7,18 +7,18 @@
         <location filename="load.ui" line="14"/>
         <location filename="load.ui" line="37"/>
         <source>Load</source>
-        <translation type="unfinished">Загрузить</translation>
+        <translation>Загрузить</translation>
     </message>
     <message>
         <location filename="load.ui" line="57"/>
         <source>Remove</source>
-        <translation type="unfinished">Удалить</translation>
+        <translation>Удалить</translation>
     </message>
     <message>
         <location filename="load.cpp" line="23"/>
-        <source>Replace</source>
-        <oldsource>Replace </oldsource>
-        <translation type="unfinished">Замена</translation>
+        <source>Replace %1 with:</source>
+        <oldsource>Replace %s with</oldsource>
+        <translation>Замена %1 на:</translation>
     </message>
 </context>
 <context>
@@ -26,32 +26,32 @@
     <message>
         <location filename="macdform.ui" line="20"/>
         <source>MACD</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="macdform.ui" line="38"/>
         <source>Period</source>
-        <translation type="unfinished">Период</translation>
+        <translation>Период</translation>
     </message>
     <message>
         <location filename="macdform.ui" line="48"/>
         <source>%K</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="macdform.ui" line="58"/>
         <source>%D</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="macdform.ui" line="68"/>
         <source>Apply</source>
-        <translation type="unfinished">Применить</translation>
+        <translation>Применить</translation>
     </message>
     <message>
         <location filename="macdform.ui" line="75"/>
         <source>OK</source>
-        <translation type="unfinished">ОК</translation>
+        <translation>ОК</translation>
     </message>
 </context>
 <context>
@@ -59,67 +59,67 @@
     <message>
         <location filename="mainwindow.ui" line="14"/>
         <source>MainWindow</source>
-        <translation type="unfinished">Главное окно</translation>
+        <translation>Главное окно</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="46"/>
         <source>Window</source>
-        <translation type="unfinished">Окна</translation>
+        <translation>Окна</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="58"/>
         <source>Indicators</source>
-        <translation type="unfinished">Индикаторы</translation>
+        <translation>Индикаторы</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="67"/>
         <source>New</source>
-        <translation type="unfinished">Новое окно</translation>
+        <translation>Новое окно</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="70"/>
         <source>Ctrl+N</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="75"/>
         <source>MACD</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="80"/>
         <source>Save</source>
-        <translation type="unfinished">Сохранить</translation>
+        <translation>Сохранить</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="83"/>
         <source>Ctrl+S</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="88"/>
         <source>Save as</source>
-        <translation type="unfinished">Сохранить как</translation>
+        <translation>Сохранить как</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="93"/>
         <source>Load</source>
-        <translation type="unfinished">Загрузить</translation>
+        <translation>Загрузить</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="96"/>
         <source>Ctrl+L</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="101"/>
         <source>Quit</source>
-        <translation type="unfinished">Выход</translation>
+        <translation>Выход</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="104"/>
         <source>Ctrl+Q</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
 </context>
 <context>
@@ -128,21 +128,21 @@
         <location filename="saveas.ui" line="14"/>
         <location filename="saveas.ui" line="32"/>
         <source>Save as</source>
-        <translation type="unfinished">Сохранить как</translation>
+        <translation>Сохранить как</translation>
     </message>
     <message>
         <location filename="saveas.ui" line="42"/>
         <source>Save</source>
-        <translation type="unfinished">Сохранить</translation>
+        <translation>Сохранить</translation>
     </message>
 </context>
 <context>
     <name>WindowList</name>
     <message>
-        <location filename="windowlist.cpp" line="46"/>
+        <location filename="windowlist.cpp" line="45"/>
         <source>No name</source>
         <oldsource>no name</oldsource>
-        <translation type="unfinished">Без имени</translation>
+        <translation>Без имени</translation>
     </message>
 </context>
 </TS>
