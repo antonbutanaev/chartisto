@@ -31,3 +31,16 @@ SOURCES += \
         testpainter.cpp 
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../painter/release/ -lpainter
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../painter/debug/ -lpainter
+else:unix: LIBS += -L$$OUT_PWD/../painter/ -lpainter
+
+INCLUDEPATH += $$PWD/../painter
+DEPENDPATH += $$PWD/../painter
+
+win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../painter/release/libpainter.a
+else:win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../painter/debug/libpainter.a
+else:win32:!win32-g++:CONFIG(release, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../painter/release/painter.lib
+else:win32:!win32-g++:CONFIG(debug, debug|release): PRE_TARGETDEPS += $$OUT_PWD/../painter/debug/painter.lib
+else:unix: PRE_TARGETDEPS += $$OUT_PWD/../painter/libpainter.a

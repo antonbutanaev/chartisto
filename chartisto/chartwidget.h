@@ -2,6 +2,7 @@
 #define CHARTWIDGET_H
 
 #include <QWidget>
+#include <painter.h>
 
 class ChartWidget : public QWidget
 {
@@ -18,6 +19,7 @@ signals:
 public slots:
 private:
     QSize size_;
+    Painter painter_;
 };
 
 #endif // CHARTWIDGET_H

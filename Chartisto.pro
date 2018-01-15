@@ -4,3 +4,6 @@ SUBDIRS += \
     painter \
     chartisto \
     test
+
+CONFIG += ordered
+
