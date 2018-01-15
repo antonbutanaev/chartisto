@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
-#include <QDebug>
 
 #include "config.h"
 #include "mainwindow.h"

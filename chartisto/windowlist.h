@@ -3,7 +3,7 @@
 
 #include <list>
 #include <memory>
-#include <QWidget>
+
 #include <QTimer>
 
 class MainWindow;

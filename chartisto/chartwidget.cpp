@@ -1,7 +1,7 @@
-#include "chartwidget.h"
-
 #include <QPainter>
 #include <QResizeEvent>
+
+#include "chartwidget.h"
 
 ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent) {
 }

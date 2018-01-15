@@ -1,11 +1,12 @@
-#include <QTranslator>
 #include <functional>
 
-#include "mainwindow.h"
-#include "windowlist.h"
 #include <QApplication>
 #include <QDebug>
 #include <QLibraryInfo>
+#include <QTranslator>
+
+#include "mainwindow.h"
+#include "windowlist.h"
 
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);

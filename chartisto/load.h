@@ -2,8 +2,8 @@
 #define LOAD_H
 
 #include <functional>
-#include "geometryremember.h"
 #include <QDialog>
+#include "geometryremember.h"
 
 namespace Ui {
 class Load;

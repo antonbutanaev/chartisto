@@ -1,4 +1,5 @@
 #include <memory>
+
 #include "macdform.h"
 #include "windowlist.h"
 #include "mainwindow.h"
@@ -6,7 +7,6 @@
 #include "saveas.h"
 #include "load.h"
 #include "config.h"
-#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
