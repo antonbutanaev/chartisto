@@ -32,6 +32,7 @@ public:
     void removeWindowSet(std::string window);
 private:
     Json::Value config_;
+    static int instanceCounter_;
 };
 
 #endif // CONFIG_H

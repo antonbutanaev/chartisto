@@ -21,7 +21,12 @@ constexpr char geometry[] = "geometry";
 }
 }
 
+int Config::instanceCounter_ = 0;
+
 Config::Config() {
+    if (++instanceCounter_ != 1)
+        throw std::runtime_error("Config: already loaded");
+
     std::ifstream ifs(configFile());
     if (ifs)
         ifs >> config_;
@@ -33,6 +38,7 @@ Config::~Config() {
     } catch (const std::exception &x)  {
         std::cerr << "Save config error: " << x.what() << std::endl;
     }
+    --instanceCounter_;
 }
 
 void Config::save() {
