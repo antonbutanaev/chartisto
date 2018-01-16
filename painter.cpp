@@ -1,7 +1,5 @@
+#include <iostream>
 #include "painter.h"
-
-#include <QDebug>
-
 
 Painter::Painter() {
 }
@@ -11,5 +9,5 @@ void Painter::paint(const Painter::DrawLine &) {
 }
 
 void Painter::setCanvasSize(const Size &) {
-    qDebug() << "e";
+    std::cout << "e2" << std::endl;
 }
