@@ -27,11 +27,11 @@ set(SRC
 	windowlist.cpp
 )
 
-add_library(painter
-	painter.cpp
+add_library(chart
+	chart.cpp
 )
 
-target_include_directories(painter INTERFACE .)
+target_include_directories(chart INTERFACE .)
 
 add_library(gui
 	mainwindow.cpp
@@ -41,7 +41,7 @@ add_library(gui
 	chartwidget.cpp
 )
 target_link_libraries (gui
-	painter
+        chart
 	Qt5::Widgets
 )
 

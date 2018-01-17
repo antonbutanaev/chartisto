@@ -1,28 +1,30 @@
 #include <gtest/gtest.h>
-#include <painter.h>
+#include <chart.h>
+
+using namespace chart;
 
 TEST(Test1, Test) {
-	Painter painter;
+	Canvas chart;
 	EXPECT_EQ(1,1);
 }
 
 TEST(Test1, Test2) {
-	Painter painter;
+	Canvas chart;
 	EXPECT_EQ(1,1);
 }
 
 TEST(Test1, Test3) {
-	Painter painter;
+	Canvas chart;
 	EXPECT_EQ(1,1);
 }
 
 TEST(Test2, A) {
-	Painter painter;
+	Canvas chart;
 	EXPECT_EQ(1,1);
 }
 
 TEST(Test2, B) {
-	Painter painter;
+	Canvas chart;
 	EXPECT_EQ(1,1);
 }
 

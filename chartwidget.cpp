@@ -24,6 +24,6 @@ void ChartWidget::paintEvent(QPaintEvent *) {
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
     size_ = event->size();
-    painter_.setCanvasSize({size_.width(), size_.height()});
+    chart_.setCanvasSize({size_.width(), size_.height()});
 }
 
