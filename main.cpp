@@ -1,11 +1,7 @@
-#include <functional>
-
 #include <QApplication>
-#include <QDebug>
 #include <QLibraryInfo>
 #include <QTranslator>
 
-#include "mainwindow.h"
 #include "windowlist.h"
 
 int main(int argc, char *argv[]) {
@@ -15,9 +11,9 @@ int main(int argc, char *argv[]) {
     qtTranslator.load("qt_" + QLocale::system().name(), QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     app.installTranslator(&qtTranslator);
 
-    QTranslator myappTranslator;
-    myappTranslator.load(":/chartisto_" + QLocale::system().name());
-    app.installTranslator(&myappTranslator);
+    QTranslator myAppTranslator;
+    myAppTranslator.load(":/chartisto_" + QLocale::system().name());
+    app.installTranslator(&myAppTranslator);
 
     WindowList::instance().open();
     const auto rc = app.exec();
