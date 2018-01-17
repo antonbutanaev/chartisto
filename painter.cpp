@@ -1,5 +1,5 @@
 #include <iostream>
-#include "painter.h"
+#include <painter.h>
 
 Painter::Painter() {
 }
