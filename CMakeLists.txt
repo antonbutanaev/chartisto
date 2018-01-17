@@ -5,6 +5,12 @@ project(chartisto)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(JSONCPP jsoncpp)
 
+pkg_check_modules(GTEST REQUIRED gtest>=1.7.0)
+include_directories(${GTEST_INCLUDE_DIRS})
+
+add_subdirectory(test)
+enable_testing()
+
 find_package(Qt5Widgets)
 find_package(Qt5LinguistTools)
 
@@ -24,6 +30,8 @@ set(SRC
 add_library(painter
 	painter.cpp
 )
+
+target_include_directories(painter INTERFACE .)
 
 add_library(gui
 	mainwindow.cpp
