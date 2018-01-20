@@ -1,41 +1,71 @@
 #ifndef CHART_H
 #define CHART_H
 
-#include <cstddef>
+#include <limits>
+#include <vector>
+#include <memory>
+#include <ctime>
 
 namespace chart {
 
 using Volume = double;
 using Price = double;
-const Price NoPrice = 0;
+const auto NoPrice = std::numeric_limits<Price>::lowest();
+const auto NoTime = std::numeric_limits<time_t>::lowest();
 
-struct Bar {
-    virtual ~Bar() = default;
+class Candles {
+public:
+    virtual ~Candles() = default;
 
-    virtual Price open() const = 0;
-    virtual Price close() const = 0;
-    virtual Price high() const = 0;
-    virtual Price low() const = 0;
+    virtual int size() const = 0;
 
-    virtual Volume volume() const = 0;
+    virtual time_t time(int) const = 0;
+    virtual Price open(int) const = 0;
+    virtual Price close(int) const = 0;
+    virtual Price high(int) const = 0;
+    virtual Price low(int) const = 0;
+
+    virtual Volume volume(int) const = 0;
 };
+
+class Points {
+public:
+    virtual ~Points() = default;
+
+    virtual int size(int) const = 0;
+
+    virtual time_t time(int) const = 0;
+    virtual Price close(int) const = 0;
+};
+
 
 class Chart {
 public:
     virtual ~Chart() = default;
 
-    virtual size_t numBars() const = 0;
-    virtual const Bar &bar(size_t i) const = 0;
+    virtual int numCandlesData() const = 0;
+    virtual int numPointData() const = 0;
+
+    virtual Candles &candles(int) const = 0;
+    virtual Points &points(int) const = 0;
+
 };
 
 class Canvas {
 public:
-    struct Size {
-      int x,y;
-    };
-    Canvas();
+    struct Size {int x,y;};
+    struct Point {int x,y;};
 
-    void setCanvasSize(const Size &);
+    Canvas();
+    void setCanvasSize(const Size&);
+    void addChart(Chart*);
+    void setCursorPosition(const Point&);
+    int numCharts() const;
+
+private:
+    std::vector<std::unique_ptr<Chart>> charts_;
+    Point cursorPosition_;
+
 };
 
 }
