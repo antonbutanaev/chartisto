@@ -31,7 +31,7 @@ add_library(chart
 	chart.cpp
 )
 
-target_include_directories(chart INTERFACE .)
+target_include_directories(chart PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(gui
 	mainwindow.cpp
