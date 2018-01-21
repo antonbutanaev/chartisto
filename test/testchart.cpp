@@ -3,7 +3,7 @@
 
 using namespace chart;
 
-class EmptyBar: public Bar {
+class EmptyBar: public data::Bar {
     time_t time(int) const override {return NoTime;}
     Price open(int) const override {return NoPrice;}
     Price close(int) const override {return NoPrice;}
@@ -12,23 +12,23 @@ class EmptyBar: public Bar {
     Volume volume(int) const override {return 0;}
 };
 
-class EmptyPoint: public Point {
+class EmptyPoint: public data::Point {
 public:
     time_t time(int) const override {return 0;}
     Price close(int) const override {return NoPrice;}
 };
 
-class EmptyBars: public Bars {
+class EmptyBars: public data::Bars {
     size_t numBars() const override {return 0;}
-    Bar &bar(size_t) const override {
+    data::Bar &bar(size_t) const override {
         static EmptyBar bar;
         return bar;
     }
 };
 
-class EmptyPoints: public Points {
+class EmptyPoints: public data::Points {
     size_t numPoints() const override {return 0;}
-    Point &point(size_t) const override {
+    data::Point &point(size_t) const override {
         static EmptyPoint point;
         return point;
     }
@@ -50,7 +50,10 @@ TEST(TestChart, TestConstants) {
 
 TEST(TestChart, AddEmptyChart) {
 	Canvas canvas;
+	canvas.setCanvasSize({100, 100});
 	EXPECT_EQ(canvas.numCharts(), 0);
 	canvas.addChart(Chart());
 	EXPECT_EQ(canvas.numCharts(), 1);
+	EXPECT_EQ(canvas.chart(0).h(), 100);
+	EXPECT_EQ(canvas.chart(0).y(), 0);
 }
