@@ -45,7 +45,7 @@ TEST(TestChart, TestConstants) {
     const auto e = NoTime;
     EXPECT_EQ(d, e);
     const Time f = 0;
-    EXPECT_NE(a, f);
+    EXPECT_NE(d, f);
 }
 
 TEST(TestChart, AddCharts) {
@@ -75,5 +75,5 @@ TEST(TestChart, AddCharts) {
 	EXPECT_EQ(canvas.chart(1).y(), 75*3/4);
 
 	EXPECT_EQ(canvas.chart(2).h(), 25);
-	EXPECT_EQ(canvas.chart(2).y(), 75*3/4 + 25*3/4 + 1);
+	EXPECT_EQ(canvas.chart(2).y(), (75+25)*3/4);
 }
