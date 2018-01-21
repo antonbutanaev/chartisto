@@ -25,23 +25,16 @@ void ChartWidget::paintEvent(QPaintEvent *) {
 
     QRect rect(0, 0, size_.width(), size_.height());
     painter.drawRect(rect);
-    painter.drawLine(rect.topLeft(), rect.bottomRight());
-    //painter.drawLine(rect.bottomLeft(), rect.topRight());
 
-    painter.drawLine(0, 10, size_.width(), 10);
-    QRect rect2(20, 20, 40, 40);
-    painter.drawRect(rect2);
-
-    int i = 0;
-    qDebug() << "GGGG " << canvas_.numCharts();
-    for (size_t n=0; n<canvas_.numCharts(); ++n) {
-
-        i += canvas_.chart(n).h();
-        qDebug() << "GGGG i=" << i << " " << canvas_.chart(n).h();
-        painter.drawLine(QPoint{0, i}, QPoint{size_.width(), i});
-
+    if (canvas_.numCharts() != 0) {
+        int i = 0;
+        for (size_t n=0; n<canvas_.numCharts(); ++n) {
+            painter.drawText(5, i+15, QString::number(n));
+            i += canvas_.chart(n).h();
+            if (n != canvas_.numCharts()-1)
+                painter.drawLine(QPoint{0, i}, QPoint{size_.width(), i});
+        }
     }
-
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {

@@ -91,13 +91,10 @@ public:
     const Bar &bar(size_t) const;
     const Point &point(size_t) const;
 
-    int y() const {return y_;}
     int h() const {return h_;}
 private:
-    void setY(int y) {y_ = y;}
     void setH(int h) {h_ = h;}
 
-    int y_ = 0;
     int h_ = 0;
 };
 
