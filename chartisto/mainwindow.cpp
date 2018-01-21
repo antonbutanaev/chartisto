@@ -8,6 +8,8 @@
 #include "load.h"
 #include "config.h"
 
+#include "chart/chart.h"
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -41,4 +43,10 @@ void MainWindow::on_actionNew_triggered() {
 
 void MainWindow::on_actionSave_as_triggered() {
     SaveAs().exec();
+}
+
+void MainWindow::on_actionAdd_instrument_triggered()
+{
+    ui->chartWidget->addChart();
+    ui->chartWidget->update();
 }

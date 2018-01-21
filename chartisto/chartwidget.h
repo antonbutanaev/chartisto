@@ -10,6 +10,8 @@ class ChartWidget : public QWidget
 public:
     explicit ChartWidget(QWidget *parent = nullptr);
 
+    void addChart() {canvas_.addChart(chart::Chart());}
+
 protected:
     void paintEvent(QPaintEvent *) override;
     void resizeEvent(QResizeEvent *) override;
@@ -19,7 +21,7 @@ signals:
 public slots:
 private:
     QSize size_;
-    chart::Canvas chart_;
+    chart::Canvas canvas_;
 };
 
 #endif // CHARTWIDGET_H

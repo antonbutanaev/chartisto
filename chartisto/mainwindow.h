@@ -26,6 +26,8 @@ private slots:
 
     void on_actionSave_as_triggered();
 
+    void on_actionAdd_instrument_triggered();
+
 private:
     Ui::MainWindow *ui;
 };
