@@ -48,7 +48,7 @@ TEST(TestChart, TestConstants) {
     EXPECT_NE(a, f);
 }
 
-TEST(TestChart, AddEmptyChart) {
+TEST(TestChart, AddCharts) {
 	Canvas canvas;
 	canvas.setCanvasSize({100, 100});
 	EXPECT_EQ(canvas.numCharts(), 0);
@@ -56,4 +56,24 @@ TEST(TestChart, AddEmptyChart) {
 	EXPECT_EQ(canvas.numCharts(), 1);
 	EXPECT_EQ(canvas.chart(0).h(), 100);
 	EXPECT_EQ(canvas.chart(0).y(), 0);
+
+	canvas.addChart(Chart());
+	EXPECT_EQ(canvas.numCharts(), 2);
+
+	EXPECT_EQ(canvas.chart(0).h(), 75);
+	EXPECT_EQ(canvas.chart(0).y(), 0);
+
+	EXPECT_EQ(canvas.chart(1).h(), 25);
+	EXPECT_EQ(canvas.chart(1).y(), 75);
+
+	canvas.addChart(Chart());
+	EXPECT_EQ(canvas.numCharts(), 3);
+	EXPECT_EQ(canvas.chart(0).h(), 75*3/4);
+	EXPECT_EQ(canvas.chart(0).y(), 0);
+
+	EXPECT_EQ(canvas.chart(1).h(), 25*3/4);
+	EXPECT_EQ(canvas.chart(1).y(), 75*3/4);
+
+	EXPECT_EQ(canvas.chart(2).h(), 25);
+	EXPECT_EQ(canvas.chart(2).y(), 75*3/4 + 25*3/4 + 1);
 }
