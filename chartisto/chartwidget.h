@@ -2,7 +2,7 @@
 #define CHARTWIDGET_H
 
 #include <QWidget>
-#include <chart.h>
+#include <chart/chart.h>
 
 class ChartWidget : public QWidget
 {

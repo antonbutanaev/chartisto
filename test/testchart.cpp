@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <chart.h>
+#include <chart/chart.h>
 
 using namespace chart;
 

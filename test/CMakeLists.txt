@@ -1,9 +1,12 @@
-file(GLOB SRC *.cpp)
+enable_testing()
+find_package(GTest REQUIRED)
+include_directories(${GTEST_INCLUDE_DIRS})
 
-add_executable(testchart ${SRC})
+add_executable(testchart
+	testchart.cpp
+)
 
 target_link_libraries(testchart
 	chart
-	gtest
-	gtest_main
+	${GTEST_BOTH_LIBRARIES}
 )

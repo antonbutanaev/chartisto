@@ -1,5 +1,5 @@
 #include <iostream>
-#include <chart.h>
+#include <chart/chart.h>
 
 namespace chart {
 
