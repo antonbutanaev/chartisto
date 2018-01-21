@@ -3,8 +3,7 @@
 
 using namespace chart;
 
-class EmptyCandles: public Candles {
-    int size() const override {return 0;}
+class EmptyBar: public Bar {
     time_t time(int) const override {return NoTime;}
     Price open(int) const override {return NoPrice;}
     Price close(int) const override {return NoPrice;}
@@ -13,31 +12,45 @@ class EmptyCandles: public Candles {
     Volume volume(int) const override {return 0;}
 };
 
-class EmptyPoints: public Points {
+class EmptyPoint: public Point {
 public:
-    int size(int) const override {return 0;}
     time_t time(int) const override {return 0;}
     Price close(int) const override {return NoPrice;}
 };
 
-class EmptyChart: public Chart {
-    int numCandlesData() const override {return 0;}
-    int numPointData() const override {return 0;}
-
-    Candles &candles(int) const override {
-        static EmptyCandles candles;
-        return candles;
-    }
-
-    Points &points(int) const override {
-        static EmptyPoints points;
-        return points;
+class EmptyBars: public Bars {
+    size_t numBars() const override {return 0;}
+    Bar &bar(size_t) const override {
+        static EmptyBar bar;
+        return bar;
     }
 };
+
+class EmptyPoints: public Points {
+    size_t numPoints() const override {return 0;}
+    Point &point(size_t) const override {
+        static EmptyPoint point;
+        return point;
+    }
+};
+
+TEST(TestChart, TestConstants) {
+    const auto a = NoPrice;
+    const auto b = NoPrice;
+    EXPECT_EQ(a, b);
+    const Price c = 0;
+    EXPECT_NE(a, c);
+
+    const auto d = NoTime;
+    const auto e = NoTime;
+    EXPECT_EQ(d, e);
+    const Time f = 0;
+    EXPECT_NE(a, f);
+}
 
 TEST(TestChart, AddEmptyChart) {
 	Canvas canvas;
 	EXPECT_EQ(canvas.numCharts(), 0);
-	canvas.addChart(new EmptyChart);
+	canvas.addChart(Chart());
 	EXPECT_EQ(canvas.numCharts(), 1);
 }
