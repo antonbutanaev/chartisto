@@ -67,6 +67,10 @@ void WindowList::clear() {
     loadWindow_.reset();
 }
 
+void WindowList::save() {
+    save(SaveMethod::JustSave);
+}
+
 void WindowList::saveAs(const QString &windowSet) {
     Config().setCurrentWindowSet(windowSet.toStdString());
     save(SaveMethod::JustSave);

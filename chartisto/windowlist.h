@@ -21,6 +21,7 @@ public:
     void quit();
     void clear();
     void saveAs(const QString &);
+    void save();
     void load(const QString &);
     void showLoad();
 private slots:

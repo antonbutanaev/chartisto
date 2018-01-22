@@ -28,7 +28,11 @@ private slots:
 
     void on_actionAdd_instrument_triggered();
 
+    void on_actionSave_triggered();
+
 private:
+    void closeEvent(QCloseEvent *event) override;
+
     Ui::MainWindow *ui;
 };
 
