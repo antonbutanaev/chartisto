@@ -2,6 +2,7 @@
 #define CHART_H
 
 #include <limits>
+#include <memory>
 #include <vector>
 #include <cstddef>
 #include <ctime>
@@ -11,8 +12,8 @@ namespace chart {
 using Volume = double;
 using Price = double;
 using Time = time_t;
-const auto NoPrice = std::numeric_limits<Price>::lowest();
-const auto NoTime = std::numeric_limits<Time>::lowest();
+constexpr auto NoPrice = std::numeric_limits<Price>::lowest();
+constexpr auto NoTime = std::numeric_limits<Time>::lowest();
 
 namespace data {
 
@@ -47,8 +48,6 @@ public:
 
 class Points {
 public:
-
-
     virtual ~Points() = default;
 
     virtual size_t numPoints() const = 0;
@@ -82,8 +81,8 @@ public:
         int w() const;
     };
 
-    void addBars(data::Bars*);
-    void addPoints(data::Points*);
+    void addBars(std::unique_ptr<data::Bars>&&);
+    void addPoints(std::unique_ptr<data::Points>&&);
 
     size_t numBars() const;
     size_t numPoints() const;
@@ -108,7 +107,7 @@ public:
     void addChart(Chart&&);
     void setCursorPosition(const Point&);
     size_t numCharts() const;
-    const Chart &chart(size_t n) const {return charts_[n];}
+    const Chart &chart(size_t n) const;
 
 private:
     std::vector<Chart> charts_;

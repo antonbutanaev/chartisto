@@ -40,11 +40,14 @@ size_t Canvas::numCharts() const {
     return charts_.size();
 }
 
-void Chart::addBars(data::Bars *) {
-
+const Chart &Canvas::chart(size_t n) const {
+    return charts_[n];
 }
 
-void Chart::addPoints(data::Points *) {
+void Chart::addBars(std::unique_ptr<data::Bars> &&) {
+}
+
+void Chart::addPoints(std::unique_ptr<data::Points> &&) {
 }
 
 }
