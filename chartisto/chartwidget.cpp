@@ -73,7 +73,11 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
                 chartNumOver_ = static_cast<int>(n);
                 break;
             } else {
-                setCursor(Qt::ArrowCursor);
+                if (chartResized_ == -1)
+                    setCursor(Qt::ArrowCursor);
+                else
+                    setCursor(Qt::SplitVCursor);
+
                 chartNumOver_ = -1;
 
             }
@@ -102,6 +106,7 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
 
 
                 chartResized_ = -1;
+                setCursor(Qt::ArrowCursor);
 
                 update();
             }
