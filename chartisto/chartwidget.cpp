@@ -6,6 +6,7 @@
 #include "chartwidget.h"
 
 ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent) {
+    setMouseTracking(true);
 }
 
 void ChartWidget::paintEvent(QPaintEvent *) {
@@ -27,12 +28,12 @@ void ChartWidget::paintEvent(QPaintEvent *) {
     painter.drawRect(rect);
 
     if (canvas_.numCharts() != 0) {
-        int i = 0;
-        for (size_t n=0; n<canvas_.numCharts(); ++n) {
-            painter.drawText(5, i+15, QString::number(n));
-            i += canvas_.chart(n).h();
-            if (n != canvas_.numCharts()-1)
-                painter.drawLine(QPoint{0, i}, QPoint{size_.width(), i});
+        int y = 0;
+        for (size_t n = 0; n < canvas_.numCharts(); ++n) {
+            painter.drawText(5, y + 15, QString::number(n));
+            y += canvas_.chart(n).h();
+            if (n != canvas_.numCharts() - 1)
+                painter.drawLine(QPoint{0, y}, QPoint{size_.width(), y});
         }
     }
 }
@@ -40,5 +41,24 @@ void ChartWidget::paintEvent(QPaintEvent *) {
 void ChartWidget::resizeEvent(QResizeEvent *event) {
     size_ = event->size();
     canvas_.setCanvasSize({size_.width(), size_.height()});
+}
+
+void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
+    const auto my = event->y();
+    if (canvas_.numCharts() != 0) {
+        int y = 0;
+        for (size_t n = 0; n < canvas_.numCharts() - 1; ++n) {
+            y += canvas_.chart(n).h();
+
+            if (abs(my - y) < 3) {
+                setCursor(Qt::SplitVCursor);
+                break;
+            } else {
+                setCursor(Qt::ArrowCursor);
+
+            }
+        }
+    }
+
 }
 
