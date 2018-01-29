@@ -91,8 +91,9 @@ public:
     const Point &point(size_t) const;
 
     int h() const {return h_;}
-private:
     void setH(int h) {h_ = h;}
+
+private:
 
     int h_ = 0;
 };
@@ -107,7 +108,7 @@ public:
     void addChart(Chart&&);
     void setCursorPosition(const Point&);
     size_t numCharts() const;
-    const Chart &chart(size_t n) const;
+    Chart &chart(size_t n);
 
 private:
     std::vector<Chart> charts_;

@@ -40,7 +40,7 @@ size_t Canvas::numCharts() const {
     return charts_.size();
 }
 
-const Chart &Canvas::chart(size_t n) const {
+Chart &Canvas::chart(size_t n) {
     return charts_[n];
 }
 

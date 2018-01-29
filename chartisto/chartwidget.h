@@ -27,6 +27,8 @@ private:
     chart::Canvas canvas_;
     bool leftPressed_ = false;
     int leftPressedAt_ = -1;
+    int chartNumOver_ = -1;
+    int chartResized_ = -1;
 };
 
 #endif // CHARTWIDGET_H
