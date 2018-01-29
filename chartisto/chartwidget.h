@@ -16,6 +16,8 @@ protected:
     void paintEvent(QPaintEvent *) override;
     void resizeEvent(QResizeEvent *) override;
     void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mousePressEvent(QMouseEvent *event) override;
 
 signals:
 
@@ -23,6 +25,8 @@ public slots:
 private:
     QSize size_;
     chart::Canvas canvas_;
+    bool leftPressed_ = false;
+    int leftPressedAt_ = -1;
 };
 
 #endif // CHARTWIDGET_H

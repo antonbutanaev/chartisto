@@ -9,7 +9,8 @@ ChartWidget::ChartWidget(QWidget *parent) : QWidget(parent) {
     setMouseTracking(true);
 }
 
-void ChartWidget::paintEvent(QPaintEvent *) {
+void ChartWidget::paintEvent(QPaintEvent *event) {
+    QWidget::paintEvent(event);
     QPalette pal = palette();
 
     pal.setColor(QPalette::Background, Qt::white);
@@ -39,12 +40,25 @@ void ChartWidget::paintEvent(QPaintEvent *) {
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
+    QWidget::resizeEvent(event);
     size_ = event->size();
     canvas_.setCanvasSize({size_.width(), size_.height()});
 }
 
 void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
+    QWidget::mouseMoveEvent(event);
     const auto my = event->y();
+    const auto leftPressed = (event->buttons() & Qt::LeftButton);
+    if (leftPressed_ != leftPressed) {
+        leftPressed_ = leftPressed;
+        if (leftPressed)
+            leftPressedAt_ = my;
+        else {
+            qDebug() << "dragged " << my - leftPressedAt_;
+        }
+    }
+
+
     if (canvas_.numCharts() != 0) {
         int y = 0;
         for (size_t n = 0; n < canvas_.numCharts() - 1; ++n) {
@@ -59,6 +73,25 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
             }
         }
     }
+
+}
+
+void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
+    QWidget::mouseReleaseEvent(event);
+    const auto my = event->y();
+    const auto leftPressed = (event->buttons() & Qt::LeftButton);
+    if (leftPressed_ != leftPressed) {
+        leftPressed_ = leftPressed;
+        if (leftPressed)
+            leftPressedAt_ = my;
+        else {
+            qDebug() << "dragged " << my - leftPressedAt_;
+        }
+    }
+}
+
+void ChartWidget::mousePressEvent(QMouseEvent *event) {
+    QWidget::mousePressEvent(event);
 
 }
 
