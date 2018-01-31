@@ -8,6 +8,9 @@ class ChartWidget : public QWidget
 {
     Q_OBJECT
 public:
+    using Pos = size_t;
+    using Coord = int;
+
     explicit ChartWidget(QWidget *parent = nullptr);
 
     void addChart() {canvas_.addChart(chart::Chart());}
@@ -25,10 +28,13 @@ public slots:
 private:
     QSize size_;
     chart::Canvas canvas_;
-    bool leftPressed_ = false;
-    int leftPressedAt_ = -1;
-    int chartNumOver_ = -1;
-    int chartResized_ = -1;
+    bool leftButtonPressed_ = false;
+    static const auto NoCoord = std::numeric_limits<Coord>::lowest();
+    Coord leftButtonPressedAt_ = NoCoord;
+
+    static const auto NoPos = std::numeric_limits<Pos>::max();
+    Pos chartNumOver_ = NoPos;
+    Pos chartResized_ = NoPos;
 };
 
-#endif // CHARTWIDGET_H
+#endif
