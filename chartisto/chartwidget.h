@@ -31,6 +31,7 @@ private:
     bool leftButtonPressed_ = false;
     static const auto NoCoord = std::numeric_limits<Coord>::lowest();
     Coord leftButtonPressedAt_ = NoCoord;
+    Coord draggingHere_ = NoCoord;
 
     static const auto NoPos = std::numeric_limits<Pos>::max();
     Pos chartNumOver_ = NoPos;

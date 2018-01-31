@@ -41,6 +41,9 @@ void ChartWidget::paintEvent(QPaintEvent *event) {
                 painter.drawLine(QPoint{0, y}, QPoint{size_.width(), y});
         }
     }
+
+    if (draggingHere_ != NoCoord)
+        painter.drawLine(QPoint{0, draggingHere_}, QPoint{size_.width(), draggingHere_});
 }
 
 void ChartWidget::resizeEvent(QResizeEvent *event) {
@@ -61,21 +64,24 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
 
     if (canvas_.numCharts() != 0) {
         Coord y = 0;
+        chartNumOver_ = NoPos;
         for (Pos n = 0; n < canvas_.numCharts() - 1; ++n) {
             y += canvas_.chart(n).h();
-
             if (abs(mouseY - y) < dragSensitivity) {
-                setCursor(Qt::SplitVCursor);
                 chartNumOver_ = n;
                 break;
-            } else {
-                if (chartResized_ == NoPos)
-                    setCursor(Qt::ArrowCursor);
-                else
-                    setCursor(Qt::SplitVCursor);
-
-                chartNumOver_ = NoPos;
             }
+        }
+
+        if (chartNumOver_ != NoPos) {
+            setCursor(Qt::SplitVCursor);
+        } else if (chartResized_ != NoPos) {
+            draggingHere_ = mouseY;
+            update();
+        } else {
+            draggingHere_ = NoCoord;
+            setCursor(Qt::ArrowCursor);
+            update();
         }
     }
 }
@@ -83,20 +89,15 @@ void ChartWidget::mouseMoveEvent(QMouseEvent *event) {
 void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
     QWidget::mouseReleaseEvent(event);
     const auto mouseY = event->y();
-    const auto leftPressed = (event->buttons() & Qt::LeftButton);
-    if (leftButtonPressed_ != leftPressed) {
-        leftButtonPressed_ = leftPressed;
-        if (leftPressed)
-            leftButtonPressedAt_ = mouseY;
-        else {
-            const auto delta =  mouseY - leftButtonPressedAt_;
-            if (chartResized_ != NoPos) {
-                auto &chart = canvas_.chart(static_cast<size_t>(chartResized_));
-                chart.setH(chart.h() + delta);
-                chartResized_ = NoPos;
-                setCursor(Qt::ArrowCursor);
-                update();
-            }
+    if (leftButtonPressed_) {
+        leftButtonPressed_ = false;
+        const auto delta =  mouseY - leftButtonPressedAt_;
+        if (chartResized_ != NoPos) {
+            auto &chart = canvas_.chart(static_cast<size_t>(chartResized_));
+            chart.setH(chart.h() + delta);
+            chartResized_ = NoPos;
+            setCursor(Qt::ArrowCursor);
+            update();
         }
     }
 }
