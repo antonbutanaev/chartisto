@@ -36,7 +36,6 @@ void ChartWidget::paintEvent(QPaintEvent *event) {
         Coord y = 0;
         for (size_t n = 0; n < canvas_.numCharts(); ++n) {
             painter.drawText(5, y + 15, QString::number(n)); // FIXME
-            qDebug() << "chart " << " n " << n << " h " << canvas_.chart(n).h();
             y += canvas_.chart(n).h();
             if (n != canvas_.numCharts() - 1)
                 painter.drawLine(QPoint{0, y}, QPoint{size_.width(), y});
@@ -91,7 +90,6 @@ void ChartWidget::mouseReleaseEvent(QMouseEvent *event) {
             leftButtonPressedAt_ = mouseY;
         else {
             const auto delta =  mouseY - leftButtonPressedAt_;
-            qDebug() << "dragged " << delta;
             if (chartResized_ != NoPos) {
                 auto &chart = canvas_.chart(static_cast<size_t>(chartResized_));
                 chart.setH(chart.h() + delta);
