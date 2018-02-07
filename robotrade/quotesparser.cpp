@@ -11,9 +11,6 @@ using namespace date;
 namespace robotrade {
 
 void parse(std::istream &is) {
-
-    cout << "line" << endl;
-
     string line;
     getline(is, line);
     line.pop_back();
@@ -24,7 +21,21 @@ void parse(std::istream &is) {
     cout << line << endl;
 
     // VTBR,D,20130108,000000,0.0550000,0.0554000,0.0548300,0.0549200,23315530000
-    const regex re(R"RE(^(\w+),D,(\d{4})(\d{2})(\d{2}),(\d{2})(\d{2})\d{2},([\d.]+),([\d.]+),([\d.]+),([\d.]+),(\d+))RE");
+    const regex re(R"RE(^(\w+),\w+,(\d{4})(\d{2})(\d{2}),(\d{2})(\d{2})\d{2},([\d.]+),([\d.]+),([\d.]+),([\d.]+),(\d+))RE");
+
+    enum {
+    	Ticker=1,
+    	Year,
+    	Month,
+    	Day,
+    	Hours,
+    	Minutes,
+    	Open,
+    	High,
+    	Low,
+    	Close,
+    	Volume,
+    };
 
     while (is) {
         getline(is, line);
@@ -35,14 +46,13 @@ void parse(std::istream &is) {
         if (regex_search(line, match, re)) {
 
             const auto date =
-                 sys_days{year{stoi(match[2])} / stoi(match[3]) / stoi(match[4])} +
-                 hours{stoi(match[5])} + minutes{stoi(match[6])};
+                 sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
+                 hours{stoi(match[Hours])} + minutes{stoi(match[Minutes])};
 
 			chart::Time t = date;
-			cout << "MA:" << t << endl;
+			cout << "Time:" << t << endl;
         }
     }
 }
-
 
 }
