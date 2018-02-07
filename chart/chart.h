@@ -7,13 +7,15 @@
 #include <cstddef>
 #include <ctime>
 
+#include <chrono>
+
 namespace chart {
 
 using Volume = double;
 using Price = double;
-using Time = time_t;
+using Time = std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>;
 constexpr auto NoPrice = std::numeric_limits<Price>::lowest();
-constexpr auto NoTime = std::numeric_limits<Time>::lowest();
+constexpr auto NoTime = Time::min();
 
 namespace data {
 
@@ -21,7 +23,7 @@ class Bar {
 public:
     virtual ~Bar() = default;
 
-    virtual time_t time(int) const = 0;
+    virtual Time time(int) const = 0;
     virtual Price open(int) const = 0;
     virtual Price close(int) const = 0;
     virtual Price high(int) const = 0;
@@ -42,7 +44,7 @@ class Point {
 public:
     virtual ~Point() = default;
 
-    virtual time_t time(int) const = 0;
+    virtual Time time(int) const = 0;
     virtual Price close(int) const = 0;
 };
 

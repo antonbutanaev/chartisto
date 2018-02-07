@@ -4,7 +4,7 @@
 using namespace chart;
 
 class EmptyBar: public data::Bar {
-    time_t time(int) const override {return NoTime;}
+    Time time(int) const override {return NoTime;}
     Price open(int) const override {return NoPrice;}
     Price close(int) const override {return NoPrice;}
     Price high(int) const override {return NoPrice;}
@@ -14,7 +14,7 @@ class EmptyBar: public data::Bar {
 
 class EmptyPoint: public data::Point {
 public:
-    time_t time(int) const override {return 0;}
+    Time time(int) const override {return NoTime;}
     Price close(int) const override {return NoPrice;}
 };
 

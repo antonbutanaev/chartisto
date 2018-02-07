@@ -1,7 +1,10 @@
+#include <chrono>
 #include <gtest/gtest.h>
 #include <chart/chart.h>
 
 using namespace chart;
+using namespace std;
+using namespace std::chrono;
 
 TEST(TestChart, TestConstants) {
     const auto a = NoPrice;
@@ -13,7 +16,7 @@ TEST(TestChart, TestConstants) {
     const auto d = NoTime;
     const auto e = NoTime;
     EXPECT_EQ(d, e);
-    const Time f = 0;
+    const Time f = time_point_cast<minutes>(system_clock::now());
     EXPECT_NE(d, f);
 }
 
