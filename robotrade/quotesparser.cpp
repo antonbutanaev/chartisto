@@ -44,8 +44,8 @@ void parse(std::istream &is, const ParseCallback &cb) {
         if (regex_search(line, match, re)) {
 
             const auto date =
-                 sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
-                 hours{stoi(match[Hours])} + minutes{stoi(match[Minutes])};
+                sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
+                hours{stoi(match[Hours])} + minutes{stoi(match[Minutes])};
 
             chart::data::BarImpl bar(date, 0,0,0,0,0);
             cb({match[Ticker], bar});
