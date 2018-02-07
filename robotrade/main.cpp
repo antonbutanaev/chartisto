@@ -28,7 +28,7 @@ int main(int ac, char *av[]) try {
 		if (!ifs)
 			throw runtime_error("Could1 not open file: " + quotes);
 
-		robotrade::parse(ifs);
+		robotrade::parse(ifs, {});
 	}
 
 	return 0;

@@ -4,12 +4,12 @@
 using namespace chart;
 
 class EmptyBar: public data::Bar {
-    Time time(int) const override {return NoTime;}
-    Price open(int) const override {return NoPrice;}
-    Price close(int) const override {return NoPrice;}
-    Price high(int) const override {return NoPrice;}
-    Price low(int) const override {return NoPrice;}
-    Volume volume(int) const override {return 0;}
+    Time time() const override {return NoTime;}
+    Price open() const override {return NoPrice;}
+    Price close() const override {return NoPrice;}
+    Price high() const override {return NoPrice;}
+    Price low() const override {return NoPrice;}
+    Volume volume() const override {return 0;}
 };
 
 class EmptyPoint: public data::Point {
