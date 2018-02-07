@@ -11,3 +11,12 @@ target_link_libraries(testchart
 	chart
 	${GTEST_BOTH_LIBRARIES}
 )
+
+add_executable(testrobotrade
+	testrobotrade.cpp
+)
+
+target_link_libraries(testrobotrade
+	robotrade_lib
+	${GTEST_BOTH_LIBRARIES}
+)
