@@ -1,5 +1,6 @@
 find_package(Boost)
-find_package(jsoncpp)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP jsoncpp)
 
 add_executable(robotrade
     main.cpp
@@ -11,8 +12,8 @@ add_library(robotrade_lib
 
 target_link_libraries(robotrade
 	tz
-	jsoncpp_lib
 	boost_program_options
 	chart
 	robotrade_lib
+	${JSONCPP_LIBRARIES}
 )
