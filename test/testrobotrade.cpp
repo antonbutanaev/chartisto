@@ -7,23 +7,6 @@ using namespace std;
 using namespace date;
 using namespace chart;
 
-class TestBars: public data::Bars {
-public:
-
-    Time time(size_t n) const override {return bars_[n].time;}
-    Price open(size_t n) const override {return bars_[n].open;}
-    Price close(size_t n) const override {return bars_[n].close;}
-    Price high(size_t n) const override {return bars_[n].high;}
-    Price low(size_t n) const override {return bars_[n].low;}
-
-    Volume volume(size_t n) const override {return bars_[n].volume;}
-
-    virtual size_t numBars() const override {return bars_.size(); }
-
-    vector<data::Bar> bars_;
-};
-
-
 TEST(TestRobotrade, Parse) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -31,29 +14,24 @@ TEST(TestRobotrade, Parse) {
 		"VTBR,D,20130109,010203,0.0551000,0.0554100,0.0548310,0.0549300,23315540000\n";
 	stringstream ss(quotes);
 
-	int quoteNum = 0;
-	robotrade::parse(ss, [&](const auto &bar){
-		switch(++quoteNum) {
-		case 1:
-			EXPECT_EQ(bar.ticker, "VTBR");
-			EXPECT_EQ(bar.bar.time, sys_days{2013_y/1/8});
-			EXPECT_EQ(bar.bar.open, .055);
-			EXPECT_EQ(bar.bar.high, .0554);
-			EXPECT_EQ(bar.bar.low, .05483);
-			EXPECT_EQ(bar.bar.close, .05492);
-			EXPECT_EQ(bar.bar.volume, 23315530000);
-			break;
-		case 2:
-			EXPECT_EQ(bar.ticker, "VTBR");
-			EXPECT_EQ(bar.bar.time, sys_days{2013_y/1/9} + 1h + 2min);
-			EXPECT_EQ(bar.bar.open, .0551);
-			EXPECT_EQ(bar.bar.high, .05541);
-			EXPECT_EQ(bar.bar.low, .054831);
-			EXPECT_EQ(bar.bar.close, .05493);
-			EXPECT_EQ(bar.bar.volume, 23315540000);
-			break;
-		}
-	});
-	EXPECT_EQ(quoteNum, 2);
+	const auto bars = robotrade::parse(ss);
+
+	ASSERT_EQ(bars->numBars(), 2);
+
+	EXPECT_EQ(bars->title(), "VTBR");
+
+	EXPECT_EQ(bars->time(0), sys_days{2013_y/1/8});
+	EXPECT_EQ(bars->open(0), .055);
+	EXPECT_EQ(bars->high(0), .0554);
+	EXPECT_EQ(bars->low(0), .05483);
+	EXPECT_EQ(bars->close(0), .05492);
+	EXPECT_EQ(bars->volume(0), 23315530000);
+
+	EXPECT_EQ(bars->time(1), sys_days{2013_y/1/9} + 1h + 2min);
+	EXPECT_EQ(bars->open(1), .0551);
+	EXPECT_EQ(bars->high(1), .05541);
+	EXPECT_EQ(bars->low(1), .054831);
+	EXPECT_EQ(bars->close(1), .05493);
+	EXPECT_EQ(bars->volume(1), 23315540000);
 }
 

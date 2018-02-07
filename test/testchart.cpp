@@ -4,6 +4,7 @@
 using namespace chart;
 
 class EmptyBars: public data::Bars {
+    std::string title() const override {return {};}
     Time time(size_t) const override {return NoTime;}
     Price open(size_t) const override {return NoPrice;}
     Price close(size_t) const override {return NoPrice;}
@@ -14,6 +15,7 @@ class EmptyBars: public data::Bars {
 };
 
 class EmptyPoints: public data::Points {
+    std::string title() const override {return {};}
     Time time(size_t) const override {return NoTime;}
     Price close(size_t) const override {return NoPrice;}
     size_t numPoints() const override {return 0;}

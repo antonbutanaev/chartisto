@@ -7,11 +7,45 @@
 using namespace std;
 using namespace std::chrono;
 using namespace date;
+using namespace chart;
 
 namespace robotrade {
 
-void parse(std::istream &is, const ParseCallback &cb) {
-    string line;
+struct Bar {
+	Time time;
+	Price open, close, high, low;
+	Volume volume;
+};
+
+struct Bars::Impl {
+	vector<Bar> bars_;
+	string title;
+};
+
+Bars::Bars() : i_(new Impl) {}
+
+Bars::~Bars() {}
+
+string Bars::title() const {return i_->title;}
+
+Time Bars::time(size_t n) const {return i_->bars_[n].time;}
+
+Price Bars::open(size_t n) const {return i_->bars_[n].open;}
+
+Price Bars::close(size_t n) const {return i_->bars_[n].close;}
+
+Price Bars::high(size_t n) const {return i_->bars_[n].high;}
+
+Price Bars::low(size_t n) const {return i_->bars_[n].low;}
+
+Volume Bars::volume(size_t n) const {return i_->bars_[n].volume;}
+
+size_t Bars::numBars() const {return i_->bars_.size();}
+
+unique_ptr<Bars> parse(std::istream &is) {
+	auto result = std::make_unique<Bars>();
+
+	string line;
     const auto chopLine = [&]{
       while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
           line.pop_back();
@@ -53,18 +87,21 @@ void parse(std::istream &is, const ParseCallback &cb) {
                 hours{stoi(match[Hours])} +
                 minutes{stoi(match[Minutes])};
 
-            chart::data::Bar bar{
+            if (result->i_->title.empty())
+            	result->i_->title = match[Ticker];
+
+            result->i_->bars_.push_back({
                 dateTime,
                 stod(match[Open]),
                 stod(match[Close]),
                 stod(match[High]),
                 stod(match[Low]),
                 stod(match[Volume])
-            };
-
-            cb({match[Ticker], bar});
+            });
         }
     }
+
+    return result;
 }
 
 }

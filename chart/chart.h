@@ -18,16 +18,11 @@ constexpr auto NoTime = Time::max();
 
 namespace data {
 
-struct Bar {
-	Time time;
-	Price open, close, high, low;
-	Volume volume;
-};
-
 class Bars {
 public:
     virtual ~Bars() = default;
 
+    virtual std::string title() const = 0;
     virtual Time time(size_t) const = 0;
     virtual Price open(size_t) const = 0;
     virtual Price close(size_t) const = 0;
@@ -42,6 +37,7 @@ class Points {
 public:
     virtual ~Points() = default;
 
+    virtual std::string title() const = 0;
     virtual Time time(size_t) const = 0;
     virtual Price close(size_t) const = 0;
 
