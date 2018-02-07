@@ -35,7 +35,7 @@ class BarImpl: public Bar {
 public:
 
 	BarImpl(Time time, Price open, Price close, Price high, Price low, Volume volume) :
-		time_(time), open_(open), close_(close), high_(high), volume_(volume) {}
+		time_(time), open_(open), close_(close), high_(high), low_(low), volume_(volume) {}
 
     Time time() const override {return time_;}
     Price open() const override {return open_;}
