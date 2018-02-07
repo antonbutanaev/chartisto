@@ -1,10 +1,12 @@
 #include <chrono>
 #include <gtest/gtest.h>
 #include <chart/chart.h>
+#include <date.h>
 
 using namespace chart;
 using namespace std;
 using namespace std::chrono;
+using namespace date;
 
 TEST(TestChart, TestConstants) {
     const auto a = NoPrice;
@@ -16,7 +18,8 @@ TEST(TestChart, TestConstants) {
     const auto d = NoTime;
     const auto e = NoTime;
     EXPECT_EQ(d, e);
-    const Time f = time_point_cast<minutes>(system_clock::now());
+
+    const Time f = sys_days{2017_y/feb/7} + 10h + 20min;
     EXPECT_NE(d, f);
 }
 
