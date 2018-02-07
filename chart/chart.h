@@ -13,8 +13,8 @@ namespace chart {
 using Volume = double;
 using Price = double;
 using Time = std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>;
-constexpr auto NoPrice = std::numeric_limits<Price>::lowest();
-constexpr auto NoTime = Time::min();
+constexpr auto NoPrice = std::numeric_limits<Price>::max();
+constexpr auto NoTime = Time::max();
 
 namespace data {
 
@@ -139,4 +139,4 @@ private:
 
 }
 
-#endif // PAINTER_H
+#endif
