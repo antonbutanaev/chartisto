@@ -5,6 +5,24 @@
 
 using namespace std;
 using namespace date;
+using namespace chart;
+
+class TestBars: public data::Bars {
+public:
+
+    Time time(size_t n) const override {return bars_[n].time;}
+    Price open(size_t n) const override {return bars_[n].open;}
+    Price close(size_t n) const override {return bars_[n].close;}
+    Price high(size_t n) const override {return bars_[n].high;}
+    Price low(size_t n) const override {return bars_[n].low;}
+
+    Volume volume(size_t n) const override {return bars_[n].volume;}
+
+    virtual size_t numBars() const override {return bars_.size(); }
+
+    vector<data::Bar> bars_;
+};
+
 
 TEST(TestRobotrade, Parse) {
 	string quotes =
@@ -18,21 +36,21 @@ TEST(TestRobotrade, Parse) {
 		switch(++quoteNum) {
 		case 1:
 			EXPECT_EQ(bar.ticker, "VTBR");
-			EXPECT_EQ(bar.bar.time(), sys_days{2013_y/1/8});
-			EXPECT_EQ(bar.bar.open(), .055);
-			EXPECT_EQ(bar.bar.high(), .0554);
-			EXPECT_EQ(bar.bar.low(), .05483);
-			EXPECT_EQ(bar.bar.close(), .05492);
-			EXPECT_EQ(bar.bar.volume(), 23315530000);
+			EXPECT_EQ(bar.bar.time, sys_days{2013_y/1/8});
+			EXPECT_EQ(bar.bar.open, .055);
+			EXPECT_EQ(bar.bar.high, .0554);
+			EXPECT_EQ(bar.bar.low, .05483);
+			EXPECT_EQ(bar.bar.close, .05492);
+			EXPECT_EQ(bar.bar.volume, 23315530000);
 			break;
 		case 2:
 			EXPECT_EQ(bar.ticker, "VTBR");
-			EXPECT_EQ(bar.bar.time(), sys_days{2013_y/1/9} + 1h + 2min);
-			EXPECT_EQ(bar.bar.open(), .0551);
-			EXPECT_EQ(bar.bar.high(), .05541);
-			EXPECT_EQ(bar.bar.low(), .054831);
-			EXPECT_EQ(bar.bar.close(), .05493);
-			EXPECT_EQ(bar.bar.volume(), 23315540000);
+			EXPECT_EQ(bar.bar.time, sys_days{2013_y/1/9} + 1h + 2min);
+			EXPECT_EQ(bar.bar.open, .0551);
+			EXPECT_EQ(bar.bar.high, .05541);
+			EXPECT_EQ(bar.bar.low, .054831);
+			EXPECT_EQ(bar.bar.close, .05493);
+			EXPECT_EQ(bar.bar.volume, 23315540000);
 			break;
 		}
 	});

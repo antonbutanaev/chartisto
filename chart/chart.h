@@ -18,61 +18,34 @@ constexpr auto NoTime = Time::max();
 
 namespace data {
 
-class Bar {
-public:
-    virtual ~Bar() = default;
-
-    virtual Time time() const = 0;
-    virtual Price open() const = 0;
-    virtual Price close() const = 0;
-    virtual Price high() const = 0;
-    virtual Price low() const = 0;
-
-    virtual Volume volume() const = 0;
-};
-
-class BarImpl: public Bar {
-public:
-
-	BarImpl(Time time, Price open, Price close, Price high, Price low, Volume volume) :
-		time_(time), open_(open), close_(close), high_(high), low_(low), volume_(volume) {}
-
-    Time time() const override {return time_;}
-    Price open() const override {return open_;}
-    Price close() const override {return close_;}
-    Price high() const override {return high_;}
-    Price low() const override {return low_;}
-
-    Volume volume() const override {return volume_;}
-
-private:
-    Time time_;
-	Price open_, close_, high_, low_;
-	Volume volume_;
+struct Bar {
+	Time time;
+	Price open, close, high, low;
+	Volume volume;
 };
 
 class Bars {
 public:
     virtual ~Bars() = default;
 
+    virtual Time time(size_t) const = 0;
+    virtual Price open(size_t) const = 0;
+    virtual Price close(size_t) const = 0;
+    virtual Price high(size_t) const = 0;
+    virtual Price low(size_t) const = 0;
+    virtual Volume volume(size_t) const = 0;
+
     virtual size_t numBars() const = 0;
-    virtual Bar &bar(size_t) const = 0;
-};
-
-class Point {
-public:
-    virtual ~Point() = default;
-
-    virtual Time time(int) const = 0;
-    virtual Price close(int) const = 0;
 };
 
 class Points {
 public:
     virtual ~Points() = default;
 
+    virtual Time time(size_t) const = 0;
+    virtual Price close(size_t) const = 0;
+
     virtual size_t numPoints() const = 0;
-    virtual Point &point(size_t) const = 0;
 };
 
 }
@@ -82,34 +55,11 @@ class Canvas;
 class Chart {
     friend class Canvas;
 public:
-    class Bar {
-        const data::Bar &bar() const;
-        int high() const;
-        int low() const;
-        int open() const;
-        int close() const;
-        int volume() const;
-
-        int x() const;
-        int w() const;
-    };
-
-    class Point {
-        const data::Point &bar() const;
-        int close() const;
-
-        int x() const;
-        int w() const;
-    };
-
     void addBars(std::unique_ptr<data::Bars>&&);
     void addPoints(std::unique_ptr<data::Points>&&);
 
     size_t numBars() const;
     size_t numPoints() const;
-
-    const Bar &bar(size_t) const;
-    const Point &point(size_t) const;
 
     int h() const {return h_;}
     void setH(int h) {h_ = h;}

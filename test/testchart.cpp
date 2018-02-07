@@ -3,35 +3,20 @@
 
 using namespace chart;
 
-class EmptyBar: public data::Bar {
-    Time time() const override {return NoTime;}
-    Price open() const override {return NoPrice;}
-    Price close() const override {return NoPrice;}
-    Price high() const override {return NoPrice;}
-    Price low() const override {return NoPrice;}
-    Volume volume() const override {return 0;}
-};
-
-class EmptyPoint: public data::Point {
-public:
-    Time time(int) const override {return NoTime;}
-    Price close(int) const override {return NoPrice;}
-};
-
 class EmptyBars: public data::Bars {
+    Time time(size_t) const override {return NoTime;}
+    Price open(size_t) const override {return NoPrice;}
+    Price close(size_t) const override {return NoPrice;}
+    Price high(size_t) const override {return NoPrice;}
+    Price low(size_t) const override {return NoPrice;}
+    Volume volume(size_t) const override {return 0;}
     size_t numBars() const override {return 0;}
-    data::Bar &bar(size_t) const override {
-        static EmptyBar bar;
-        return bar;
-    }
 };
 
 class EmptyPoints: public data::Points {
+    Time time(size_t) const override {return NoTime;}
+    Price close(size_t) const override {return NoPrice;}
     size_t numPoints() const override {return 0;}
-    data::Point &point(size_t) const override {
-        static EmptyPoint point;
-        return point;
-    }
 };
 
 TEST(TestChart, AddCharts) {

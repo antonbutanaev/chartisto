@@ -53,7 +53,7 @@ void parse(std::istream &is, const ParseCallback &cb) {
                 hours{stoi(match[Hours])} +
                 minutes{stoi(match[Minutes])};
 
-            chart::data::BarImpl bar{
+            chart::data::Bar bar{
                 dateTime,
                 stod(match[Open]),
                 stod(match[Close]),
