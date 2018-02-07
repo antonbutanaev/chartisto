@@ -6,7 +6,6 @@
 #include <vector>
 #include <cstddef>
 #include <ctime>
-
 #include <chrono>
 
 namespace chart {
@@ -23,13 +22,33 @@ class Bar {
 public:
     virtual ~Bar() = default;
 
-    virtual Time time(int) const = 0;
-    virtual Price open(int) const = 0;
-    virtual Price close(int) const = 0;
-    virtual Price high(int) const = 0;
-    virtual Price low(int) const = 0;
+    virtual Time time() const = 0;
+    virtual Price open() const = 0;
+    virtual Price close() const = 0;
+    virtual Price high() const = 0;
+    virtual Price low() const = 0;
 
-    virtual Volume volume(int) const = 0;
+    virtual Volume volume() const = 0;
+};
+
+class BarImpl: public Bar {
+public:
+
+	BarImpl(Time time, Price open, Price close, Price high, Price low, Volume volume) :
+		time_(time), open_(open), close_(close), high_(high), volume_(volume) {}
+
+    Time time() const override {return time_;}
+    Price open() const override {return open_;}
+    Price close() const override {return close_;}
+    Price high() const override {return high_;}
+    Price low() const override {return low_;}
+
+    Volume volume() const override {return volume_;}
+
+private:
+    Time time_;
+	Price open_, close_, high_, low_;
+	Volume volume_;
 };
 
 class Bars {

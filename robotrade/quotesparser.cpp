@@ -10,7 +10,7 @@ using namespace date;
 
 namespace robotrade {
 
-void parse(std::istream &is) {
+void parse(std::istream &is, const ParseCallback &cb) {
     string line;
     getline(is, line);
     line.pop_back();
@@ -18,9 +18,6 @@ void parse(std::istream &is) {
     if (line != "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>")
         throw runtime_error("Wrong header: " + line);
 
-    cout << line << endl;
-
-    //
     const regex re(R"RE(^(\w+),\w+,(\d{4})(\d{2})(\d{2}),(\d{2})(\d{2})\d{2},([\d.]+),([\d.]+),([\d.]+),([\d.]+),(\d+))RE");
 
     enum {
@@ -37,11 +34,12 @@ void parse(std::istream &is) {
     	Volume,
     };
 
-    while (is) {
+    for(;;) {
         getline(is, line);
+        if (!is)
+        	break;
         line.pop_back();
 
-        cout << line << endl;
         smatch match;
         if (regex_search(line, match, re)) {
 
@@ -49,8 +47,8 @@ void parse(std::istream &is) {
                  sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
                  hours{stoi(match[Hours])} + minutes{stoi(match[Minutes])};
 
-			chart::Time t = date;
-			cout << "Time:" << t << endl;
+            chart::data::BarImpl bar(date, 0,0,0,0,0);
+            cb({match[Ticker], bar});
         }
     }
 }
