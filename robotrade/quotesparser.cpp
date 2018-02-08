@@ -42,8 +42,8 @@ Volume Bars::volume(size_t n) const {return i_->bars_[n].volume;}
 
 size_t Bars::numBars() const {return i_->bars_.size();}
 
-unique_ptr<Bars> parse(std::istream &is) {
-	auto result = std::make_unique<Bars>();
+data::PBars parse(std::istream &is) {
+	auto result = std::make_shared<Bars>();
 
 	string line;
     const auto chopLine = [&]{

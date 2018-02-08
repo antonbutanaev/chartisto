@@ -2,13 +2,12 @@
 #define QUOTESPARSER_H
 
 #include <iosfwd>
-#include <memory>
-#include <chart/chart.h>
+#include <chart/data.h>
 
 namespace robotrade {
 
 class Bars;
-std::unique_ptr<Bars> parse(std::istream&);
+chart::data::PBars parse(std::istream&);
 
 class Bars : public chart::data::Bars {
 public:
@@ -24,7 +23,7 @@ public:
 
     size_t numBars() const override;
 
-    friend std::unique_ptr<Bars> parse(std::istream&);
+    friend chart::data::PBars parse(std::istream&);
 private:
     struct Impl;
     std::unique_ptr<Impl> i_;

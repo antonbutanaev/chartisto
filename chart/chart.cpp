@@ -44,10 +44,10 @@ Chart &Canvas::chart(size_t n) {
     return charts_[n];
 }
 
-void Chart::addBars(std::unique_ptr<data::Bars> &&) {
+void Chart::addBars(const data::PBars&) {
 }
 
-void Chart::addPoints(std::unique_ptr<data::Points> &&) {
+void Chart::addPoints(const data::PPoints&) {
 }
 
 }
