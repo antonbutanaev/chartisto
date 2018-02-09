@@ -100,7 +100,6 @@ data::PBars parse(std::istream &is) {
             });
         }
     }
-
     return result;
 }
 

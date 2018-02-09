@@ -6,7 +6,7 @@ add_executable(robotrade
     main.cpp
 )
 
-add_library(robotrade_lib
+add_library(robotradeutils
     quotesparser.cpp
 )
 
@@ -14,6 +14,6 @@ target_link_libraries(robotrade
 	tz
 	boost_program_options
 	chart
-	robotrade_lib
+	robotradeutils
 	${JSONCPP_LIBRARIES}
 )

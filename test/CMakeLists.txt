@@ -9,6 +9,7 @@ add_executable(testchart
 
 target_link_libraries(testchart
 	chart
+	robotradeutils
 	${GTEST_BOTH_LIBRARIES}
 )
 
@@ -17,6 +18,6 @@ add_executable(testrobotrade
 )
 
 target_link_libraries(testrobotrade
-	robotrade_lib
+	robotradeutils
 	${GTEST_BOTH_LIBRARIES}
 )
