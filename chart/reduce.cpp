@@ -31,6 +31,7 @@ public:
         }
     }
 
+private:
     std::string title() const override {return title_;}
     Time time(size_t n) const override {return bars_[n].time;}
     Price open(size_t n) const override {return bars_[n].open;}
@@ -41,7 +42,6 @@ public:
 
     size_t numBars() const override {return bars_.size();}
 
-private:
     struct Bar {
         Time time;
         Price open, close, high, low;
