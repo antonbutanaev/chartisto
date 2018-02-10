@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <chrono>
 #include <memory>
+#include <utility>
 #include <functional>
 
 namespace chart {
@@ -29,7 +30,7 @@ public:
     virtual Price low(size_t) const = 0;
     virtual Volume volume(size_t) const = 0;
 
-    virtual size_t numBars() const = 0;
+    virtual size_t num() const = 0;
 };
 
 using PBars = std::shared_ptr<Bars>;
@@ -42,30 +43,34 @@ public:
     virtual Time time(size_t) const = 0;
     virtual Price close(size_t) const = 0;
 
-    virtual size_t numPoints() const = 0;
+    virtual size_t num() const = 0;
 };
 
 using PPoints = std::shared_ptr<Points>;
 
-class Bars2Points: public Points {
+template<class Source, class FClose>
+class ConvertPoints: public Points {
 public:
-	using Convert = std::function<Price(const Bars&, size_t)>;
-	Bars2Points(
-		const PBars &bars,
-		const Convert &convert = [](const Bars &bars, size_t n) {return bars.close(n);}
-	) : bars_(bars), convert_(convert)
-	{}
+    ConvertPoints(Source source, FClose fClose) :
+        source_(std::move(source)),
+        fClose_(std::move(fClose)) {
+    }
 
-    std::string title() const override {return bars_->title();}
-    Time time(size_t n) const override {return bars_->time(n);}
-    Price close(size_t n) const override {return convert_(*bars_, n);}
+    std::string title() const override {return source_->title();}
+    Time time(size_t n) const override {return source_->time(n);}
+    Price close(size_t n) const override {return fClose_(n);}
 
-    size_t numPoints() const override {return bars_->numBars();}
+    size_t num() const override {return source_->num();}
 
 private:
-    PBars bars_;
-    Convert convert_;
+    Source source_;
+    FClose fClose_;
 };
+
+template<class Source, class FClose>
+auto convertPoints(Source source, FClose fClose) {
+    return std::make_shared<ConvertPoints<Source, FClose>>(std::move(source), std::move(fClose));
+}
 
 }
 }

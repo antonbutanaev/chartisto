@@ -80,7 +80,7 @@ private:
     Price low(size_t n) const override {return bars_[n].low;}
     Volume volume(size_t n) const override {return bars_[n].volume;}
 
-    size_t numBars() const override {return bars_.size();}
+    size_t num() const override {return bars_.size();}
 
     struct Bar {
         Time time;

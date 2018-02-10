@@ -12,7 +12,7 @@ class Bars: public data::Bars {
 public:
     Bars(const data::Bars &bars, const ReduceFunc &reduceFunc) {
         title_ = bars.title();
-        for (size_t i = 0; i < bars.numBars(); ++i) {
+        for (size_t i = 0; i < bars.num(); ++i) {
             const auto time = reduceFunc(bars.time(i));
 
             if (bars_.empty() || bars_.back().time != time)
@@ -40,7 +40,7 @@ private:
     Price low(size_t n) const override {return bars_[n].low;}
     Volume volume(size_t n) const override {return bars_[n].volume;}
 
-    size_t numBars() const override {return bars_.size();}
+    size_t num() const override {return bars_.size();}
 
     struct Bar {
         Time time;

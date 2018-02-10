@@ -16,7 +16,7 @@ TEST(TestRobotrade, Parse) {
 
 	const auto bars = robotrade::parse(ss);
 
-	ASSERT_EQ(bars->numBars(), 2);
+	ASSERT_EQ(bars->num(), 2);
 
 	EXPECT_EQ(bars->title(), "VTBR");
 
