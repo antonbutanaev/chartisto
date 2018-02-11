@@ -37,7 +37,6 @@ private:
 
 };
 
-
 data::PPoints ema(const data::PPoints &points, size_t period) {
 	data::PPoints result = make_shared<EMA>(points, period);
 	return result;
@@ -47,9 +46,19 @@ shared_ptr<Macd> macd(data::PPoints points, size_t fastPeriod, size_t slowPeriod
     auto result = make_shared<Macd>();
     result->fastEma = ema(points, fastPeriod);
     result->slowEma = ema(points, slowPeriod);
-    result->macd = data::convertPoints(result->fastEma, [&] (size_t n) {return result->fastEma->close(n) - result->slowEma->close(n);});
+    result->macd = data::convertPoints(
+        result->fastEma,
+        [fastEma = result->fastEma, slowEma = result->slowEma] (size_t n) {
+            return fastEma->close(n) - slowEma->close(n);
+        }
+    );
     result->signal = ema(result->macd, signalPeriod);
-    result->histogram = data::convertPoints(result->fastEma, [&] (size_t n) {return result->macd->close(n) - result->signal->close(n);});
+    result->histogram = data::convertPoints(
+        result->fastEma,
+        [macd = result->macd, signal = result->signal] (size_t n) {
+            return macd->close(n) - signal->close(n);
+        }
+    );
     return result;
 }
 
