@@ -49,9 +49,9 @@ public:
 using PPoints = std::shared_ptr<Points>;
 
 template<class Source, class FClose>
-class ConvertPoints: public Points {
+class CreatePoints: public Points {
 public:
-    ConvertPoints(Source source, FClose fClose) :
+    CreatePoints(Source source, FClose fClose) :
         source_(std::move(source)),
         fClose_(std::move(fClose)) {
     }
@@ -68,8 +68,10 @@ private:
 };
 
 template<class Source, class FClose>
-auto convertPoints(Source source, FClose fClose) {
-    return std::make_shared<ConvertPoints<Source, FClose>>(std::move(source), std::move(fClose));
+auto createPoints(Source source, FClose fClose) {
+    return std::make_shared<CreatePoints<Source, FClose>>(
+        std::forward<Source>(source), std::forward<FClose>(fClose)
+    );
 }
 
 }

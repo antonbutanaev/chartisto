@@ -16,12 +16,18 @@ public:
 	) : points_(points) {
 		title_ = points_->title() + " EMA " + to_string(period);
 		ema_.reserve(num());
-		ema_.push_back(points_->close(0));
+		size_t i = 0;
+		for(; points_->close(i) == NoPrice; ++i)
+			ema_.push_back(NoPrice);
+
+		ema_.push_back(points_->close(i++));
+
 		const auto k = 2. / (period + 1);
-		for (size_t i = 1; i < num(); ++i)
-			ema_.push_back(
-				k * points_->close(i) + (1 - k) * ema_[i - 1]
-			);
+		for (; i < num(); ++i) {
+			if (points_->close(i) == NoPrice)
+				continue;
+			ema_.push_back(k * points_->close(i) + (1 - k) * ema_[i - 1]);
+		}
 	}
 
     std::string title() const override {return title_;}
@@ -37,23 +43,34 @@ private:
 
 };
 
-data::PPoints ema(const data::PPoints &points, size_t period) {
+data::PPoints ema(data::PPoints points, size_t period) {
 	data::PPoints result = make_shared<EMA>(points, period);
 	return result;
+}
+
+data::PPoints forceIndex(data::PBars bars, size_t period) {
+    auto forceIndex = data::createPoints(
+        bars,
+        [bars] (size_t n) {
+            return n == 0 ?
+                NoPrice : (bars->close(n) - bars->close(n - 1)) * bars->volume(n);
+        }
+    );
+    return ema(forceIndex, period);
 }
 
 shared_ptr<Macd> macd(data::PPoints points, size_t fastPeriod, size_t slowPeriod, size_t signalPeriod) {
     auto result = make_shared<Macd>();
     result->fastEma = ema(points, fastPeriod);
     result->slowEma = ema(points, slowPeriod);
-    result->macd = data::convertPoints(
+    result->macd = data::createPoints(
         result->fastEma,
         [fastEma = result->fastEma, slowEma = result->slowEma] (size_t n) {
             return fastEma->close(n) - slowEma->close(n);
         }
     );
     result->signal = ema(result->macd, signalPeriod);
-    result->histogram = data::convertPoints(
+    result->histogram = data::createPoints(
         result->fastEma,
         [macd = result->macd, signal = result->signal] (size_t n) {
             return macd->close(n) - signal->close(n);

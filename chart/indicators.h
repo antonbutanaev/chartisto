@@ -6,7 +6,8 @@
 namespace chart {
 namespace indicators {
 
-data::PPoints ema(const data::PPoints&, size_t period);
+data::PPoints ema(data::PPoints, size_t period);
+data::PPoints forceIndex(data::PBars, size_t period);
 
 struct Macd {
     data::PPoints slowEma;
