@@ -11,9 +11,9 @@ namespace {
 class EMA: public data::Points {
 public:
 	EMA(
-		const data::PPoints &points,
+		data::PPoints &&points,
 		size_t period
-	) : points_(points) {
+	) : points_(move(points)) {
 		title_ = points_->title() + " EMA " + to_string(period);
 		ema_.reserve(num());
 		size_t i = 0;
@@ -44,7 +44,7 @@ private:
 };
 
 data::PPoints ema(data::PPoints points, size_t period) {
-	data::PPoints result = make_shared<EMA>(points, period);
+	data::PPoints result = make_shared<EMA>(move(points), period);
 	return result;
 }
 
@@ -56,7 +56,7 @@ data::PPoints forceIndex(data::PBars bars, size_t period) {
                 NoPrice : (bars->close(n) - bars->close(n - 1)) * bars->volume(n);
         }
     );
-    return ema(forceIndex, period);
+    return ema(move(forceIndex), period);
 }
 
 shared_ptr<Macd> macd(data::PPoints points, size_t fastPeriod, size_t slowPeriod, size_t signalPeriod) {

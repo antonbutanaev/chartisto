@@ -6,7 +6,6 @@
 #include <chrono>
 #include <memory>
 #include <utility>
-#include <functional>
 
 namespace chart {
 
@@ -51,7 +50,7 @@ using PPoints = std::shared_ptr<Points>;
 template<class Source, class FClose>
 class CreatePoints: public Points {
 public:
-    CreatePoints(Source source, FClose fClose) :
+    CreatePoints(Source &&source, FClose &&fClose) :
         source_(std::move(source)),
         fClose_(std::move(fClose)) {
     }
@@ -70,7 +69,7 @@ private:
 template<class Source, class FClose>
 auto createPoints(Source source, FClose fClose) {
     return std::make_shared<CreatePoints<Source, FClose>>(
-        std::forward<Source>(source), std::forward<FClose>(fClose)
+        std::move(source), std::move(fClose)
     );
 }
 

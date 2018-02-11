@@ -1,8 +1,8 @@
 #include <iostream>
 #include <regex>
 #include <date.h>
-#include <chart/chart.h>
-#include "quotesparser.h"
+#include <chart/data.h>
+#include <robotrade/quotesparser.h>
 
 using namespace std;
 using namespace std::chrono;
