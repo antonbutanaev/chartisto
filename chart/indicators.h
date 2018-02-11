@@ -1,10 +1,12 @@
-#ifndef CHART_MACD_H
-#define CHART_MACD_H
+#ifndef CHART_EMA_H_
+#define CHART_EMA_H_
 
-#include <memory>
 #include <chart/data.h>
 
 namespace chart {
+namespace indicators {
+
+data::PPoints ema(const data::PPoints&, size_t period);
 
 struct Macd {
     data::PPoints slowEma;
@@ -16,6 +18,6 @@ struct Macd {
 
 std::shared_ptr<Macd> macd(data::PPoints, size_t fastPeriod, size_t slowPeriod, size_t signalPeriod);
 
-}
+}}
 
 #endif

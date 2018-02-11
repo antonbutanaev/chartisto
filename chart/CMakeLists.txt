@@ -1,6 +1,5 @@
 add_library(chart
 	chart.cpp
-	ema.cpp
+	indicators.cpp
 	reduce.cpp
-	macd.cpp
 )

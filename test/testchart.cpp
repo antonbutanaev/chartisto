@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <chart/chart.h>
-#include <chart/ema.h>
-#include <chart/macd.h>
+#include <chart/indicators.h>
 #include <chart/reduce.h>
 #include <robotrade/quotesparser.h>
 #include <date.h>
@@ -58,7 +57,7 @@ TEST(TestChart, EMA) {
 		size_t num() const override {return 3;}
 	};
 
-	const auto emaPoints = ema(make_shared<Points>(), 3);
+	const auto emaPoints = indicators::ema(make_shared<Points>(), 3);
 	ASSERT_EQ(emaPoints->num(), 3);
 	EXPECT_EQ(emaPoints->title(), "TestEma EMA 3");
 
@@ -124,17 +123,17 @@ TEST(TestChart, Macd) {
 	ASSERT_EQ(bars->num(), 5);
 
 	auto closePrice = data::convertPoints(bars, [&](size_t n) {return bars->close(n);});
-	auto testMacd = macd(closePrice, 4,5,3);
+	auto testMacd = indicators::macd(closePrice, 4,5,3);
 	ASSERT_EQ(testMacd->macd->num(), 5);
 	ASSERT_EQ(testMacd->signal->num(), 5);
 	ASSERT_EQ(testMacd->histogram->num(), 5);
 
-	auto ema4 = ema(closePrice, 4);
-	auto ema5 = ema(closePrice, 5);
+	auto ema4 = indicators::ema(closePrice, 4);
+	auto ema5 = indicators::ema(closePrice, 5);
 	EXPECT_EQ(testMacd->macd->close(4), ema4->close(4) - ema5->close(4));
 
 	auto macd = data::convertPoints(ema4, [&](size_t n) {return ema4->close(n) - ema5->close(n);});
-	auto ema3 = ema(macd, 3);
+	auto ema3 = indicators::ema(macd, 3);
 
 	EXPECT_EQ(testMacd->signal->close(4), ema3->close(4));
 	EXPECT_EQ(testMacd->histogram->close(4), testMacd->macd->close(4) - testMacd->signal->close(4));

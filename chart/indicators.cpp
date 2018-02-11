@@ -1,10 +1,11 @@
 #include <string>
 #include <vector>
-#include <chart/ema.h>
+#include <chart/indicators.h>
 
 using namespace std;
-using namespace chart;
 
+namespace chart {
+namespace indicators {
 namespace {
 
 class EMA: public data::Points {
@@ -36,11 +37,20 @@ private:
 
 };
 
-namespace chart {
 
 data::PPoints ema(const data::PPoints &points, size_t period) {
 	data::PPoints result = make_shared<EMA>(points, period);
 	return result;
 }
 
+shared_ptr<Macd> macd(data::PPoints points, size_t fastPeriod, size_t slowPeriod, size_t signalPeriod) {
+    auto result = make_shared<Macd>();
+    result->fastEma = ema(points, fastPeriod);
+    result->slowEma = ema(points, slowPeriod);
+    result->macd = data::convertPoints(result->fastEma, [&] (size_t n) {return result->fastEma->close(n) - result->slowEma->close(n);});
+    result->signal = ema(result->macd, signalPeriod);
+    result->histogram = data::convertPoints(result->fastEma, [&] (size_t n) {return result->macd->close(n) - result->signal->close(n);});
+    return result;
 }
+
+}}
