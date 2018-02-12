@@ -8,7 +8,7 @@ using namespace chart;
 using namespace std;
 using namespace date;
 
-TEST(TestChart, EMA) {
+TEST(TestIndicators, EMA) {
 	class Points: public data::Points {
 		std::string title() const override {return "TestEma";}
 		Time time(size_t n) const override {return sys_days{2017_y/2/(n+1)};}
@@ -35,7 +35,7 @@ TEST(TestChart, EMA) {
 	EXPECT_EQ(emaPoints->close(2), ema3);
 }
 
-TEST(TestChart, Reduce) {
+TEST(TestIndicators, Reduce) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180208,100000,1,10,1,4,5\n"
@@ -67,7 +67,7 @@ TEST(TestChart, Reduce) {
 	EXPECT_EQ(barsWeek->low(1), 10);
 }
 
-TEST(TestChart, Macd) {
+TEST(TestIndicators, Macd) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180208,100000,1,10000,1,1317.7,1\n"
@@ -98,7 +98,7 @@ TEST(TestChart, Macd) {
 	EXPECT_EQ(testMacd->histogram->close(4), testMacd->macd->close(4) - testMacd->signal->close(4));
 }
 
-TEST(TestChart, ForceIndex) {
+TEST(TestIndicators, ForceIndex) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180208,100000,1,10,1,2,1\n"

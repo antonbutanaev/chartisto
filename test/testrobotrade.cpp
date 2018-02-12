@@ -1,11 +1,15 @@
 #include <sstream>
 #include <gtest/gtest.h>
 #include <robotrade/quotesparser.h>
+#include <robotrade/triplescreen.h>
+#include <chart/indicators.h>
+#include <chart/reduce.h>
 #include <date.h>
 
 using namespace std;
 using namespace date;
 using namespace chart;
+using namespace robotrade;
 
 TEST(TestRobotrade, Parse) {
 	string quotes =
@@ -14,7 +18,7 @@ TEST(TestRobotrade, Parse) {
 		"VTBR,D,20130109,010203,0.0551000,0.0554100,0.0548310,0.0549300,23315540000\n";
 	stringstream ss(quotes);
 
-	const auto bars = robotrade::parse(ss);
+	const auto bars = parse(ss);
 
 	ASSERT_EQ(bars->num(), 2);
 
@@ -35,3 +39,21 @@ TEST(TestRobotrade, Parse) {
 	EXPECT_EQ(bars->volume(1), 23315540000);
 }
 
+TEST(TestRobotrade, TripleScreenEmpty) {
+	string quotes =
+		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+		"VTBR,D,20130108,000000,0.0550000,0.0554000,0.0548300,0.0549200,23315530000\n"
+		"VTBR,D,20130109,010203,0.0551000,0.0554100,0.0548310,0.0549300,23315540000\n";
+	stringstream ss(quotes);
+
+	const auto barsDaily = robotrade::parse(ss);
+	const auto barsWeekly = reduce(*barsDaily, weekReduce);
+
+	TripleScreen tripleScreen(
+		barsWeekly, barsDaily,
+		[barsDaily, barsWeekly](size_t weekly, size_t daily) {return false;}
+	);
+
+	const auto result = tripleScreen.run();
+	EXPECT_TRUE(result.trades.empty());
+}

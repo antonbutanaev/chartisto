@@ -7,6 +7,7 @@ add_executable(robotrade
 )
 
 add_library(robotradeutils
+	triplescreen.cpp
     quotesparser.cpp
 )
 
