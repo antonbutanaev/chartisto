@@ -7,18 +7,16 @@ namespace robotrade {
 
 struct TripleScreen::Impl {
 	Impl(data::PBars weekly, data::PBars daily, Criteria criteria) {
-
 	}
 
 	StategyResult run() {
 		return {};
 	}
-
 };
 
-TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria) :
-i_(new Impl(weekly, daily, criteria))
-{
+TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria)
+:
+i_(new Impl(weekly, daily, criteria)) {
 }
 
 TripleScreen::~TripleScreen() {}
