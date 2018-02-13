@@ -51,7 +51,7 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
-		[](size_t weekly, size_t daily) {return false;}
+		[](size_t weekly, size_t daily) {return Action::Wait;}
 	);
 
 	const auto result = tripleScreen.run();

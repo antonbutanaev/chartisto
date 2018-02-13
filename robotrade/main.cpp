@@ -2,11 +2,21 @@
 #include <fstream>
 #include <json/json.h>
 #include <boost/program_options.hpp>
-#include "quotesparser.h"
+#include <log4cplus/logger.h>
+#include <log4cplus/configurator.h>
+#include <log4cplus/loggingmacros.h>
+
+#include <robotrade/quotesparser.h>
 
 using namespace std;
 
 int main(int ac, char *av[]) try {
+	log4cplus::initialize();
+	log4cplus::PropertyConfigurator::doConfigure("robotrade.ini");
+
+	auto logger = log4cplus::Logger::getInstance("main");
+	LOG4CPLUS_DEBUG(logger, "start");
+
 	namespace po = boost::program_options;
 	po::options_description desc("Allowed options");
 	desc.add_options()
