@@ -35,6 +35,20 @@ TEST(TestIndicators, EMA) {
 	EXPECT_EQ(emaPoints->close(2), ema3);
 }
 
+TEST(TestIndicators, TestDayReduce) {
+	EXPECT_EQ(dayReduce(sys_days{2018_y/feb/14} + 20min), sys_days{2018_y/feb/14});
+	EXPECT_EQ(dayReduce(sys_days{2018_y/feb/14} + 0min), sys_days{2018_y/feb/14});
+	EXPECT_EQ(dayReduce(sys_days{2018_y/feb/14} - 1min), sys_days{2018_y/feb/13});
+}
+
+TEST(TestIndicators, TestWeekReduce) {
+	EXPECT_EQ(weekReduce(sys_days{2018_y/feb/11} + 23h + 59min), sys_days{2018_y/feb/5});
+	EXPECT_EQ(weekReduce(sys_days{2018_y/feb/11} + 23h + 60min), sys_days{2018_y/feb/12});
+	EXPECT_EQ(weekReduce(sys_days{2018_y/feb/12} + 20min), sys_days{2018_y/feb/12});
+	EXPECT_EQ(weekReduce(sys_days{2018_y/feb/12} + 0min), sys_days{2018_y/feb/12});
+	EXPECT_EQ(weekReduce(sys_days{2018_y/feb/12} - 1min), sys_days{2018_y/feb/5});
+}
+
 TEST(TestIndicators, Reduce) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"

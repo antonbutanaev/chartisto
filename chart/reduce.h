@@ -9,6 +9,7 @@ namespace chart {
 using ReduceFunc = std::function<Time(Time)>;
 data::PBars reduce(const data::Bars &bars, const ReduceFunc &reduceFunc);
 Time weekReduce(Time);
+Time dayReduce(Time);
 
 }
 

@@ -4,6 +4,8 @@
 #include <date/date.h>
 
 using namespace std;
+using namespace date;
+using namespace std::chrono;
 
 namespace chart {
 namespace {
@@ -58,12 +60,13 @@ data::PBars reduce(const data::Bars &bars, const ReduceFunc &reduceFunc) {
 }
 
 Time weekReduce(Time time) {
-    using namespace date;
-    using namespace std::chrono;
-
     sys_days sd = time_point_cast<days>(time);
     return sd - (weekday{sd} - mon);
 
+}
+
+Time dayReduce(Time time) {
+    return time_point_cast<days>(time);
 }
 
 }
