@@ -12,14 +12,17 @@ add_library(robotradeutils
     quotesparser.cpp
 )
 
+target_link_libraries(robotradeutils
+	${JSONCPP_LIBRARIES}
+	${LOG4CPLUS_LIBRARIES}
+)
+
 target_link_libraries(robotrade
 	tz
 	fmt
 	boost_program_options
 	chart
 	robotradeutils
-	${JSONCPP_LIBRARIES}
-	${LOG4CPLUS_LIBRARIES}
 )
 
 configure_file(robotrade.ini robotrade.ini COPYONLY)

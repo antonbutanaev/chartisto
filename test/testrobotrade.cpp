@@ -46,7 +46,8 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 		"VTBR,D,20130109,010203,0.0551000,0.0554100,0.0548310,0.0549300,23315540000\n";
 	stringstream ss(quotes);
 
-	const auto barsDaily = robotrade::parse(ss);
+	const auto barsParsed = robotrade::parse(ss);
+	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
 	TripleScreen tripleScreen(
