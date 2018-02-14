@@ -2,7 +2,7 @@
 #include <chart/indicators.h>
 #include <chart/reduce.h>
 #include <robotrade/quotesparser.h>
-#include <date.h>
+#include <date/date.h>
 
 using namespace chart;
 using namespace std;

@@ -6,6 +6,8 @@
 #include <chrono>
 #include <memory>
 #include <utility>
+#include <fmt/ostream.h>
+#include <date/date.h>
 
 namespace chart {
 
@@ -14,6 +16,13 @@ using Price = double;
 using Time = std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>;
 constexpr auto NoPrice = std::numeric_limits<Price>::max();
 constexpr auto NoTime = Time::max();
+
+inline std::ostream &operator<<(std::ostream &o, Time time) {
+	const auto day = std::chrono::time_point_cast<date::days>(time);
+	const auto ymd = date::year_month_day(day);
+	auto tod = date::make_time(time - day);
+	return o << ymd << ' ' << tod;
+}
 
 namespace data {
 

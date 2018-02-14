@@ -1,3 +1,6 @@
 [submodule "date"]
 	path = date
 	url = https://github.com/HowardHinnant/date.git
+[submodule "fmt"]
+	path = fmt
+	url = https://github.com/fmtlib/fmt.git

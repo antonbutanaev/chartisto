@@ -4,7 +4,7 @@
 #include <robotrade/triplescreen.h>
 #include <chart/indicators.h>
 #include <chart/reduce.h>
-#include <date.h>
+#include <date/date.h>
 
 using namespace std;
 using namespace date;
@@ -51,7 +51,7 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
-		[](size_t weekly, size_t daily) {return Action::Wait;}
+		[](size_t, size_t) {return Action::Wait;}
 	);
 
 	const auto result = tripleScreen.run();

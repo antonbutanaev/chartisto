@@ -1,8 +1,13 @@
 #include <robotrade/triplescreen.h>
 #include <chart/reduce.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+#include <date/date.h>
 
 using namespace chart;
 using namespace std;
+using namespace fmt::literals;
+using namespace date;
 
 namespace robotrade {
 
@@ -16,10 +21,13 @@ struct TripleScreen::Impl {
 		size_t dailyPos = 0;
 		const auto weeklyTime = weekly_->time(weeklyPos);
 		const auto dailyTime = daily_->time(dailyPos);
+
 		if (weeklyTime != weekReduce(weeklyTime))
-			throw runtime_error("Bad weekly time");
+			throw runtime_error("Bad weekly time {}:{} at pos"_format(weeklyTime, weeklyPos));
 		if (weeklyTime != weekReduce(dailyTime))
-			throw runtime_error("Daily and weekly not in sync");
+			throw runtime_error("Daily {}:{} and weekly {}:{} time not in sync"_format(
+				dailyTime, dailyPos, weeklyTime, weeklyPos
+			));
 
 		return {};
 	}

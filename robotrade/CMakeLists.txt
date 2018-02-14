@@ -14,6 +14,7 @@ add_library(robotradeutils
 
 target_link_libraries(robotrade
 	tz
+	fmt
 	boost_program_options
 	chart
 	robotradeutils

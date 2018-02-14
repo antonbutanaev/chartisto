@@ -21,5 +21,6 @@ add_executable(testrobotrade
 target_link_libraries(testrobotrade
 	robotradeutils
 	chart
+	fmt
 	${GTEST_BOTH_LIBRARIES}
 )
