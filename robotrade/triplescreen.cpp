@@ -17,11 +17,14 @@ struct TripleScreen::Impl {
 		weekly_(weekly), daily_(daily), criteria_(criteria) {
 	}
 
-	StategyResult run() {
+	StrategyResult run() {
 		LOG4CPLUS_DEBUG(logger_, "start triple screen on {} weekly and {} daily bars"_format(
 			weekly_->num(), daily_->num()
 		));
-		StategyResult result;
+		StrategyResult result;
+		if (!weekly_->num() || !daily_->num())
+			return result;
+
 		size_t weeklyPos = 0;
 		size_t dailyPos = 0;
 
@@ -52,9 +55,36 @@ struct TripleScreen::Impl {
 
 		for (; !end(); next()) {
 			switch (criteria_(weeklyPos, dailyPos)) {
-			case Action::Buy:
+			case Action::Buy: {
+				if (
+					dailyPos == daily_->num() - 1 ||
+					daily_->high(dailyPos + 1) <= daily_->high(dailyPos) ||
+					daily_->low(dailyPos + 1) > daily_->high(dailyPos)
+				)
+					break;
+
 				result.trades.emplace_back();
+				auto &trade = result.trades.back();
+				trade.number = 1;
+				trade.enterPrice = daily_->high(dailyPos + 1);
+				trade.stopPrice = daily_->low(dailyPos);
+				if (dailyPos > 0 && trade.stopPrice > daily_->low(dailyPos - 1))
+					trade.stopPrice = daily_->low(dailyPos - 1);
+
+				for (auto i = dailyPos + 1; i < daily_->num(); ++i) {
+					if (
+						trade.maxProfitToStop == NoPrice ||
+						trade.maxProfitToStop < daily_->high(i) - trade.enterPrice
+					)
+						trade.maxProfitToStop = daily_->high(i) - trade.enterPrice;
+
+					if (daily_->high(i) <= trade.stopPrice) {
+						trade.barsToStop = i - (dailyPos + 1);
+						break;
+					}
+				}
 				break;
+			}
 			case Action::Sell:
 				result.trades.emplace_back();
 				break;
@@ -77,7 +107,7 @@ TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria crite
 
 TripleScreen::~TripleScreen() {}
 
-StategyResult TripleScreen::run() {
+StrategyResult TripleScreen::run() {
 	return i_->run();
 }
 

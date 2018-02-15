@@ -59,10 +59,10 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 	EXPECT_TRUE(result.trades.empty());
 }
 
-TEST(TestRobotrade, TripleScreen) {
+TEST(TestRobotrade, TripleScreen1) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
-		"VTBR,D,20180215,100000,1,9,1,2,1\n"
+		"VTBR,D,20180215,100000,2,9,2,2,1\n"
 		"VTBR,D,20180216,100000,3,10,1,4,1\n"
 		"VTBR,D,20180219,100000,5,11,1,6,1\n"
 		"VTBR,D,20180220,100000,6,12,6,7,1\n"
@@ -84,5 +84,11 @@ TEST(TestRobotrade, TripleScreen) {
 
 	const auto result = tripleScreen.run();
 	ASSERT_EQ(result.trades.size(), 1);
+	const auto &trade = result.trades.back();
+	EXPECT_EQ(trade.number, 1);
+	EXPECT_EQ(trade.enterPrice, 11);
+	EXPECT_EQ(trade.stopPrice, 1);
+	EXPECT_EQ(trade.barsToStop, StrategyResult::Trade::NoStop);
+	EXPECT_EQ(trade.maxProfitToStop, 2);
 }
 
