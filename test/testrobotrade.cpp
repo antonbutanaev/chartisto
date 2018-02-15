@@ -58,3 +58,31 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 	const auto result = tripleScreen.run();
 	EXPECT_TRUE(result.trades.empty());
 }
+
+TEST(TestRobotrade, TripleScreen) {
+	string quotes =
+		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+		"VTBR,D,20180215,100000,1,9,1,2,1\n"
+		"VTBR,D,20180216,100000,3,10,1,4,1\n"
+		"VTBR,D,20180219,100000,5,11,1,6,1\n"
+		"VTBR,D,20180220,100000,6,12,6,7,1\n"
+		"VTBR,D,20180221,100000,7,13,6,8,1\n"
+		;
+	stringstream ss(quotes);
+
+	const auto barsParsed = robotrade::parse(ss);
+	const auto barsDaily = reduce(*barsParsed, dayReduce);
+	const auto barsWeekly = reduce(*barsDaily, weekReduce);
+
+	TripleScreen tripleScreen(
+		barsWeekly, barsDaily,
+		[&](size_t weekly, size_t daily) {
+			return
+				barsWeekly->high(weekly) == 10 && barsDaily->close(daily) == 4? Action::Buy : Action::Wait;
+		}
+	);
+
+	const auto result = tripleScreen.run();
+	ASSERT_EQ(result.trades.size(), 1);
+}
+

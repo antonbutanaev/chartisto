@@ -32,7 +32,7 @@ struct TripleScreen::Impl {
 		};
 
 		const auto end = [&] {
-			if (dailyPos != daily_->num() && weeklyPos != weekly_->num())
+			if (dailyPos == daily_->num() || weeklyPos == weekly_->num())
 				return true;
 
 			const auto weeklyTime = weekly_->time(weeklyPos);
