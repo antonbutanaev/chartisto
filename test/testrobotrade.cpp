@@ -64,7 +64,7 @@ TEST(TestRobotrade, TripleScreen1) {
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180215,100000,2,9,2,2,1\n"
 		"VTBR,D,20180216,100000,3,10,1,4,1\n"
-		"VTBR,D,20180219,100000,5,11,1,6,1\n"
+		"VTBR,D,20180219,100000,5,11,2,6,1\n"
 		"VTBR,D,20180220,100000,6,12,6,7,1\n"
 		"VTBR,D,20180221,100000,7,13,6,8,1\n"
 		;
@@ -85,6 +85,7 @@ TEST(TestRobotrade, TripleScreen1) {
 	const auto result = tripleScreen.run();
 	ASSERT_EQ(result.trades.size(), 1);
 	const auto &trade = result.trades.back();
+	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
 	EXPECT_EQ(trade.number, 1);
 	EXPECT_EQ(trade.enterPrice, 11);
 	EXPECT_EQ(trade.stopPrice, 1);
@@ -92,3 +93,38 @@ TEST(TestRobotrade, TripleScreen1) {
 	EXPECT_EQ(trade.maxProfitToStop, 2);
 }
 
+TEST(TestRobotrade, TripleScreen2) {
+	string quotes =
+		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+		"VTBR,D,20180215,100000,2,9,2,2,1\n"
+		"VTBR,D,20180216,100000,3,10,3,4,1\n"
+		"VTBR,D,20180219,100000,5,11,4,6,1\n"
+		"VTBR,D,20180220,100000,6,12,6,7,1\n"
+		"VTBR,D,20180221,100000,7,13,6,8,1\n"
+		"VTBR,D,20180222,100000,7,14,2,1,1\n"
+		;
+	stringstream ss(quotes);
+
+	const auto barsParsed = robotrade::parse(ss);
+	const auto barsDaily = reduce(*barsParsed, dayReduce);
+	const auto barsWeekly = reduce(*barsDaily, weekReduce);
+
+	TripleScreen tripleScreen(
+		barsWeekly, barsDaily,
+		[&](size_t weekly, size_t daily) {
+			return
+				barsWeekly->high(weekly) == 10 && barsDaily->close(daily) == 4? Action::Buy : Action::Wait;
+		}
+	);
+
+	const auto result = tripleScreen.run();
+	ASSERT_EQ(result.trades.size(), 1);
+	const auto &trade = result.trades.back();
+	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
+	EXPECT_EQ(trade.stopTime, sys_days{2018_y/feb/22});
+	EXPECT_EQ(trade.number, 1);
+	EXPECT_EQ(trade.enterPrice, 11);
+	EXPECT_EQ(trade.stopPrice, 2);
+	EXPECT_EQ(trade.barsToStop, 3);
+	EXPECT_EQ(trade.maxProfitToStop, 3);
+}

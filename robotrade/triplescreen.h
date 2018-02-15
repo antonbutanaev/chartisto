@@ -13,6 +13,7 @@ namespace robotrade {
 struct StrategyResult {
 	struct Trade {
 		chart::Time time = chart::NoTime;
+		chart::Time stopTime = chart::NoTime;
 		int number = 0;
 		chart::Price enterPrice = chart::NoPrice;
 		chart::Price stopPrice = chart::NoPrice;
