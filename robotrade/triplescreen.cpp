@@ -67,7 +67,7 @@ struct TripleScreen::Impl {
 				auto &trade = result.trades.back();
 				trade.time = daily_->time(dailyPos + 1);
 				trade.number = 1;
-				trade.enterPrice = daily_->high(dailyPos + 1);
+				trade.enterPrice = daily_->high(dailyPos);
 				trade.stopPrice = daily_->low(dailyPos);
 				if (dailyPos > 0 && trade.stopPrice > daily_->low(dailyPos - 1))
 					trade.stopPrice = daily_->low(dailyPos - 1);
@@ -81,15 +81,44 @@ struct TripleScreen::Impl {
 
 					if (daily_->low(i) <= trade.stopPrice) {
 						trade.barsToStop = i - (dailyPos + 1);
-						trade.stopTime = daily_->time(i);
+						trade.stoppedTime = daily_->time(i);
 						break;
 					}
 				}
 				break;
 			}
-			case Action::Sell:
+			case Action::Sell: {
+				if (
+					dailyPos == daily_->num() - 1 ||
+					daily_->low(dailyPos + 1) >= daily_->low(dailyPos) ||
+					daily_->high(dailyPos + 1) < daily_->low(dailyPos)
+				)
+					break;
+
 				result.trades.emplace_back();
+				auto &trade = result.trades.back();
+				trade.time = daily_->time(dailyPos + 1);
+				trade.number = -1;
+				trade.enterPrice = daily_->low(dailyPos);
+				trade.stopPrice = daily_->high(dailyPos);
+				if (dailyPos > 0 && trade.stopPrice < daily_->high(dailyPos - 1))
+					trade.stopPrice = daily_->high(dailyPos - 1);
+
+				for (auto i = dailyPos + 1; i < daily_->num(); ++i) {
+					if (
+						trade.maxProfitToStop == NoPrice ||
+						trade.maxProfitToStop < trade.enterPrice - daily_->low(i)
+					)
+						trade.maxProfitToStop = trade.enterPrice - daily_->low(i);
+
+					if (daily_->high(i) >= trade.stopPrice) {
+						trade.barsToStop = i - (dailyPos + 1);
+						trade.stoppedTime = daily_->time(i);
+						break;
+					}
+				}
 				break;
+			}
 			case Action::Wait:
 				break;
 			}
