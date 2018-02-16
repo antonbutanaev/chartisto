@@ -34,11 +34,13 @@ void runTripleScreen(data::PBars bars) {
 			return Action::Wait;
 			if (
 				macdWeekly->histogram->close(weekly-1) < macdWeekly->histogram->close(weekly) &&
+				macdWeekly->histogram->close(weekly) < 0 &&
 				forceIndex->close(daily) < 0
 			)
 				return Action::Buy;
 			else if (
 				macdWeekly->histogram->close(weekly-1) > macdWeekly->histogram->close(weekly) &&
+				macdWeekly->histogram->close(weekly) > 0 &&
 				forceIndex->close(daily) > 0
 			)
 				return Action::Sell;
