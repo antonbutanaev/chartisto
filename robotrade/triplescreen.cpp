@@ -123,6 +123,7 @@ struct TripleScreen::Impl {
 				break;
 			}
 		}
+		LOG4CPLUS_DEBUG(logger_, "triple screen found {} trades"_format(result.trades.size()));
 		return result;
 	}
 

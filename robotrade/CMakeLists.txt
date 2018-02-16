@@ -4,7 +4,7 @@ pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 pkg_check_modules(LOG4CPLUS REQUIRED log4cplus)
 
 add_executable(robotrade
-    main.cpp
+    robotrade.cpp
 )
 
 add_library(robotradeutils
@@ -13,16 +13,18 @@ add_library(robotradeutils
 )
 
 target_link_libraries(robotradeutils
+	chart
+	tz
+	fmt
 	${JSONCPP_LIBRARIES}
 	${LOG4CPLUS_LIBRARIES}
 )
 
 target_link_libraries(robotrade
-	tz
-	fmt
 	boost_program_options
-	chart
 	robotradeutils
 )
 
-configure_file(robotrade.ini robotrade.ini COPYONLY)
+set(LOG_CONF robotrade_log.conf)
+
+configure_file(${LOG_CONF} ${LOG_CONF} COPYONLY)
