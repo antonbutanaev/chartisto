@@ -1,5 +1,5 @@
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
 find_package(Qt5Widgets)
 find_package(Qt5LinguistTools)

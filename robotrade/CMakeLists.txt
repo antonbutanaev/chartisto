@@ -1,7 +1,7 @@
 find_package(Boost)
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(JSONCPP jsoncpp)
-pkg_check_modules(LOG4CPLUS log4cplus)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
+pkg_check_modules(LOG4CPLUS REQUIRED log4cplus)
 
 add_executable(robotrade
     main.cpp

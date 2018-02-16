@@ -90,6 +90,7 @@ TEST(TestRobotrade, TripleScreenBuy1) {
 	EXPECT_EQ(trade.enterPrice, 10);
 	EXPECT_EQ(trade.stopPrice, 1);
 	EXPECT_EQ(trade.barsToStop, StrategyResult::Trade::NoStop);
+	EXPECT_EQ(trade.stoppedTime, NoTime);
 	EXPECT_EQ(trade.maxProfitToStop, 3);
 }
 
@@ -160,5 +161,42 @@ TEST(TestRobotrade, TripleScreenSell1) {
 	EXPECT_EQ(trade.enterPrice, 19);
 	EXPECT_EQ(trade.stopPrice, 25);
 	EXPECT_EQ(trade.barsToStop, StrategyResult::Trade::NoStop);
+	EXPECT_EQ(trade.stoppedTime, NoTime);
 	EXPECT_EQ(trade.maxProfitToStop, 3);
 }
+
+TEST(TestRobotrade, TripleScreenSell2) {
+	string quotes =
+		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+		"VTBR,D,20180215,100000,20,25,20,21,1\n"
+		"VTBR,D,20180216,100000,19,24,19,20,1\n"
+		"VTBR,D,20180219,100000,18,23,18,19,1\n"
+		"VTBR,D,20180220,100000,17,22,17,18,1\n"
+		"VTBR,D,20180221,100000,16,25,10,17,1\n"
+		;
+	stringstream ss(quotes);
+
+	const auto barsParsed = robotrade::parse(ss);
+	const auto barsDaily = reduce(*barsParsed, dayReduce);
+	const auto barsWeekly = reduce(*barsDaily, weekReduce);
+
+	TripleScreen tripleScreen(
+		barsWeekly, barsDaily,
+		[&](size_t weekly, size_t daily) {
+			return
+				barsWeekly->low(weekly) == 19 && barsDaily->close(daily) == 20? Action::Sell : Action::Wait;
+		}
+	);
+
+	const auto result = tripleScreen.run();
+	ASSERT_EQ(result.trades.size(), 1);
+	const auto &trade = result.trades.back();
+	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
+	EXPECT_EQ(trade.stoppedTime, sys_days{2018_y/feb/21});
+	EXPECT_EQ(trade.number, -1);
+	EXPECT_EQ(trade.enterPrice, 19);
+	EXPECT_EQ(trade.stopPrice, 25);
+	EXPECT_EQ(trade.barsToStop, 2);
+	EXPECT_EQ(trade.maxProfitToStop, 9);
+}
+
