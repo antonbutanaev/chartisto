@@ -1,4 +1,4 @@
-#include "trader.h"
+#include <robotrade/trader.h>
 
 using namespace chart;
 
