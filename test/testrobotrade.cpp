@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <robotrade/quotesparser.h>
 #include <robotrade/triplescreen.h>
+#include <robotrade/trader.h>
 #include <chart/indicators.h>
 #include <chart/reduce.h>
 #include <date/date.h>
@@ -200,3 +201,10 @@ TEST(TestRobotrade, TripleScreenSell2) {
 	EXPECT_EQ(trade.maxProfitToStop, 9);
 }
 
+TEST(TestRobotrade, Trader) {
+	Trader trader(100, 2000.);
+	trader.trade(-1, 10, 9);
+
+	const auto report = trader.report();
+	ASSERT_EQ(report.lines.size(), 0);
+}
