@@ -2,24 +2,38 @@
 #define TRADER_H
 
 #include <memory>
-#include <vector>
+#include <functional>
 #include <chart/data.h>
 
 namespace robotrade {
 
 class Trader {
 public:
-    Trader(size_t lotSize, chart::Price maxLoss);
-    ~Trader();
-
-    void trade(int num, chart::Price price, chart::Price stop);
-
-    struct Report {
-        struct Line {};
-        std::vector<Line> lines;
+    struct Params {
+        size_t lotSize;
+        chart::Price maxLoss;
+        std::function<void(
+            chart::Time time,
+            int num,
+            chart::Price price,
+            chart::Price gain,
+            chart::Price totalGain
+        )> onTrade;
     };
 
-    Report report() const;
+    Trader(const Params &params);
+    ~Trader();
+
+    struct Trade {
+        chart::Time time;
+        int num;
+        chart::Price price;
+        chart::Price stopPrice;
+    };
+    void trade(const Trade&);
+
+    void priceChange(chart::Time time, chart::Price price);
+
 private:
     struct Impl;
     std::unique_ptr<Impl> i_;

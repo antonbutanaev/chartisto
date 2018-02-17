@@ -1,36 +1,58 @@
+#include <vector>
 #include <robotrade/trader.h>
 
 using namespace chart;
+using namespace std;
 
 namespace robotrade {
 
 struct Trader::Impl {
-    Impl(size_t lotSize, Price maxLoss) : lotSize(lotSize), maxLoss(maxLoss) {
+    Impl(const Params &params) : params(params) {}
+
+    void trade(const Trade &trade) {
+        position += trade.num;
+        total -= trade.num * trade.price;
+
+        stops.push_back({trade.stopPrice, trade.num});
+
+        params.onTrade(
+            trade.time,
+            trade.num,
+            trade.price,
+            0,
+            0
+        );
     }
 
-    void trade(int /*num*/, Price /*price*/, Price /*stop*/) {
+    void priceChange(Time, Price) {
+
     }
 
-    Report report() const {
-        return {};
-    }
+    int position = 0;
+    Price total = 0.;
 
-    size_t lotSize;
-    Price maxLoss;
+    struct Stop {
+        Price price;
+        int num;
+    };
+
+    vector<Stop> stops;
+
+    Params params;
 };
 
-Trader::Trader(size_t lotSize, Price maxLoss) : i_(new Impl(lotSize, maxLoss)) {
+Trader::Trader(const Params &params) : i_(new Impl(params)) {
 }
 
 Trader::~Trader() {}
 
-void Trader::trade(int num, Price price, Price stop) {
-    i_->trade(num, price, stop);
+void Trader::trade(const Trade &trade) {
+    i_->trade(trade);
 
 }
 
-Trader::Report Trader::report() const {
-    return i_->report();
+void Trader::priceChange(Time time, Price price) {
+    i_->priceChange(time, price);
 }
 
 }

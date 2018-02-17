@@ -6,11 +6,13 @@
 #include <chart/indicators.h>
 #include <chart/reduce.h>
 #include <date/date.h>
+#include <fmt/format.h>
 
 using namespace std;
 using namespace date;
 using namespace chart;
 using namespace robotrade;
+using namespace fmt::literals;
 
 TEST(TestRobotrade, Parse) {
 	string quotes =
@@ -202,9 +204,12 @@ TEST(TestRobotrade, TripleScreenSell2) {
 }
 
 TEST(TestRobotrade, Trader) {
-	Trader trader(100, 2000.);
-	trader.trade(-1, 10, 9);
-
-	const auto report = trader.report();
-	ASSERT_EQ(report.lines.size(), 0);
+	int numTrades = 0;
+	Trader trader({
+		1,
+		2000,
+		[&](auto, auto, auto, auto, auto) { ++numTrades; }
+	});
+	trader.trade({sys_days{2018_y/feb/17}, -1, 10, 9});
+	EXPECT_EQ(numTrades, 1);
 }
