@@ -10,8 +10,20 @@ struct Trader::Impl {
     Impl(const Params &params) : params(params) {}
 
     void trade(const Trade &trade) {
+        const auto prevPosition = position;
+        const auto avgPositionCost = position? cost / position : 0.;
+
         position += trade.num;
-        total -= trade.num * trade.price;
+        if (!position)
+            cost = 0;
+
+        auto gain = NoPrice;
+        if (abs(prevPosition) > abs(position))
+            gain = (position - prevPosition) * (trade.price - avgPositionCost);
+
+        const auto sum = trade.num * trade.price;
+        total -= sum;
+        cost += sum;
 
         stops.push_back({trade.stopPrice, trade.num});
 
@@ -19,17 +31,17 @@ struct Trader::Impl {
             trade.time,
             trade.num,
             trade.price,
-            0,
-            0
+            gain,
+            total
         );
     }
 
     void priceChange(Time, Price) {
-
     }
 
     int position = 0;
     Price total = 0.;
+    Price cost = 0.;
 
     struct Stop {
         Price price;

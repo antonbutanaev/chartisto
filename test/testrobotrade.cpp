@@ -203,12 +203,19 @@ TEST(TestRobotrade, TripleScreenSell2) {
 	EXPECT_EQ(trade.maxProfitToStop, 9);
 }
 
-TEST(TestRobotrade, Trader) {
+TEST(TestRobotrade, Trader1) {
 	int numTrades = 0;
 	Trader trader({
 		1,
 		2000,
-		[&](auto, auto, auto, auto, auto) { ++numTrades; }
+		[&] (auto time, auto num, auto price, auto gain, auto total) {
+			++numTrades;
+			EXPECT_EQ(time, sys_days{2018_y/feb/17});
+			EXPECT_EQ(num, -1);
+			EXPECT_EQ(price, 10);
+			EXPECT_EQ(gain, NoPrice);
+			EXPECT_EQ(total, 10);
+		}
 	});
 	trader.trade({sys_days{2018_y/feb/17}, -1, 10, 9});
 	EXPECT_EQ(numTrades, 1);
