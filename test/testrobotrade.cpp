@@ -202,8 +202,8 @@ TEST(TestRobotrade, TripleScreenSell2) {
 TEST(TestRobotrade, Trader1Buy) {
 	vector<Trader::OnTrade> trades;
 	Trader trader({1, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
-	trader.trade({sys_days{2018_y/feb/17}, 10, 9});
-	EXPECT_EQ(trades.size(), 1);
+	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 10, 9});
+	ASSERT_EQ(trades.size(), 1);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
 	EXPECT_EQ(trades[0].num, 2000);
@@ -215,13 +215,42 @@ TEST(TestRobotrade, Trader1Buy) {
 TEST(TestRobotrade, Trader1Sell) {
 	vector<Trader::OnTrade> trades;
 	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
-	trader.trade({sys_days{2018_y/feb/18}, 100, 103});
-	EXPECT_EQ(trades.size(), 1);
+	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/18}, 100, 103});
+	ASSERT_EQ(trades.size(), 1);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/18});
-	EXPECT_EQ(trades[0].num, -666);
+	EXPECT_EQ(trades[0].num, -600);
 	EXPECT_EQ(trades[0].price, 100);
 	EXPECT_EQ(trades[0].gain, NoPrice);
-	EXPECT_EQ(trades[0].total, 66600);
+	EXPECT_EQ(trades[0].total, 60000);
+}
+
+TEST(TestRobotrade, Trader2Buy) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({10, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 10, 7});
+	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 20, 17});
+	trader.trade({Trader::Trade::Type::Close, 0, sys_days{2018_y/feb/17}, 40, 41});
+	ASSERT_EQ(trades.size(), 3);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[0].num, 660);
+	EXPECT_EQ(trades[0].price, 10);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, -6600);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[1].num, 660);
+	EXPECT_EQ(trades[1].price, 20);
+	EXPECT_EQ(trades[1].gain, NoPrice);
+	EXPECT_EQ(trades[1].total, -660*10 - 660*20);
+
+	EXPECT_EQ(trades[2].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[2].num, -660 * 2);
+	EXPECT_EQ(trades[2].price, 40);
+	EXPECT_EQ(trades[2].gain, 33000);
+	EXPECT_EQ(trades[2].total, 33000);
+
+
 }
 

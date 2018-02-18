@@ -22,6 +22,9 @@ public:
     };
 
     struct Trade {
+        enum class Type {ByStop, Close, UseNum};
+        Type type;
+        int num;
         chart::Time time;
         chart::Price price, stopPrice;
     };
