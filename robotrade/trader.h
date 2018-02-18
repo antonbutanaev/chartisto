@@ -2,6 +2,7 @@
 #define TRADER_H
 
 #include <memory>
+#include <limits>
 #include <functional>
 #include <chart/data.h>
 
@@ -22,9 +23,9 @@ public:
     };
 
     struct Trade {
-        enum class Type {ByStop, Close, UseNum};
-        Type type;
         int num;
+        static constexpr auto ByStop = std::numeric_limits<decltype(num)>::max();
+        static constexpr auto Close = ByStop - 1;
         chart::Time time;
         chart::Price price, stopPrice;
     };

@@ -11,16 +11,18 @@ struct Trader::Impl {
 
     void trade(const Trade &trade) {
         int num  = 0;
-        switch (trade.type) {
-        case Trade::Type::ByStop:
+        switch (trade.num) {
+        case Trade::ByStop:
             num = static_cast<int>(params_.maxLoss / (trade.price - trade.stopPrice) / params_.lotSize);
             num *= params_.lotSize;
             break;
-        case Trade::Type::Close:
+        case Trade::Close:
             num = -position_;
             break;
-        case Trade::Type::UseNum:
+        default:
             num = trade.num;
+            num /= params_.lotSize;
+            num *= params_.lotSize;
             break;
         }
 
@@ -28,12 +30,17 @@ struct Trader::Impl {
         const auto avgCost = position_? cost_ / position_ : 0.;
 
         position_ += num;
-        if (!position_)
-            cost_ = 0;
+
+        const auto sign = [] (auto x) {return (x > 0) - (x < 0);};
 
         auto gain = NoPrice;
-        if (abs(prevPosition) > abs(position_))
+        if (prevPosition != 0 && sign(prevPosition) != sign(position_))
+            gain = (prevPosition) * (trade.price - avgCost);
+        else if (abs(prevPosition) > abs(position_))
             gain = (prevPosition - position_) * (trade.price - avgCost);
+
+        if (gain != NoPrice)
+            cost_ = 0;
 
         const auto sum = num * trade.price;
         total_ -= sum;

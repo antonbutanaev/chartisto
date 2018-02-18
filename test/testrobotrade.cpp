@@ -62,7 +62,7 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 	EXPECT_TRUE(result.trades.empty());
 }
 
-TEST(TestRobotrade, TripleScreenBuy1) {
+TEST(TestRobotrade, TripleScreenBuyNoStop) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180215,100000,2,9,2,2,1\n"
@@ -96,7 +96,7 @@ TEST(TestRobotrade, TripleScreenBuy1) {
 	EXPECT_EQ(trade.maxProfitToStop, 3);
 }
 
-TEST(TestRobotrade, TripleScreenBuy2) {
+TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180215,100000,2,9,2,2,1\n"
@@ -131,7 +131,7 @@ TEST(TestRobotrade, TripleScreenBuy2) {
 	EXPECT_EQ(trade.maxProfitToStop, 4);
 }
 
-TEST(TestRobotrade, TripleScreenSell1) {
+TEST(TestRobotrade, TripleScreenSellNoStop) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180215,100000,20,25,20,21,1\n"
@@ -165,7 +165,7 @@ TEST(TestRobotrade, TripleScreenSell1) {
 	EXPECT_EQ(trade.maxProfitToStop, 3);
 }
 
-TEST(TestRobotrade, TripleScreenSell2) {
+TEST(TestRobotrade, TripleScreenSellThenStopped) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
 		"VTBR,D,20180215,100000,20,25,20,21,1\n"
@@ -199,10 +199,10 @@ TEST(TestRobotrade, TripleScreenSell2) {
 	EXPECT_EQ(trade.maxProfitToStop, 9);
 }
 
-TEST(TestRobotrade, Trader1Buy) {
+TEST(TestRobotrade, TraderBuyByStop) {
 	vector<Trader::OnTrade> trades;
 	Trader trader({1, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
-	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 10, 9});
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/17}, 10, 9});
 	ASSERT_EQ(trades.size(), 1);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
@@ -212,10 +212,10 @@ TEST(TestRobotrade, Trader1Buy) {
 	EXPECT_EQ(trades[0].total, -20000);
 }
 
-TEST(TestRobotrade, Trader1Sell) {
+TEST(TestRobotrade, TraderSellByStopLot100) {
 	vector<Trader::OnTrade> trades;
 	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
-	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/18}, 100, 103});
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/18}, 100, 103});
 	ASSERT_EQ(trades.size(), 1);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/18});
@@ -225,12 +225,12 @@ TEST(TestRobotrade, Trader1Sell) {
 	EXPECT_EQ(trades[0].total, 60000);
 }
 
-TEST(TestRobotrade, Trader2Buy) {
+TEST(TestRobotrade, TraderBuyCloseLot10) {
 	vector<Trader::OnTrade> trades;
 	Trader trader({10, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
-	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 10, 7});
-	trader.trade({Trader::Trade::Type::ByStop, 0, sys_days{2018_y/feb/17}, 20, 17});
-	trader.trade({Trader::Trade::Type::Close, 0, sys_days{2018_y/feb/17}, 40, 41});
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/17}, 10, 7});
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/17}, 20, 17});
+	trader.trade({Trader::Trade::Close, sys_days{2018_y/feb/17}, 40, 41});
 	ASSERT_EQ(trades.size(), 3);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
@@ -250,7 +250,78 @@ TEST(TestRobotrade, Trader2Buy) {
 	EXPECT_EQ(trades[2].price, 40);
 	EXPECT_EQ(trades[2].gain, 33000);
 	EXPECT_EQ(trades[2].total, 33000);
+}
 
+TEST(TestRobotrade, TraderBuySellMore) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({1, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+	trader.trade({10, sys_days{2018_y/feb/17}, 100, NoPrice});
+	trader.trade({-15, sys_days{2018_y/feb/17}, 90, NoPrice});
+
+	ASSERT_EQ(trades.size(), 2);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[0].num, 10);
+	EXPECT_EQ(trades[0].price, 100);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, -1000);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[1].num, -15);
+	EXPECT_EQ(trades[1].price, 90);
+	EXPECT_EQ(trades[1].gain, -100);
+	EXPECT_EQ(trades[1].total, 350);
+}
+
+TEST(TestRobotrade, TraderSellBuyMore) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({1, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+	trader.trade({-10, sys_days{2018_y/feb/17}, 20, NoPrice});
+	trader.trade({11, sys_days{2018_y/feb/17}, 18, NoPrice});
+
+	ASSERT_EQ(trades.size(), 2);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[0].num, -10);
+	EXPECT_EQ(trades[0].price, 20);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, 200);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[1].num, 11);
+	EXPECT_EQ(trades[1].price, 18);
+	EXPECT_EQ(trades[1].gain, 20);
+	EXPECT_EQ(trades[1].total, 2);
 
 }
+
+TEST(TestRobotrade, TraderAvgCost) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({1, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+	trader.trade({-10, sys_days{2018_y/feb/17}, 20, NoPrice});
+	trader.trade({-11, sys_days{2018_y/feb/17}, 30, NoPrice});
+	trader.trade({1, sys_days{2018_y/feb/17}, 40, NoPrice});
+
+	ASSERT_EQ(trades.size(), 3);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[0].num, -10);
+	EXPECT_EQ(trades[0].price, 20);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, 200);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[1].num, -11);
+	EXPECT_EQ(trades[1].price, 30);
+	EXPECT_EQ(trades[1].gain, NoPrice);
+	EXPECT_EQ(trades[1].total, 10*20 + 11*30);
+
+	EXPECT_EQ(trades[2].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[2].num, 1);
+	EXPECT_EQ(trades[2].price, 40);
+	EXPECT_EQ(trades[2].gain, (10*20 + 11*30)/21. - 1*40);
+	EXPECT_EQ(trades[2].total, 10*20 + 11*30 - 1*40);
+}
+
+
 
