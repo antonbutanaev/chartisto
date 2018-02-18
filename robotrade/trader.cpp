@@ -7,50 +7,50 @@ using namespace std;
 namespace robotrade {
 
 struct Trader::Impl {
-    Impl(const Params &params) : params(params) {}
+    Impl(const Params &params) : params_(params) {}
 
     void trade(const Trade &trade) {
-        const auto prevPosition = position;
-        const auto avgPositionCost = position? cost / position : 0.;
+        const auto num = static_cast<int>(params_.maxLoss / (trade.price - trade.stopPrice));
+        const auto prevPosition = position_;
+        const auto avgCost = position_? cost_ / position_ : 0.;
 
-        position += trade.num;
-        if (!position)
-            cost = 0;
+        position_ += num;
+        if (!position_)
+            cost_ = 0;
 
         auto gain = NoPrice;
-        if (abs(prevPosition) > abs(position))
-            gain = (position - prevPosition) * (trade.price - avgPositionCost);
+        if (abs(prevPosition) > abs(position_))
+            gain = (position_ - prevPosition) * (trade.price - avgCost);
 
-        const auto sum = trade.num * trade.price;
-        total -= sum;
-        cost += sum;
+        const auto sum = num * trade.price;
+        total_ -= sum;
+        cost_ += sum;
 
-        stops.push_back({trade.stopPrice, trade.num});
+        stops_.push_back({trade.stopPrice, num});
 
-        params.onTrade(
+        params_.onTrade({
             trade.time,
-            trade.num,
+            num,
             trade.price,
             gain,
-            total
-        );
+            total_
+        });
     }
 
     void priceChange(Time, Price) {
     }
 
-    int position = 0;
-    Price total = 0.;
-    Price cost = 0.;
+    int position_ = 0;
+    Price total_ = 0.;
+    Price cost_ = 0.;
 
     struct Stop {
         Price price;
         int num;
     };
 
-    vector<Stop> stops;
-
-    Params params;
+    vector<Stop> stops_;
+    Params params_;
 };
 
 Trader::Trader(const Params &params) : i_(new Impl(params)) {
