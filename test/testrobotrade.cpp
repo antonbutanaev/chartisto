@@ -278,8 +278,9 @@ TEST(TestRobotrade, TraderSellBuyMore) {
 	Trader trader({1, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
 	trader.trade({-10, sys_days{2018_y/feb/17}, 20, NoPrice});
 	trader.trade({11, sys_days{2018_y/feb/17}, 18, NoPrice});
+	trader.trade({Trader::Trade::Close, sys_days{2018_y/feb/17}, 19, NoPrice});
 
-	ASSERT_EQ(trades.size(), 2);
+	ASSERT_EQ(trades.size(), 3);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
 	EXPECT_EQ(trades[0].num, -10);
@@ -293,6 +294,11 @@ TEST(TestRobotrade, TraderSellBuyMore) {
 	EXPECT_EQ(trades[1].gain, 20);
 	EXPECT_EQ(trades[1].total, 2);
 
+	EXPECT_EQ(trades[2].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[2].num, -1);
+	EXPECT_EQ(trades[2].price, 19);
+	EXPECT_EQ(trades[2].gain, 1);
+	EXPECT_EQ(trades[2].total, 21);
 }
 
 TEST(TestRobotrade, TraderAvgCost) {
@@ -300,9 +306,10 @@ TEST(TestRobotrade, TraderAvgCost) {
 	Trader trader({1, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
 	trader.trade({-10, sys_days{2018_y/feb/17}, 20, NoPrice});
 	trader.trade({-11, sys_days{2018_y/feb/17}, 30, NoPrice});
-	trader.trade({1, sys_days{2018_y/feb/17}, 40, NoPrice});
+	trader.trade({5, sys_days{2018_y/feb/17}, 40, NoPrice});
+	trader.trade({Trader::Trade::Close, sys_days{2018_y/feb/17}, 50, NoPrice});
 
-	ASSERT_EQ(trades.size(), 3);
+	ASSERT_EQ(trades.size(), 4);
 
 	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/17});
 	EXPECT_EQ(trades[0].num, -10);
@@ -317,11 +324,14 @@ TEST(TestRobotrade, TraderAvgCost) {
 	EXPECT_EQ(trades[1].total, 10*20 + 11*30);
 
 	EXPECT_EQ(trades[2].time, sys_days{2018_y/feb/17});
-	EXPECT_EQ(trades[2].num, 1);
+	EXPECT_EQ(trades[2].num, 5);
 	EXPECT_EQ(trades[2].price, 40);
-	EXPECT_EQ(trades[2].gain, (10*20 + 11*30)/21. - 1*40);
-	EXPECT_EQ(trades[2].total, 10*20 + 11*30 - 1*40);
+	EXPECT_EQ(trades[2].gain, ((10*20 + 11*30)/21. - 40)*5);
+	EXPECT_EQ(trades[2].total, 10*20 + 11*30 - 5*40);
+
+	EXPECT_EQ(trades[3].time, sys_days{2018_y/feb/17});
+	EXPECT_EQ(trades[3].num, 16);
+	EXPECT_EQ(trades[3].price, 50);
+	EXPECT_NEAR(trades[3].gain, ((10*20 + 11*30)/21. - 50)*16, 1e-6);
+	EXPECT_EQ(trades[3].total, 10*20 + 11*30 - 5*40 - 16*50);
 }
-
-
-

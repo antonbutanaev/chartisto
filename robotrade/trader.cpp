@@ -26,25 +26,27 @@ struct Trader::Impl {
             break;
         }
 
-        const auto prevPosition = position_;
         const auto avgCost = position_? cost_ / position_ : 0.;
-
+        const auto prevPosition = position_;
         position_ += num;
 
         const auto sign = [] (auto x) {return (x > 0) - (x < 0);};
 
         auto gain = NoPrice;
-        if (prevPosition != 0 && sign(prevPosition) != sign(position_))
-            gain = (prevPosition) * (trade.price - avgCost);
-        else if (abs(prevPosition) > abs(position_))
-            gain = (prevPosition - position_) * (trade.price - avgCost);
-
-        if (gain != NoPrice)
-            cost_ = 0;
+        if (prevPosition && position_ && sign(prevPosition) != sign(position_)) {
+            gain = prevPosition * (trade.price - avgCost);
+            cost_ = position_ * trade.price;
+        } else {
+            if (abs(prevPosition) > abs(position_)) {
+                const auto delta = prevPosition - position_;
+                gain = delta * (trade.price - avgCost);
+                cost_ += gain;
+            }
+            cost_ += num * trade.price;
+        }
 
         const auto sum = num * trade.price;
         total_ -= sum;
-        cost_ += sum;
 
         stops_.push_back({trade.stopPrice, num});
 
