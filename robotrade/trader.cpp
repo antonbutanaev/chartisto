@@ -1,4 +1,4 @@
-#include <vector>
+#include <list>
 #include <robotrade/trader.h>
 
 using namespace chart;
@@ -19,6 +19,13 @@ struct Trader::Impl {
         case Trade::Close:
             num = -position_;
             break;
+        case Trade::CloseBuy:
+            num = position_ > 0? -position_:0;
+            break;
+        case Trade::CloseSell:
+            num = position_ < 0? -position_:0;
+            break;
+
         default:
             num = trade.num;
             num /= params_.lotSize;
@@ -48,7 +55,8 @@ struct Trader::Impl {
         const auto sum = num * trade.price;
         total_ -= sum;
 
-        stops_.push_back({trade.stopPrice, num});
+        if (trade.stopPrice != NoPrice)
+            stops_.push_back({trade.stopPrice, -num});
 
         params_.onTrade({
             trade.time,
@@ -59,7 +67,16 @@ struct Trader::Impl {
         });
     }
 
-    void priceChange(Time, Price) {
+    void priceChange(Time time, Price price) {
+        for (auto it = stops_.begin(); it != stops_.end(); )
+            if (
+                (it->num < 0 && price <= it->price) ||
+                (it->num > 0 && price >= it->price)
+            ) {
+                trade({it->num, time, it->price, NoPrice});
+                it = stops_.erase(it);
+            } else
+                ++it;
     }
 
     int position_ = 0;
@@ -71,7 +88,7 @@ struct Trader::Impl {
         int num;
     };
 
-    vector<Stop> stops_;
+    list<Stop> stops_;
     Params params_;
 };
 

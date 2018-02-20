@@ -17,7 +17,7 @@ public:
     };
 
     struct Params {
-        size_t lotSize;
+        int lotSize;
         chart::Price maxLoss;
         std::function<void(const OnTrade&)> onTrade;
     };
@@ -26,6 +26,8 @@ public:
         int num;
         static constexpr auto ByStop = std::numeric_limits<decltype(num)>::max();
         static constexpr auto Close = ByStop - 1;
+        static constexpr auto CloseSell = ByStop - 2;
+        static constexpr auto CloseBuy = ByStop - 3;
         chart::Time time;
         chart::Price price, stopPrice;
     };

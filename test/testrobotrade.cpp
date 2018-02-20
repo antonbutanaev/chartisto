@@ -335,3 +335,48 @@ TEST(TestRobotrade, TraderAvgCost) {
 	EXPECT_NEAR(trades[3].gain, ((10*20 + 11*30)/21. - 50)*16, 1e-6);
 	EXPECT_EQ(trades[3].total, 10*20 + 11*30 - 5*40 - 16*50);
 }
+
+TEST(TestRobotrade, TraderStopBuy) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({100, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/19}, 100, 99.1});
+	ASSERT_EQ(trades.size(), 1);
+	EXPECT_EQ(trades[0].num, 1100);
+	EXPECT_EQ(trades[0].price, 100);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, -1100 * 100);
+
+	trader.priceChange(sys_days{2018_y/feb/20}, 101);
+	ASSERT_EQ(trades.size(), 1);
+
+	trader.priceChange(sys_days{2018_y/feb/20}, 99);
+	ASSERT_EQ(trades.size(), 2);
+	EXPECT_EQ(trades[1].num, -1100);
+	EXPECT_EQ(trades[1].price, 99.1);
+	EXPECT_EQ(trades[1].gain, -(100-99.1)*1100);
+	EXPECT_NEAR(trades[1].total, -(100-99.1)*1100, 1e-6);
+}
+
+TEST(TestRobotrade, TraderStopSell) {
+	vector<Trader::OnTrade> trades;
+	Trader trader({10, 1000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+
+	trader.trade({Trader::Trade::ByStop, sys_days{2018_y/feb/19}, 100, 100.7});
+	ASSERT_EQ(trades.size(), 1);
+	EXPECT_EQ(trades[0].num, -1420);
+	EXPECT_EQ(trades[0].price, 100);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, 142000);
+
+	trader.priceChange(sys_days{2018_y/feb/20}, 99);
+	ASSERT_EQ(trades.size(), 1);
+
+	trader.priceChange(sys_days{2018_y/feb/20}, 100.7);
+	ASSERT_EQ(trades.size(), 2);
+	EXPECT_EQ(trades[1].num, 1420);
+	EXPECT_EQ(trades[1].price, 100.7);
+	EXPECT_EQ(trades[1].gain, -(100.7-100)*1420);
+	EXPECT_NEAR(trades[1].total, -(100.7-100)*1420, 1e-6);
+}
+
