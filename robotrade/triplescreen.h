@@ -7,34 +7,19 @@
 #include <vector>
 #include <functional>
 #include <chart/data.h>
+#include <robotrade/trader.h>
 
 namespace robotrade {
-
-struct StrategyResult {
-	struct Trade {
-		chart::Time time = chart::NoTime;
-		chart::Time stoppedTime = chart::NoTime;
-		chart::Price stoppedPrice = chart::NoPrice;
-		int number = 0;
-		chart::Price enterPrice = chart::NoPrice;
-		chart::Price stopPrice = chart::NoPrice;
-		static constexpr auto NoStop = std::numeric_limits<int>::max();
-		int barsToStop = NoStop;
-		chart::Price maxProfitToStop = chart::NoPrice;
-	};
-
-	std::vector<Trade> trades;
-};
 
 enum class Action{Buy, Sell, Wait};
 
 class TripleScreen {
 public:
 	using Criteria = std::function<Action(size_t weekly, size_t daily)>;
-	TripleScreen(chart::data::PBars, chart::data::PBars, Criteria);
+	TripleScreen(chart::data::PBars, chart::data::PBars, Criteria, Trader::Params::Func);
 	~TripleScreen();
 
-	StrategyResult run();
+	void run();
 private:
 	struct Impl;
 	std::unique_ptr<Impl> i_;

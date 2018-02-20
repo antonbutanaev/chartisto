@@ -27,6 +27,13 @@ void runTripleScreen(data::PBars bars) {
 
 	const auto forceIndex = indicators::forceIndex(barsDaily, 2);
 
+	const auto optional = [](auto value, auto no, auto sep) {
+		if (value == no)
+			cout << sep;
+		else
+			cout << value << sep;
+	};
+
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
@@ -46,28 +53,22 @@ void runTripleScreen(data::PBars bars) {
 				return Action::Sell;
 			else
 				return Action::Wait;
+		},
+		[&](const Trader::OnTrade &trade) {
+			cout
+				<< trade.time << ','
+				<< trade.num << ','
+				<< trade.price << ','
+				<< trade.gain << ',';
+			optional(trade.gain, NoPrice, ',');
+			cout
+				<< trade.total;
+
 		}
 	);
 
-	const auto result = tripleScreen.run();
-	cout
-		<< "time,number,enterPrice,stopPrice,stopTime,maxProfitToStop,barsToStop\n";
-	const auto optional = [](auto value, auto no, auto sep) {
-		if (value == no)
-			cout << sep;
-		else
-			cout << value << sep;
-	};
-	for (const auto &trade: result.trades) {
-		cout
-			<< trade.time << ','
-			<< trade.number << ','
-			<< trade.enterPrice << ','
-			<< trade.stopPrice << ',';
-		optional(trade.stoppedTime, NoTime, ',');
-		optional(trade.maxProfitToStop, NoPrice, ',');
-		optional(trade.barsToStop, StrategyResult::Trade::NoStop, '\n');
-	}
+	cout << "time,num,price,gain,total\n";
+	tripleScreen.run();
 }
 
 int main(int ac, char *av[]) try {

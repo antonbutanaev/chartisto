@@ -13,18 +13,18 @@ using namespace date;
 namespace robotrade {
 
 struct TripleScreen::Impl {
-	Impl(data::PBars weekly, data::PBars daily, Criteria criteria) :
-		weekly_(weekly), daily_(daily), criteria_(criteria) {
+	Impl(data::PBars weekly, data::PBars daily, Criteria criteria, Trader::Params::Func onTrade) :
+		weekly_(weekly), daily_(daily), criteria_(criteria), trader_({100, 2000, onTrade}) {
 	}
 
-	StrategyResult run() {
+	void run() {
 		LOG4CPLUS_DEBUG(logger_, "start triple screen on {} weekly and {} daily bars"_format(
 			weekly_->num(), daily_->num()
 		));
-		StrategyResult result;
 		if (!weekly_->num() || !daily_->num())
-			return result;
+			return;
 
+		size_t tradesFound = 0;
 		size_t weeklyPos = 0;
 		size_t dailyPos = 0;
 
@@ -63,28 +63,17 @@ struct TripleScreen::Impl {
 				)
 					break;
 
-				result.trades.emplace_back();
-				auto &trade = result.trades.back();
-				trade.time = daily_->time(dailyPos + 1);
-				trade.number = 1;
-				trade.enterPrice = daily_->high(dailyPos);
-				trade.stopPrice = daily_->low(dailyPos);
-				if (dailyPos > 0 && trade.stopPrice > daily_->low(dailyPos - 1))
-					trade.stopPrice = daily_->low(dailyPos - 1);
+				auto stopPrice = daily_->low(dailyPos);
+				if (dailyPos > 0 && stopPrice > daily_->low(dailyPos - 1))
+					stopPrice = daily_->low(dailyPos - 1);
 
-				for (auto i = dailyPos + 1; i < daily_->num(); ++i) {
-					if (
-						trade.maxProfitToStop == NoPrice ||
-						trade.maxProfitToStop < daily_->high(i) - trade.enterPrice
-					)
-						trade.maxProfitToStop = daily_->high(i) - trade.enterPrice;
-
-					if (daily_->low(i) <= trade.stopPrice) {
-						trade.barsToStop = i - (dailyPos + 1);
-						trade.stoppedTime = daily_->time(i);
-						break;
-					}
-				}
+				++tradesFound;
+				trader_.trade({
+					Trader::Trade::ByStop,
+					daily_->time(dailyPos + 1),
+					daily_->high(dailyPos),
+					stopPrice
+				});
 				break;
 			}
 			case Action::Sell: {
@@ -95,52 +84,41 @@ struct TripleScreen::Impl {
 				)
 					break;
 
-				result.trades.emplace_back();
-				auto &trade = result.trades.back();
-				trade.time = daily_->time(dailyPos + 1);
-				trade.number = -1;
-				trade.enterPrice = daily_->low(dailyPos);
-				trade.stopPrice = daily_->high(dailyPos);
-				if (dailyPos > 0 && trade.stopPrice < daily_->high(dailyPos - 1))
-					trade.stopPrice = daily_->high(dailyPos - 1);
+				auto stopPrice = daily_->high(dailyPos);
+				if (dailyPos > 0 && stopPrice < daily_->high(dailyPos - 1))
+					stopPrice = daily_->high(dailyPos - 1);
 
-				for (auto i = dailyPos + 1; i < daily_->num(); ++i) {
-					if (
-						trade.maxProfitToStop == NoPrice ||
-						trade.maxProfitToStop < trade.enterPrice - daily_->low(i)
-					)
-						trade.maxProfitToStop = trade.enterPrice - daily_->low(i);
-
-					if (daily_->high(i) >= trade.stopPrice) {
-						trade.barsToStop = i - (dailyPos + 1);
-						trade.stoppedTime = daily_->time(i);
-						break;
-					}
-				}
+				++tradesFound;
+				trader_.trade({
+					Trader::Trade::ByStop,
+					daily_->time(dailyPos + 1),
+					daily_->low(dailyPos),
+					stopPrice
+				});
 				break;
 			}
 			case Action::Wait:
 				break;
 			}
 		}
-		LOG4CPLUS_DEBUG(logger_, "triple screen found {} trades"_format(result.trades.size()));
-		return result;
+		LOG4CPLUS_DEBUG(logger_, "triple screen found {} trades"_format(tradesFound));
 	}
 
 	data::PBars weekly_;
 	data::PBars daily_;
 	Criteria criteria_;
+	Trader trader_;
 	log4cplus::Logger logger_ = log4cplus::Logger::getInstance("TripleScreen");
 };
 
-TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria)
-: i_(new Impl(weekly, daily, criteria)) {
+TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria, Trader::Params::Func onTrade)
+: i_(new Impl(weekly, daily, criteria, onTrade)) {
 }
 
 TripleScreen::~TripleScreen() {}
 
-StrategyResult TripleScreen::run() {
-	return i_->run();
+void TripleScreen::run() {
+	i_->run();
 }
 
 }

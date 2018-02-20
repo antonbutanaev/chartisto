@@ -53,13 +53,15 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
+	size_t numTrades = 0;
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
-		[](size_t, size_t) {return Action::Wait;}
+		[](size_t, size_t) {return Action::Wait;},
+		[&](Trader::OnTrade) {++numTrades;}
 	);
 
-	const auto result = tripleScreen.run();
-	EXPECT_TRUE(result.trades.empty());
+	tripleScreen.run();
+	EXPECT_EQ(numTrades, 0);
 }
 
 TEST(TestRobotrade, TripleScreenBuyNoStop) {
@@ -77,25 +79,26 @@ TEST(TestRobotrade, TripleScreenBuyNoStop) {
 	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
+	vector<Trader::OnTrade> trades;
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
 			return barsWeekly->high(weekly) == 10 && barsDaily->close(daily) == 4? Action::Buy : Action::Wait;
-		}
+		},
+		[&](const auto &onTrade) {trades.push_back(onTrade);}
 	);
 
-	const auto result = tripleScreen.run();
-	ASSERT_EQ(result.trades.size(), 1);
-	const auto &trade = result.trades.back();
+	tripleScreen.run();
+	ASSERT_EQ(trades.size(), 1);
+	const auto &trade = trades.back();
 	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
-	EXPECT_EQ(trade.number, 1);
-	EXPECT_EQ(trade.enterPrice, 10);
-	EXPECT_EQ(trade.stopPrice, 1);
-	EXPECT_EQ(trade.barsToStop, StrategyResult::Trade::NoStop);
-	EXPECT_EQ(trade.stoppedTime, NoTime);
-	EXPECT_EQ(trade.maxProfitToStop, 3);
+	EXPECT_EQ(trade.num, 200);
+	EXPECT_EQ(trade.price, 10);
+	EXPECT_EQ(trade.gain, NoPrice);
+	EXPECT_EQ(trade.total, -2000);
 }
 
+/*
 TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -198,6 +201,7 @@ TEST(TestRobotrade, TripleScreenSellThenStopped) {
 	EXPECT_EQ(trade.barsToStop, 2);
 	EXPECT_EQ(trade.maxProfitToStop, 9);
 }
+*/
 
 TEST(TestRobotrade, TraderBuyByStop) {
 	vector<Trader::OnTrade> trades;

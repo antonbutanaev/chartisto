@@ -19,7 +19,8 @@ public:
     struct Params {
         int lotSize;
         chart::Price maxLoss;
-        std::function<void(const OnTrade&)> onTrade;
+        using Func = std::function<void(const OnTrade&)>;
+        Func onTrade;
     };
 
     struct Trade {
