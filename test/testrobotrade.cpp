@@ -100,7 +100,6 @@ TEST(TestRobotrade, TripleScreenBuyNoStop) {
 	EXPECT_EQ(trade.total, -2000);
 }
 
-/*
 TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -109,7 +108,7 @@ TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 		"VTBR,D,20180219,100000,5,11,4,6,1\n"
 		"VTBR,D,20180220,100000,6,12,6,7,1\n"
 		"VTBR,D,20180221,100000,7,13,6,8,1\n"
-		"VTBR,D,20180222,100000,7,14,2,1,1\n"
+		"VTBR,D,20180222,100000,7,14,1,1,1\n"
 		;
 	stringstream ss(quotes);
 
@@ -117,25 +116,34 @@ TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
+	vector<Trader::OnTrade> trades;
+	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
 			return barsWeekly->high(weekly) == 10 && barsDaily->close(daily) == 4? Action::Buy : Action::Wait;
-		}
+		},
+		trader
 	);
 
-	const auto result = tripleScreen.run();
-	ASSERT_EQ(result.trades.size(), 1);
-	const auto &trade = result.trades.back();
-	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
-	EXPECT_EQ(trade.stoppedTime, sys_days{2018_y/feb/22});
-	EXPECT_EQ(trade.number, 1);
-	EXPECT_EQ(trade.enterPrice, 10);
-	EXPECT_EQ(trade.stopPrice, 2);
-	EXPECT_EQ(trade.barsToStop, 3);
-	EXPECT_EQ(trade.maxProfitToStop, 4);
+	tripleScreen.run();
+
+	ASSERT_EQ(trades.size(), 2);
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/19});
+	EXPECT_EQ(trades[0].price, 10);
+	EXPECT_EQ(trades[0].num, 200);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, -2000);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/22});
+	EXPECT_EQ(trades[1].price, 2);
+	EXPECT_EQ(trades[1].num, -200);
+	EXPECT_EQ(trades[1].gain, -200*(10.-2));
+	EXPECT_EQ(trades[1].total, -200*(10.-2));
 }
 
+/*
 TEST(TestRobotrade, TripleScreenSellNoStop) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"

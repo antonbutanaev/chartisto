@@ -98,6 +98,8 @@ struct TripleScreen::Impl {
 				break;
 			}
 			case Action::Wait:
+				trader_.priceChange(daily_->time(dailyPos), daily_->low(dailyPos));
+				trader_.priceChange(daily_->time(dailyPos), daily_->high(dailyPos));
 				break;
 			}
 		}

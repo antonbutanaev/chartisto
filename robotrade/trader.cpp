@@ -33,6 +33,9 @@ struct Trader::Impl {
             break;
         }
 
+        if (!num)
+            return;
+
         const auto avgCost = position_? cost_ / position_ : 0.;
         const auto prevPosition = position_;
         position_ += num;
