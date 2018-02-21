@@ -143,7 +143,6 @@ TEST(TestRobotrade, TripleScreenBuyThenStopped) {
 	EXPECT_EQ(trades[1].total, -200*(10.-2));
 }
 
-/*
 TEST(TestRobotrade, TripleScreenSellNoStop) {
 	string quotes =
 		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -159,23 +158,25 @@ TEST(TestRobotrade, TripleScreenSellNoStop) {
 	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
+	vector<Trader::OnTrade> trades;
+	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
 			return barsWeekly->low(weekly) == 19 && barsDaily->close(daily) == 20? Action::Sell : Action::Wait;
-		}
+		},
+		trader
 	);
 
-	const auto result = tripleScreen.run();
-	ASSERT_EQ(result.trades.size(), 1);
-	const auto &trade = result.trades.back();
-	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
-	EXPECT_EQ(trade.number, -1);
-	EXPECT_EQ(trade.enterPrice, 19);
-	EXPECT_EQ(trade.stopPrice, 25);
-	EXPECT_EQ(trade.barsToStop, StrategyResult::Trade::NoStop);
-	EXPECT_EQ(trade.stoppedTime, NoTime);
-	EXPECT_EQ(trade.maxProfitToStop, 3);
+	tripleScreen.run();
+	ASSERT_EQ(trades.size(), 1);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/19});
+	EXPECT_EQ(trades[0].num, -300);
+	EXPECT_EQ(trades[0].price, 19);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, 300*19);
 }
 
 TEST(TestRobotrade, TripleScreenSellThenStopped) {
@@ -193,25 +194,33 @@ TEST(TestRobotrade, TripleScreenSellThenStopped) {
 	const auto barsDaily = reduce(*barsParsed, dayReduce);
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
+	vector<Trader::OnTrade> trades;
+	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
+
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
 			return barsWeekly->low(weekly) == 19 && barsDaily->close(daily) == 20? Action::Sell : Action::Wait;
-		}
+		},
+		trader
 	);
 
-	const auto result = tripleScreen.run();
-	ASSERT_EQ(result.trades.size(), 1);
-	const auto &trade = result.trades.back();
-	EXPECT_EQ(trade.time, sys_days{2018_y/feb/19});
-	EXPECT_EQ(trade.stoppedTime, sys_days{2018_y/feb/21});
-	EXPECT_EQ(trade.number, -1);
-	EXPECT_EQ(trade.enterPrice, 19);
-	EXPECT_EQ(trade.stopPrice, 25);
-	EXPECT_EQ(trade.barsToStop, 2);
-	EXPECT_EQ(trade.maxProfitToStop, 9);
+	tripleScreen.run();
+	ASSERT_EQ(trades.size(), 2);
+
+	EXPECT_EQ(trades[0].time, sys_days{2018_y/feb/19});
+	EXPECT_EQ(trades[0].num, -300);
+	EXPECT_EQ(trades[0].price, 19);
+	EXPECT_EQ(trades[0].gain, NoPrice);
+	EXPECT_EQ(trades[0].total, 300*19);
+
+	EXPECT_EQ(trades[1].time, sys_days{2018_y/feb/21});
+	EXPECT_EQ(trades[1].num, 300);
+	EXPECT_EQ(trades[1].price, 25);
+	EXPECT_EQ(trades[1].gain, -300*(25-19));
+	EXPECT_EQ(trades[1].total,-300*(25-19));
+
 }
-*/
 
 TEST(TestRobotrade, TraderBuyByStop) {
 	vector<Trader::OnTrade> trades;
