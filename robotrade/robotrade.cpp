@@ -35,16 +35,16 @@ void runTripleScreen(data::PBars bars) {
 	};
 
 	Trader trader({
-		1, 2000,
+		100, 2000,
 		[&](const Trader::OnTrade &trade) {
 			cout
 				<< trade.time << ','
 				<< trade.num << ','
-				<< trade.price << ','
-				<< trade.gain << ',';
+				<< trade.price << ',';
 			optional(trade.gain, NoPrice, ',');
 			cout
-				<< trade.total;
+				<< trade.total << ','
+				<< trade.pos << '\n';
 
 		}
 	});
@@ -74,6 +74,8 @@ void runTripleScreen(data::PBars bars) {
 
 	cout << "time,num,price,gain,total\n";
 	tripleScreen.run();
+	trader.trade({Trader::Trade::Close, barsDaily->time(barsDaily->num()-1), barsDaily->close(barsDaily->num()-1), NoPrice});
+
 }
 
 int main(int ac, char *av[]) try {

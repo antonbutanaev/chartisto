@@ -14,6 +14,7 @@ public:
         chart::Time time;
         int num;
         chart::Price price, gain, total;
+        int pos;
     };
 
     struct Params {

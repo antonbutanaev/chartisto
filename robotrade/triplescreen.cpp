@@ -69,6 +69,12 @@ struct TripleScreen::Impl {
 
 				++tradesFound;
 				trader_.trade({
+					Trader::Trade::CloseSell,
+					daily_->time(dailyPos),
+					daily_->close(dailyPos),
+					NoPrice
+				});
+				trader_.trade({
 					Trader::Trade::ByStop,
 					daily_->time(dailyPos + 1),
 					daily_->high(dailyPos),
@@ -89,6 +95,12 @@ struct TripleScreen::Impl {
 					stopPrice = daily_->high(dailyPos - 1);
 
 				++tradesFound;
+				trader_.trade({
+					Trader::Trade::CloseBuy,
+					daily_->time(dailyPos),
+					daily_->close(dailyPos),
+					NoPrice
+				});
 				trader_.trade({
 					Trader::Trade::ByStop,
 					daily_->time(dailyPos + 1),

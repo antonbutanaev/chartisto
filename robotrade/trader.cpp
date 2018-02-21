@@ -66,8 +66,12 @@ struct Trader::Impl {
             num,
             trade.price,
             gain,
-            total_
+            total_,
+            position_
         });
+
+        if (!position_)
+            cost_ = 0;
     }
 
     void priceChange(Time time, Price price) {
