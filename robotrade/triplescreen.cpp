@@ -13,8 +13,8 @@ using namespace date;
 namespace robotrade {
 
 struct TripleScreen::Impl {
-	Impl(data::PBars weekly, data::PBars daily, Criteria criteria, Trader::Params::Func onTrade) :
-		weekly_(weekly), daily_(daily), criteria_(criteria), trader_({100, 2000, onTrade}) {
+	Impl(data::PBars weekly, data::PBars daily, Criteria criteria, Trader &trader) :
+		weekly_(weekly), daily_(daily), criteria_(criteria), trader_(trader) {
 	}
 
 	void run() {
@@ -107,18 +107,16 @@ struct TripleScreen::Impl {
 	data::PBars weekly_;
 	data::PBars daily_;
 	Criteria criteria_;
-	Trader trader_;
+	Trader &trader_;
 	log4cplus::Logger logger_ = log4cplus::Logger::getInstance("TripleScreen");
 };
 
-TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria, Trader::Params::Func onTrade)
-: i_(new Impl(weekly, daily, criteria, onTrade)) {
+TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria, Trader &trader)
+: i_(new Impl(weekly, daily, criteria, trader)) {
 }
 
 TripleScreen::~TripleScreen() {}
 
-void TripleScreen::run() {
-	i_->run();
-}
+void TripleScreen::run() {i_->run();}
 
 }

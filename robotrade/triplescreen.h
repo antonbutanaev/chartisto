@@ -16,7 +16,7 @@ enum class Action{Buy, Sell, Wait};
 class TripleScreen {
 public:
 	using Criteria = std::function<Action(size_t weekly, size_t daily)>;
-	TripleScreen(chart::data::PBars, chart::data::PBars, Criteria, Trader::Params::Func);
+	TripleScreen(chart::data::PBars, chart::data::PBars, Criteria, Trader&);
 	~TripleScreen();
 
 	void run();

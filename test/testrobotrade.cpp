@@ -54,10 +54,11 @@ TEST(TestRobotrade, TripleScreenEmpty) {
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
 	size_t numTrades = 0;
+	Trader trader({1, 2000, [&](Trader::OnTrade) {++numTrades;}});
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[](size_t, size_t) {return Action::Wait;},
-		[&](Trader::OnTrade) {++numTrades;}
+		trader
 	);
 
 	tripleScreen.run();
@@ -80,12 +81,13 @@ TEST(TestRobotrade, TripleScreenBuyNoStop) {
 	const auto barsWeekly = reduce(*barsDaily, weekReduce);
 
 	vector<Trader::OnTrade> trades;
+	Trader trader({100, 2000, [&](const auto &onTrade) {trades.push_back(onTrade);}});
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
 			return barsWeekly->high(weekly) == 10 && barsDaily->close(daily) == 4? Action::Buy : Action::Wait;
 		},
-		[&](const auto &onTrade) {trades.push_back(onTrade);}
+		trader
 	);
 
 	tripleScreen.run();

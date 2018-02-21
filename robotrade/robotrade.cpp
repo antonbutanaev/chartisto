@@ -34,6 +34,21 @@ void runTripleScreen(data::PBars bars) {
 			cout << value << sep;
 	};
 
+	Trader trader({
+		1, 2000,
+		[&](const Trader::OnTrade &trade) {
+			cout
+				<< trade.time << ','
+				<< trade.num << ','
+				<< trade.price << ','
+				<< trade.gain << ',';
+			optional(trade.gain, NoPrice, ',');
+			cout
+				<< trade.total;
+
+		}
+	});
+
 	TripleScreen tripleScreen(
 		barsWeekly, barsDaily,
 		[&](size_t weekly, size_t daily) {
@@ -54,17 +69,7 @@ void runTripleScreen(data::PBars bars) {
 			else
 				return Action::Wait;
 		},
-		[&](const Trader::OnTrade &trade) {
-			cout
-				<< trade.time << ','
-				<< trade.num << ','
-				<< trade.price << ','
-				<< trade.gain << ',';
-			optional(trade.gain, NoPrice, ',');
-			cout
-				<< trade.total;
-
-		}
+		trader
 	);
 
 	cout << "time,num,price,gain,total\n";
