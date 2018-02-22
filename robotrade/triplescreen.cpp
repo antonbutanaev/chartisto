@@ -57,6 +57,7 @@ struct TripleScreen::Impl {
 			switch (criteria_(weeklyPos, dailyPos)) {
 			case Action::Buy: {
 				if (
+					trader_.position() > 0 ||
 					dailyPos == daily_->num() - 1 ||
 					daily_->high(dailyPos + 1) <= daily_->high(dailyPos) ||
 					daily_->low(dailyPos + 1) > daily_->high(dailyPos)
@@ -84,6 +85,7 @@ struct TripleScreen::Impl {
 			}
 			case Action::Sell: {
 				if (
+					trader_.position() < 0 ||
 					dailyPos == daily_->num() - 1 ||
 					daily_->low(dailyPos + 1) >= daily_->low(dailyPos) ||
 					daily_->high(dailyPos + 1) < daily_->low(dailyPos)

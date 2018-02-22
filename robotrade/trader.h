@@ -39,6 +39,7 @@ public:
 
     void trade(const Trade&);
     void priceChange(chart::Time time, chart::Price price);
+    int position() const;
 
 private:
     struct Impl;

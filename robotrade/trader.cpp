@@ -20,10 +20,26 @@ struct Trader::Impl {
             num = -position_;
             break;
         case Trade::CloseBuy:
-            num = position_ > 0? -position_:0;
+            if (position_ > 0) {
+                for (auto it = stops_.begin(); it != stops_.end(); )
+                    if (it->num < 0)
+                        it = stops_.erase(it);
+                    else
+                        ++it;
+                num = -position_;
+            } else
+                num = 0;
             break;
         case Trade::CloseSell:
-            num = position_ < 0? -position_:0;
+            if (position_ < 0) {
+                for (auto it = stops_.begin(); it != stops_.end(); )
+                    if (it->num > 0)
+                        it = stops_.erase(it);
+                    else
+                        ++it;
+                num = -position_;
+            } else
+                num = 0;
             break;
 
         default:
@@ -70,8 +86,9 @@ struct Trader::Impl {
             position_
         });
 
-        if (!position_)
+        if (!position_) {
             cost_ = 0;
+        }
     }
 
     void priceChange(Time time, Price price) {
@@ -111,6 +128,10 @@ void Trader::trade(const Trade &trade) {
 
 void Trader::priceChange(Time time, Price price) {
     i_->priceChange(time, price);
+}
+
+int Trader::position() const {
+    return i_->position_;
 }
 
 }
