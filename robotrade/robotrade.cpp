@@ -72,10 +72,9 @@ void runTripleScreen(data::PBars bars) {
 		trader
 	);
 
-	cout << "time,num,price,gain,total\n";
+	cout << "time,num,price,gain,total,position\n";
 	tripleScreen.run();
 	trader.trade({Trader::Trade::Close, barsDaily->time(barsDaily->num()-1), barsDaily->close(barsDaily->num()-1), NoPrice});
-
 }
 
 int main(int ac, char *av[]) try {
@@ -107,7 +106,7 @@ int main(int ac, char *av[]) try {
 		const auto quotes = vm["quotes"].as<string>();
 		ifstream ifs(quotes.c_str());
 		if (!ifs)
-			throw runtime_error("Could1 not open file: " + quotes);
+			throw runtime_error("Could not open file: " + quotes);
 
 		runTripleScreen(robotrade::parse(ifs));
 	}

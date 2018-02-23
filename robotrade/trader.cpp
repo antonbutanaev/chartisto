@@ -16,27 +16,23 @@ struct Trader::Impl {
             num = static_cast<int>(params_.maxLoss / (trade.price - trade.stopPrice) / params_.lotSize);
             num *= params_.lotSize;
             break;
+
         case Trade::Close:
+            eraseStops([](const auto&) {return true;});
             num = -position_;
             break;
+
         case Trade::CloseBuy:
             if (position_ > 0) {
-                for (auto it = stops_.begin(); it != stops_.end(); )
-                    if (it->num < 0)
-                        it = stops_.erase(it);
-                    else
-                        ++it;
+                eraseStops([](const auto &stop) {return stop.num < 0;});
                 num = -position_;
             } else
                 num = 0;
             break;
+
         case Trade::CloseSell:
             if (position_ < 0) {
-                for (auto it = stops_.begin(); it != stops_.end(); )
-                    if (it->num > 0)
-                        it = stops_.erase(it);
-                    else
-                        ++it;
+                eraseStops([](const auto &stop) {return stop.num > 0;});
                 num = -position_;
             } else
                 num = 0;
@@ -92,16 +88,25 @@ struct Trader::Impl {
     }
 
     void priceChange(Time time, Price price) {
-        for (auto it = stops_.begin(); it != stops_.end(); )
+        eraseStops([&](const auto &stop){
             if (
-                (it->num < 0 && price <= it->price) ||
-                (it->num > 0 && price >= it->price)
+                (stop.num < 0 && price <= stop.price) ||
+                (stop.num > 0 && price >= stop.price)
             ) {
-                trade({it->num, time, it->price, NoPrice});
-                it = stops_.erase(it);
+                trade({stop.num, time, stop.price, NoPrice});
+                return true;
             } else
-                ++it;
+                return false;
+        });
     }
+
+    template<class F> void eraseStops(const F &func) {
+        for (auto it = stops_.begin(); it != stops_.end(); )
+            if (func(*it))
+                it = stops_.erase(it);
+            else
+                ++it;
+  }
 
     int position_ = 0;
     Price total_ = 0.;
