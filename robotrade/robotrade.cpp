@@ -77,18 +77,20 @@ void runTripleScreen(data::PBars bars) {
 	trader.trade({Trader::Trade::Close, barsDaily->time(barsDaily->num()-1), barsDaily->close(barsDaily->num()-1), NoPrice});
 }
 
-void findLevels(data::PBars bars, size_t minTouches = 3, Price prec = 0.02, Price step = 0.01) {
+struct FindLevelsParams {
+	size_t minTouches = 3;
+	Price prec = 0.5;
+	Price step = 0.01;
+	float touchWeight = 1.0;
+	float crossWeight = -1.5;
+};
+
+void findLevels(data::PBars bars, const FindLevelsParams & params) {
 	chart::Price minPrice = numeric_limits<Price>::max();
 	chart::Price maxPrice = numeric_limits<Price>::lowest();
 	for (size_t i = 0; i < bars->num(); ++i) {
-		minPrice = min(minPrice, bars->high(i));
 		minPrice = min(minPrice, bars->low(i));
-		minPrice = min(minPrice, bars->open(i));
-		minPrice = min(minPrice, bars->close(i));
 		maxPrice = max(maxPrice, bars->high(i));
-		maxPrice = max(maxPrice, bars->low(i));
-		maxPrice = max(maxPrice, bars->open(i));
-		maxPrice = max(maxPrice, bars->close(i));
 	}
 
 	cout << "Price range: " << minPrice << " " << maxPrice << endl;
@@ -96,7 +98,7 @@ void findLevels(data::PBars bars, size_t minTouches = 3, Price prec = 0.02, Pric
 	const auto barTouchesPrice = [&](size_t barNum, Price price) {
 		for (const auto &priceType: data::Bars::PriceTypes) {
 			const auto diff = fabs(price - bars->get(priceType, barNum));
-			if (diff < prec)
+			if (diff < params.prec)
 				return true;
 		}
 		return false;
@@ -104,30 +106,43 @@ void findLevels(data::PBars bars, size_t minTouches = 3, Price prec = 0.02, Pric
 
 	struct Level {
 		size_t numTouches;
+		size_t numBodyCrosses;
 		Price level;
 	};
 
 	std::vector<Level> levels;
 
-	for (auto price = minPrice; price <= maxPrice; price += step) {
-		Level level{0, price};
+	for (auto price = minPrice; price <= maxPrice; price += params.step) {
+		Level level{0, 0, price};
 		for (size_t i = 0; i < bars->num(); ++i) {
 			if (barTouchesPrice(i, price))
 				level.numTouches += 1;
+
+			if (
+				(bars->open(i) > price && bars->close(i) < price) ||
+				(bars->open(i) < price && bars->close(i) > price)
+			)
+				level.numBodyCrosses += 1;
 		}
-		if (level.numTouches >= minTouches)
+		if (level.numTouches >= params.minTouches)
 			levels.push_back(level);
 	}
 
 	sort(
 		levels.begin(), levels.end(),
-		[](const auto &a, const auto &b) {
-			return a.numTouches < b.numTouches;
+		[&](const auto &a, const auto &b) {
+			const auto rate = [&] (const auto &level) {
+				return
+					level.numTouches * params.touchWeight +
+					level.numBodyCrosses * params.crossWeight;
+			};
+
+			return rate(a) < rate(b);
 		}
 	);
 
 	for (const auto & level: levels)
-		cout << level.numTouches << ' ' << level.level << endl;
+		cout << level.numTouches << ' ' << level.numBodyCrosses << ' ' << level.level << endl;
 }
 
 int main(int ac, char *av[]) try {
@@ -161,7 +176,7 @@ int main(int ac, char *av[]) try {
 			throw runtime_error("Could not open file: " + quotes);
 
 		//runTripleScreen(robotrade::parse(ifs));
-		findLevels(robotrade::parse(ifs));
+		findLevels(robotrade::parse(ifs), {});
 	}
 
 	return 0;
