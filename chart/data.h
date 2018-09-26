@@ -40,13 +40,18 @@ public:
 
     virtual size_t num() const = 0;
 
-    enum PriceType {Low,Open,Close,High};
+    enum class PriceType{Open, Close, High, Low};
+    static constexpr PriceType PriceTypes[]{
+    	PriceType::Open, PriceType::Close,
+    	PriceType::High, PriceType::Low
+    };
+
     Price get(PriceType priceType, size_t num) {
     	switch (priceType) {
-    	case Open: return open(num);
-    	case Close: return close(num);
-    	case High: return high(num);
-    	case Low: return low(num);
+    	case PriceType::Open: return open(num);
+    	case PriceType::Close: return close(num);
+    	case PriceType::High: return high(num);
+    	case PriceType::Low: return low(num);
     	default:
     		throw std::runtime_error("bad price type: " + std::to_string(static_cast<int>(priceType)));
     	}

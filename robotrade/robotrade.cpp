@@ -94,8 +94,8 @@ void findLevels(data::PBars bars, size_t minTouches = 3, Price prec = 0.02, Pric
 	cout << "Price range: " << minPrice << " " << maxPrice << endl;
 
 	const auto barTouchesPrice = [&](size_t barNum, Price price) {
-		for (int priceType = data::Bars::Low; priceType <= data::Bars::High; ++priceType) {
-			const auto diff = fabs(price - bars->get(static_cast<data::Bars::PriceType>(priceType), barNum));
+		for (const auto &priceType: data::Bars::PriceTypes) {
+			const auto diff = fabs(price - bars->get(priceType, barNum));
 			if (diff < prec)
 				return true;
 		}
