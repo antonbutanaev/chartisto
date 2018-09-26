@@ -78,27 +78,28 @@ void runTripleScreen(data::PBars bars) {
 }
 
 struct FindLevelsParams {
+	float priceRangeK = 0.2;
 	size_t minTouches = 3;
-	Price prec = 0.5;
+	Price precisionK = 0.002;
 	Price step = 0.01;
-	float touchWeight = 1.0;
-	float crossWeight = -1.5;
+	double touchWeight = 3;
+	double crossWeight = -1;
+	double sameLevelK = 0.03;
+	size_t maxlevels = 7;
 };
 
 void findLevels(data::PBars bars, const FindLevelsParams & params) {
-	chart::Price minPrice = numeric_limits<Price>::max();
-	chart::Price maxPrice = numeric_limits<Price>::lowest();
-	for (size_t i = 0; i < bars->num(); ++i) {
-		minPrice = min(minPrice, bars->low(i));
-		maxPrice = max(maxPrice, bars->high(i));
-	}
+	auto minPrice = bars->close(bars->num()-1) * (1 - params.priceRangeK);
+	auto maxPrice = bars->close(bars->num()-1) * (1 + params.priceRangeK);
+	minPrice = ceil(minPrice / params.step) * params.step;
+	maxPrice = floor(maxPrice / params.step) * params.step;
 
 	cout << "Price range: " << minPrice << " " << maxPrice << endl;
 
 	const auto barTouchesPrice = [&](size_t barNum, Price price) {
 		for (const auto &priceType: data::Bars::PriceTypes) {
-			const auto diff = fabs(price - bars->get(priceType, barNum));
-			if (diff < params.prec)
+			const auto diff = fabs(1 - price/bars->get(priceType, barNum));
+			if (diff < params.precisionK)
 				return true;
 		}
 		return false;
@@ -137,12 +138,31 @@ void findLevels(data::PBars bars, const FindLevelsParams & params) {
 					level.numBodyCrosses * params.crossWeight;
 			};
 
-			return rate(a) < rate(b);
+			return rate(a) > rate(b);
 		}
 	);
 
-	for (const auto & level: levels)
+	for (auto levelIt = levels.begin(); levelIt != levels.end(); ) {
+		bool levelRepeat = false;
+		for (auto prevLevelIt = levels.begin(); prevLevelIt != levelIt; ++prevLevelIt) {
+			if (fabs(1 - prevLevelIt->level / levelIt->level) < params.sameLevelK) {
+				levelRepeat = true;
+				break;
+			}
+		}
+		if (levelRepeat)
+			levelIt = levels.erase(levelIt);
+		else
+			++levelIt;
+	}
+
+	cout << "Compacted" << endl;
+	size_t n = 0;
+	for (const auto & level: levels) {
+		if (++n > params.maxlevels)
+			break;
 		cout << level.numTouches << ' ' << level.numBodyCrosses << ' ' << level.level << endl;
+	}
 }
 
 int main(int ac, char *av[]) try {
