@@ -39,6 +39,18 @@ public:
     virtual Volume volume(size_t) const = 0;
 
     virtual size_t num() const = 0;
+
+    enum PriceType {Low,Open,Close,High};
+    Price get(PriceType priceType, size_t num) {
+    	switch (priceType) {
+    	case Open: return open(num);
+    	case Close: return close(num);
+    	case High: return high(num);
+    	case Low: return low(num);
+    	default:
+    		throw std::runtime_error("bad price type: " + std::to_string(static_cast<int>(priceType)));
+    	}
+    }
 };
 
 using PBars = std::shared_ptr<Bars>;
