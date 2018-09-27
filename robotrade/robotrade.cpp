@@ -80,48 +80,85 @@ void runTripleScreen(data::PBars bars) {
 struct FindLevelsParams {
 	float priceRangeK = 0.2;
 	size_t minTouches = 3;
-	Price precisionK = 0.002;
+	Price precisionK = 0.001;
 	Price step = 0.01;
-	double touchWeight = 3;
-	double crossWeight = -1;
+	double touchWeight = 1;
+	double crossWeight = -2;
 	double sameLevelK = 0.03;
-	size_t maxlevels = 7;
+	size_t maxlevels = 10;
+	size_t minExtremumAgeBars = 20;
+	size_t extremumNumTouches = 100;
 };
 
-void findLevels(data::PBars bars, const FindLevelsParams & params) {
-	auto minPrice = bars->close(bars->num()-1) * (1 - params.priceRangeK);
-	auto maxPrice = bars->close(bars->num()-1) * (1 + params.priceRangeK);
-	minPrice = ceil(minPrice / params.step) * params.step;
-	maxPrice = floor(maxPrice / params.step) * params.step;
+struct Level {
+	size_t numTouches;
+	size_t numBodyCrosses;
+	Price level;
+};
+
+void findLevels(data::PBars bars, size_t from, size_t to, const FindLevelsParams & params) {
+	std::vector<Level> levels;
+	if (from >= to)
+		return;
+
+	auto minPrice = numeric_limits<Price>::max();
+	auto maxPrice = numeric_limits<Price>::lowest();
+	size_t minPriceNum = from;
+	size_t maxPriceNum = from;
+	for (auto barNum = from; barNum < to; ++barNum) {
+		if (minPrice > bars->low(barNum)) {
+			minPrice = bars->low(barNum);
+			minPriceNum = barNum;
+		}
+		if (maxPrice < bars->high(barNum)) {
+			maxPrice = bars->high(barNum);
+			maxPriceNum = barNum;
+		}
+	}
+
+	auto rangeLow = bars->close(to - 1) * (1 - params.priceRangeK);
+	auto rangeHigh = bars->close(to - 1) * (1 + params.priceRangeK);
+	rangeLow = ceil(rangeLow / params.step) * params.step;
+	rangeHigh = floor(rangeHigh / params.step) * params.step;
+
+	rangeLow = std::max(minPrice, rangeLow);
+	rangeHigh = std::min(maxPrice, rangeHigh);
 
 	cout << "Price range: " << minPrice << " " << maxPrice << endl;
 
-	const auto barTouchesPrice = [&](size_t barNum, Price price) {
-		for (const auto &priceType: data::Bars::PriceTypes) {
-			const auto diff = fabs(1 - price/bars->get(priceType, barNum));
-			if (diff < params.precisionK)
-				return true;
-		}
-		return false;
-	};
+	if (minPrice == rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
+		levels.push_back({
+			params.extremumNumTouches,
+			0,
+			minPrice
+		});
 
-	struct Level {
-		size_t numTouches;
-		size_t numBodyCrosses;
-		Price level;
-	};
+	if (maxPrice == rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
+		levels.push_back({
+			params.extremumNumTouches,
+			0,
+			maxPrice
+		});
 
-	std::vector<Level> levels;
-
-	for (auto price = minPrice; price <= maxPrice; price += params.step) {
+	for (auto price = rangeLow; price <= rangeHigh; price += params.step) {
 		Level level{0, 0, price};
-		for (size_t i = 0; i < bars->num(); ++i) {
-			if (barTouchesPrice(i, price))
-				level.numTouches += 1;
+		for (size_t barNum = from; barNum < to; ++barNum) {
+			const auto upperBound = price * (1 + params.precisionK);
+			const auto lowerBound = price * (1 - params.precisionK);
 
+			for (const auto &priceType: data::Bars::PriceTypes) {
+				const auto barPrice = bars->get(priceType, barNum);
+				if (barPrice >= lowerBound && barPrice <= upperBound) {
+					level.numTouches += 1;
+					break;
+				}
+			}
+
+			const auto barOpen = bars->open(barNum);
+			const auto barClose = bars->close(barNum);
 			if (
-				(bars->open(i) > price && bars->close(i) < price) ||
-				(bars->open(i) < price && bars->close(i) > price)
+				(barOpen > upperBound && barClose < lowerBound) ||
+				(barOpen < lowerBound && barClose > upperBound)
 			)
 				level.numBodyCrosses += 1;
 		}
@@ -196,7 +233,8 @@ int main(int ac, char *av[]) try {
 			throw runtime_error("Could not open file: " + quotes);
 
 		//runTripleScreen(robotrade::parse(ifs));
-		findLevels(robotrade::parse(ifs), {});
+		const auto bars = robotrade::parse(ifs);
+		findLevels(bars, 0, bars->num(), {});
 	}
 
 	return 0;
