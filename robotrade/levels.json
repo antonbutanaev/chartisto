@@ -1,0 +1,14 @@
+{
+	"default":	{
+		"priceRangeK": 0.2,
+		"minTouches": 3,
+		"precisionK": 0.001,
+		"step": 0.01,
+		"touchWeight": 1,
+		"crossWeight": -2,
+		"sameLevelK": 0.03,
+		"maxlevels": 10,
+		"minExtremumAgeBars": 20,
+		"extremumNumTouches": 100
+	}
+}

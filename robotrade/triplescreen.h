@@ -25,6 +25,8 @@ private:
 	std::unique_ptr<Impl> i_;
 };
 
+void runTripleScreen(chart::data::PBars bars);
+
 }
 
 #endif

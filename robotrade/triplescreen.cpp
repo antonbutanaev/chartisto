@@ -1,6 +1,8 @@
+#include <iostream>
 #include <log4cplus/loggingmacros.h>
 #include <robotrade/triplescreen.h>
 #include <chart/reduce.h>
+#include <chart/indicators.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <date/date.h>
@@ -134,5 +136,73 @@ TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria crite
 TripleScreen::~TripleScreen() {}
 
 void TripleScreen::run() {i_->run();}
+
+#include <robotrade/triplescreen.h>
+
+using chart::indicators::macd;
+using robotrade::TripleScreen;
+
+using namespace std;
+using namespace chart;
+using namespace robotrade;
+
+void runTripleScreen(data::PBars bars) {
+	const auto barsDaily = reduce(*bars, dayReduce);
+	const auto barsWeekly = reduce(*barsDaily, weekReduce);
+
+	const auto closeWeekly = data::createPoints(barsWeekly, [&](size_t n) {return barsWeekly->close(n);});
+	const auto macdWeekly = indicators::macd(closeWeekly, 13, 26, 7);
+
+	const auto forceIndex = indicators::forceIndex(barsDaily, 2);
+
+	const auto optional = [](auto value, auto no, auto sep) {
+		if (value == no)
+			cout << sep;
+		else
+			cout << value << sep;
+	};
+
+	Trader trader({
+		100, 2000,
+		[&](const Trader::OnTrade &trade) {
+			cout
+				<< trade.time << ','
+				<< trade.num << ','
+				<< trade.price << ',';
+			optional(trade.gain, NoPrice, ',');
+			cout
+				<< trade.total << ','
+				<< trade.pos << '\n';
+
+		}
+	});
+
+	TripleScreen tripleScreen(
+		barsWeekly, barsDaily,
+		[&](size_t weekly, size_t daily) {
+			if (weekly == 0)
+			return Action::Wait;
+			if (
+				macdWeekly->histogram->close(weekly-1) < macdWeekly->histogram->close(weekly) &&
+				macdWeekly->histogram->close(weekly) < 0 &&
+				forceIndex->close(daily) < 0
+			)
+				return Action::Buy;
+			else if (
+				macdWeekly->histogram->close(weekly-1) > macdWeekly->histogram->close(weekly) &&
+				macdWeekly->histogram->close(weekly) > 0 &&
+				forceIndex->close(daily) > 0
+			)
+				return Action::Sell;
+			else
+				return Action::Wait;
+		},
+		trader
+	);
+
+	cout << "time,num,price,gain,total,position\n";
+	tripleScreen.run();
+	trader.trade({Trader::Trade::Close, barsDaily->time(barsDaily->num()-1), barsDaily->close(barsDaily->num()-1), NoPrice});
+}
 
 }

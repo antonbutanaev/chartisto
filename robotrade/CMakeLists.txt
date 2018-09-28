@@ -11,6 +11,7 @@ add_library(robotradeutils
 	triplescreen.cpp
     quotesparser.cpp
     trader.cpp
+    Levels.cpp
 )
 
 target_link_libraries(robotradeutils
@@ -27,5 +28,7 @@ target_link_libraries(robotrade
 )
 
 set(LOG_CONF robotrade_log.conf)
+set(LEVELS_JSON levels.json)
 
 configure_file(${LOG_CONF} ${LOG_CONF} COPYONLY)
+configure_file(${LEVELS_JSON} ${LEVELS_JSON} COPYONLY)
