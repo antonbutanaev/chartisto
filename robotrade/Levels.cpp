@@ -12,7 +12,7 @@ using namespace chart;
 namespace robotrade {
 
 struct FindLevelsParams {
-	float priceRangeK = 0.2;
+	double priceRangeK = 0.2;
 	size_t minTouches = 3;
 	Price precisionK = 0.001;
 	Price step = 0.01;
@@ -69,14 +69,14 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 	cout << "Price range: " << minPrice << " " << maxPrice << endl;
 
-	if (minPrice == rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
+	if (minPrice <= rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
 			params.extremumNumTouches,
 			0,
 			minPrice
 		});
 
-	if (maxPrice == rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
+	if (maxPrice >= rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
 			params.extremumNumTouches,
 			0,
