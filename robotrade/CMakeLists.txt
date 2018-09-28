@@ -12,6 +12,7 @@ add_library(robotradeutils
     quotesparser.cpp
     trader.cpp
     Levels.cpp
+    EntryAnalyzer.cpp
 )
 
 target_link_libraries(robotradeutils
