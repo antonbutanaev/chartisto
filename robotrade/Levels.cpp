@@ -19,17 +19,59 @@ struct FindLevelsParams {
 	double touchWeight = 1;
 	double crossWeight = -2;
 	double sameLevelK = 0.03;
-	size_t maxlevels = 10;
+	size_t maxLevels = 10;
 	size_t minExtremumAgeBars = 20;
 	size_t extremumNumTouches = 100;
 };
-
 
 struct Level {
 	size_t numTouches;
 	size_t numBodyCrosses;
 	Price level;
 };
+
+FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &section) {
+	if (!config.isMember(section))
+		throw runtime_error("No section " + section + " in config");
+
+	const auto &sectionJson = config[section];
+	FindLevelsParams result;
+
+	if (sectionJson.isMember("priceRangeK"))
+		result.priceRangeK = sectionJson["priceRangeK"].asDouble();
+
+	if (sectionJson.isMember("minTouches"))
+		result.minTouches = sectionJson["minTouches"].asUInt();
+
+	if (sectionJson.isMember("precisionK"))
+		result.precisionK = sectionJson["precisionK"].asDouble();
+
+	if (sectionJson.isMember("step"))
+		result.step = sectionJson["step"].asDouble();
+
+	if (sectionJson.isMember("step"))
+		result.step = sectionJson["step"].asDouble();
+
+	if (sectionJson.isMember("touchWeight"))
+		result.touchWeight = sectionJson["touchWeight"].asDouble();
+
+	if (sectionJson.isMember("crossWeight"))
+		result.crossWeight = sectionJson["crossWeight"].asDouble();
+
+	if (sectionJson.isMember("sameLevelK"))
+		result.sameLevelK = sectionJson["sameLevelK"].asDouble();
+
+	if (sectionJson.isMember("maxLevels"))
+		result.maxLevels = sectionJson["maxLevels"].asUInt();
+
+	if (sectionJson.isMember("minExtremumAgeBars"))
+		result.minExtremumAgeBars = sectionJson["minExtremumAgeBars"].asUInt();
+
+	if (sectionJson.isMember("extremumNumTouches"))
+		result.extremumNumTouches = sectionJson["extremumNumTouches"].asUInt();
+
+	return result;
+}
 
 void findLevels(data::PBars bars, size_t from, size_t to, const std::string &config) {
 	cout << "Using config " << config << endl;
@@ -39,7 +81,8 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	Json::Value configJson;
 	ifs >> configJson;
 
-	FindLevelsParams params;
+	const auto params = getLevelsParams(configJson, "default");
+
 	std::vector<Level> levels;
 	if (from >= to)
 		return;
@@ -139,7 +182,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	cout << "Compacted" << endl;
 	size_t n = 0;
 	for (const auto & level: levels) {
-		if (++n > params.maxlevels)
+		if (++n > params.maxLevels)
 			break;
 		cout << level.numTouches << ' ' << level.numBodyCrosses << ' ' << level.level << endl;
 	}
