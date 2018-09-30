@@ -4,6 +4,7 @@
 		"minTouches": 3,
 		"precisionK": 0.001,
 		"step": 0.01,
+		"numStepsForRound": 100,
 		"bodyTouchWeight": 1,
 		"tailTouchWeight": 2,
 		"crossWeight": -4,

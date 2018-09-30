@@ -16,9 +16,11 @@ struct FindLevelsParams {
 	size_t minTouches = 3;
 	Price precisionK = 0.001;
 	Price step = 0.01;
+	size_t numStepsForRound = 100;
 	double tailTouchWeight = 2;
 	double bodyTouchWeight = 1;
 	double crossWeight = -4;
+	double roundWeight = 3;
 	double sameLevelK = 0.03;
 	size_t maxLevels = 10;
 	size_t minExtremumAgeBars = 20;
@@ -115,16 +117,16 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	rangeLow = std::max(minPrice, rangeLow);
 	rangeHigh = std::min(maxPrice, rangeHigh);
 
-	cout << "Price range: " << minPrice << " " << maxPrice << endl;
+	cout << "Price range: " << rangeLow << " " << rangeHigh << endl;
 
-	if (minPrice <= rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
+	if (minPrice >= rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
 			params.extremumNumTouches,
 			0,0,
 			minPrice
 		});
 
-	if (maxPrice >= rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
+	if (maxPrice <= rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
 			params.extremumNumTouches,
 			0,0,
@@ -163,9 +165,17 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 		levels.begin(), levels.end(),
 		[&](const auto &a, const auto &b) {
 			const auto rate = [&] (const auto &level) {
+				const auto k = params.step * params.numStepsForRound;
+				const auto roundPrice = round(level.level / k) * k;
+				auto roundWeight = params.roundWeight;
+				if (fabs(level.level / roundPrice - 1) > params.precisionK)
+					roundWeight = 1;
+
 				return
-					level.numTailTouches * params.tailTouchWeight +
-					level.numBodyTouches * params.bodyTouchWeight +
+					roundWeight * (
+						level.numTailTouches * params.tailTouchWeight +
+						level.numBodyTouches * params.bodyTouchWeight
+					) +
 					level.numBodyCrosses * params.crossWeight;
 			};
 
