@@ -24,7 +24,8 @@ struct FindLevelsParams {
 	double sameLevelK = 0.03;
 	size_t maxLevels = 10;
 	size_t minExtremumAgeBars = 20;
-	size_t extremumNumTouches = 100;
+	size_t extremumTailNumTouches = 20;
+	size_t extremumBodyNumTouches = 10;
 };
 
 struct Level {
@@ -74,8 +75,11 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 	if (sectionJson.isMember("minExtremumAgeBars"))
 		result.minExtremumAgeBars = sectionJson["minExtremumAgeBars"].asUInt();
 
-	if (sectionJson.isMember("extremumNumTouches"))
-		result.extremumNumTouches = sectionJson["extremumNumTouches"].asUInt();
+	if (sectionJson.isMember("extremumTailNumTouches"))
+		result.extremumTailNumTouches = sectionJson["extremumTailNumTouches"].asUInt();
+
+	if (sectionJson.isMember("extremumBodyTouches"))
+		result.extremumBodyNumTouches = sectionJson["extremumBodyNumTouches"].asUInt();
 
 	return result;
 }
@@ -94,18 +98,37 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	if (from >= to)
 		return;
 
-	auto minPrice = numeric_limits<Price>::max();
-	auto maxPrice = numeric_limits<Price>::lowest();
-	size_t minPriceNum = from;
-	size_t maxPriceNum = from;
+	struct ExtremumPrice {
+		Price price;
+		size_t barNum;
+	};
+
+	ExtremumPrice minTailPrice{numeric_limits<Price>::max(), to};
+	ExtremumPrice minBodyPrice{numeric_limits<Price>::max(), to};
+	ExtremumPrice maxTailPrice{numeric_limits<Price>::lowest(), to};
+	ExtremumPrice maxBodyPrice{numeric_limits<Price>::lowest(), to};
+
 	for (auto barNum = from; barNum < to; ++barNum) {
-		if (minPrice > bars->low(barNum)) {
-			minPrice = bars->low(barNum);
-			minPriceNum = barNum;
+		if (minTailPrice.price > bars->low(barNum)) {
+			minTailPrice.price = bars->low(barNum);
+			minTailPrice.barNum = barNum;
 		}
-		if (maxPrice < bars->high(barNum)) {
-			maxPrice = bars->high(barNum);
-			maxPriceNum = barNum;
+		if (maxTailPrice.price < bars->high(barNum)) {
+			maxTailPrice.price = bars->high(barNum);
+			maxTailPrice.barNum = barNum;
+		}
+
+		const auto bodyLow = std::min(bars->open(barNum), bars->close(barNum));
+		const auto bodyHigh = std::max(bars->open(barNum), bars->close(barNum));
+
+		if (minBodyPrice.price > bodyLow) {
+			minBodyPrice.price = bodyLow;
+			minBodyPrice.barNum = barNum;
+		}
+
+		if (maxBodyPrice.price > bodyHigh) {
+			maxBodyPrice.price = bodyHigh;
+			maxBodyPrice.barNum = barNum;
 		}
 	}
 
@@ -114,23 +137,42 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	rangeLow = ceil(rangeLow / params.step) * params.step;
 	rangeHigh = floor(rangeHigh / params.step) * params.step;
 
-	rangeLow = std::max(minPrice, rangeLow);
-	rangeHigh = std::min(maxPrice, rangeHigh);
+	rangeLow = std::max(minTailPrice.price, rangeLow);
+	rangeHigh = std::min(maxTailPrice.price, rangeHigh);
 
 	cout << "Price range: " << rangeLow << " " << rangeHigh << endl;
+	cout << "Min: " << minTailPrice.price << " " << minBodyPrice.price << endl;
 
-	if (minPrice >= rangeLow && minPriceNum + params.minExtremumAgeBars <= to)
+	if (minTailPrice.price >= rangeLow && minTailPrice.barNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
-			params.extremumNumTouches,
-			0,0,
-			minPrice
+			params.extremumTailNumTouches,
+			0,
+			0,
+			minTailPrice.price
 		});
 
-	if (maxPrice <= rangeHigh && maxPriceNum + params.minExtremumAgeBars <= to)
+	if (maxTailPrice.price <= rangeHigh && maxTailPrice.barNum + params.minExtremumAgeBars <= to)
 		levels.push_back({
-			params.extremumNumTouches,
-			0,0,
-			maxPrice
+			params.extremumTailNumTouches,
+			0,
+			0,
+			maxTailPrice.price
+		});
+
+	if (minBodyPrice.price >= rangeLow && minBodyPrice.barNum + params.minExtremumAgeBars <= to)
+		levels.push_back({
+			0,
+			params.extremumBodyNumTouches,
+			0,
+			minBodyPrice.price
+		});
+
+	if (maxBodyPrice.price <= rangeHigh && maxBodyPrice.barNum + params.minExtremumAgeBars <= to)
+		levels.push_back({
+			0,
+			params.extremumBodyNumTouches,
+			0,
+			maxBodyPrice.price
 		});
 
 	for (auto price = rangeLow; price <= rangeHigh; price += params.step) {
