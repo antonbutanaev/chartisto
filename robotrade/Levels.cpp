@@ -22,9 +22,9 @@ struct FindLevelsParams {
 	double crossWeight = -4;
 	double roundWeight = 3;
 	double nearExtremumWeight = 3;
-	double maxCrossRate = 0.4;
+	double maxCrossRate = 0.5;
 	size_t minExtremumAgeBars = 20;
-	size_t extremumNumTouches = 40;
+	size_t extremumNumTailTouches = 40;
 	size_t minTouches = 3;
 };
 
@@ -74,8 +74,8 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 	if (sectionJson.isMember("minExtremumAgeBars"))
 		result.minExtremumAgeBars = sectionJson["minExtremumAgeBars"].asUInt();
 
-	if (sectionJson.isMember("extremumNumTouches"))
-		result.extremumNumTouches = sectionJson["extremumNumTouches"].asUInt();
+	if (sectionJson.isMember("extremumNumTailTouches"))
+		result.extremumNumTailTouches = sectionJson["extremumNumTailTouches"].asUInt();
 
 	return result;
 }
@@ -133,7 +133,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 		minPrice.barNum - params.minExtremumAgeBars >= from
 	)
 		levels.push_back({
-			params.extremumNumTouches,
+			params.extremumNumTailTouches,
 			0,
 			0,
 			minPrice.price,
@@ -147,7 +147,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 		maxPrice.barNum + params.minExtremumAgeBars >= from
 	)
 		levels.push_back({
-			params.extremumNumTouches,
+			params.extremumNumTailTouches,
 			0,
 			0,
 			maxPrice.price,

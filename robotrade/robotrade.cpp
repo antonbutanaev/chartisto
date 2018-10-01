@@ -55,11 +55,7 @@ int main(int ac, char *av[]) try {
 
 		const auto bars = robotrade::parse(ifs);
 		if (vm.count(argLevelsJson)) {
-			for (size_t i = 0; i < bars->num(); ++i)
-				if (bars->time(i) == sys_days{2017_y/9/6}) {
-					std::cout << "Date range " << bars->time(0) << " " << bars->time(i) << endl;
-					findLevels(bars, 0, i, vm[argLevelsJson].as<string>());
-				}
+			findLevels(bars, 0, bars->num(), vm[argLevelsJson].as<string>());
 		} else
 			throw runtime_error("What to do with quotes?");
 	}
