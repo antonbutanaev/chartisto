@@ -24,8 +24,8 @@ struct FindLevelsParams {
 	double sameLevelK = 0.03;
 	size_t maxLevels = 10;
 	size_t minExtremumAgeBars = 20;
-	size_t extremumTailNumTouches = 20;
-	size_t extremumBodyNumTouches = 10;
+	size_t extremumTailNumTouches = 40;
+	size_t extremumBodyNumTouches = 20;
 };
 
 struct Level {
