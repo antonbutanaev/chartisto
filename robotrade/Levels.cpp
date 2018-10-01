@@ -15,16 +15,15 @@ struct FindLevelsParams {
 	double priceRangeK = 0.2;
 	Price precisionK = 0.001;
 	double sameLevelK = 0.01;
-	Price step = 0.01;
+	Price step = 0.00001;
 	size_t numStepsForRound = 100;
 	double tailTouchWeight = 2;
 	double bodyTouchWeight = 1;
-	double crossWeight = -4;
+	double crossWeight = -3;
 	double roundWeight = 3;
-	double nearExtremumWeight = 3;
+	double nearExtremumWeight = 4;
 	double maxCrossRate = 0.5;
 	size_t minExtremumAgeBars = 20;
-	size_t extremumNumTailTouches = 40;
 	size_t minTouches = 3;
 };
 
@@ -34,6 +33,7 @@ struct Level {
 	size_t numBodyCrosses;
 	Price level;
 	bool isExtrememum = false;
+	double k = 1;
 };
 
 FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &section) {
@@ -74,9 +74,6 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 	if (sectionJson.isMember("minExtremumAgeBars"))
 		result.minExtremumAgeBars = sectionJson["minExtremumAgeBars"].asUInt();
 
-	if (sectionJson.isMember("extremumNumTailTouches"))
-		result.extremumNumTailTouches = sectionJson["extremumNumTailTouches"].asUInt();
-
 	return result;
 }
 
@@ -96,12 +93,12 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 	struct ExtremumPrice {
 		Price price;
-		size_t barNum;
+		size_t barNum = 0;
 		bool found = false;
 	};
 
-	ExtremumPrice minPrice{numeric_limits<Price>::max(), to};
-	ExtremumPrice maxPrice{numeric_limits<Price>::lowest(), to};
+	ExtremumPrice minPrice{numeric_limits<Price>::max()};
+	ExtremumPrice maxPrice{numeric_limits<Price>::lowest()};
 
 	for (auto barNum = from; barNum < to; ++barNum) {
 		if (minPrice.price > bars->low(barNum)) {
@@ -132,13 +129,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 		minPrice.barNum + params.minExtremumAgeBars <= to &&
 		minPrice.barNum - params.minExtremumAgeBars >= from
 	)
-		levels.push_back({
-			params.extremumNumTailTouches,
-			0,
-			0,
-			minPrice.price,
-			true
-		});
+		levels.push_back({0, 0, 0, minPrice.price, true});
 
 	if (
 		maxPrice.found &&
@@ -146,13 +137,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 		maxPrice.barNum + params.minExtremumAgeBars <= to &&
 		maxPrice.barNum + params.minExtremumAgeBars >= from
 	)
-		levels.push_back({
-			params.extremumNumTailTouches,
-			0,
-			0,
-			maxPrice.price,
-			true
-		});
+		levels.push_back({0, 0, 0, maxPrice.price, true});
 
 	for (auto price = rangeLow; price <= rangeHigh; price += params.step) {
 		Level level{0, 0, 0, price};
@@ -179,6 +164,11 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 				level.numBodyCrosses += 1;
 		}
 
+		const auto roundK = params.step * params.numStepsForRound;
+		const auto roundPrice = round(price / roundK) * roundK;
+		if (fabs(level.level / roundPrice - 1) < params.precisionK)
+			level.k *= params.roundWeight;
+
 		if (
 			level.numBodyTouches + level.numTailTouches >= params.minTouches &&
 			level.numBodyCrosses < params.maxCrossRate * (level.numBodyTouches + level.numTailTouches)
@@ -192,32 +182,29 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 	const auto byRate = [&](const auto &a, const auto &b) {
 		const auto rate = [&] (const auto &level) {
-			const auto roundK = params.step * params.numStepsForRound;
-			const auto roundPrice = round(level.level / roundK) * roundK;
-			auto roundWeight = params.roundWeight;
-			if (fabs(level.level / roundPrice - 1) > params.precisionK)
-				roundWeight = 1;
-
 			return
-				roundWeight * (
+				(
 					level.numTailTouches * params.tailTouchWeight +
 					level.numBodyTouches * params.bodyTouchWeight +
 					level.numBodyCrosses * params.crossWeight
-				);
+				) * level.k;
 		};
 
-		return rate(a) > rate(b);
+		return
+			a.isExtrememum != b.isExtrememum?
+				a.isExtrememum > b.isExtrememum : rate(a) > rate(b);
 	};
 
 	const auto print = [&] (const char *tag) {
 		cout << tag << ": " << levels.size() << endl;
-		cout << "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel" << endl;
+		cout << "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tk" << endl;
 		for (const auto & level: levels)
 			cout
 				<< level.numTailTouches << '\t'
 				<< level.numBodyTouches << '\t'
 				<< level.numBodyCrosses << '\t'
 				<< level.level << '\t'
+				<< level.k << '\t'
 				<< level.isExtrememum
 				<< endl;
 	};
@@ -239,18 +226,10 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 	sort(levels.begin(), levels.end(), byPrice);
 	if (levels.size() > 1) {
-		if (levels.front().isExtrememum) {
-			auto & level = levels.begin()[1];
-			level.numTailTouches *= params.nearExtremumWeight;
-			level.numBodyTouches *= params.nearExtremumWeight;
-			level.numBodyCrosses *= params.nearExtremumWeight;
-		}
-		if (levels.back().isExtrememum) {
-			auto & level = levels.end()[-2];
-			level.numTailTouches *= params.nearExtremumWeight;
-			level.numBodyTouches *= params.nearExtremumWeight;
-			level.numBodyCrosses *= params.nearExtremumWeight;
-		}
+		if (levels.front().isExtrememum)
+			levels.begin()[1].k *= params.nearExtremumWeight;
+		if (levels.back().isExtrememum)
+			levels.begin()[-2].k *= params.nearExtremumWeight;
 	}
 
 	sort(levels.begin(), levels.end(), byRate);
