@@ -21,7 +21,6 @@ struct FindLevelsParams {
 	double bodyTouchWeight = 1;
 	double crossWeight = -3;
 	double roundWeight = 3;
-	double nearExtremumWeight = 4;
 	double maxCrossRate = 0.5;
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 3;
@@ -61,8 +60,6 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 		result.crossWeight = sectionJson["crossWeight"].asDouble();
 	if (sectionJson.isMember("roundWeight"))
 		result.roundWeight = sectionJson["roundWeight"].asDouble();
-	if (sectionJson.isMember("nearExtremumWeight"))
-		result.nearExtremumWeight = sectionJson["nearExtremumWeight"].asDouble();
 	if (sectionJson.isMember("maxCrossRate"))
 		result.maxCrossRate = sectionJson["maxCrossRate"].asDouble();
 	if (sectionJson.isMember("minExtremumAgeBars"))
@@ -168,10 +165,6 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 			levels.push_back(level);
 	}
 
-	const auto byPrice = [](const auto &a, const auto &b) {
-		return a.level < b.level;
-	};
-
 	const auto byRate = [&](const auto &a, const auto &b) {
 		const auto rate = [&] (const auto &level) {
 			return
@@ -214,14 +207,6 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 			levelIt = levels.erase(levelIt);
 		else
 			++levelIt;
-	}
-
-	sort(levels.begin(), levels.end(), byPrice);
-	if (levels.size() > 1) {
-		if (levels.front().isExtrememum)
-			levels.begin()[1].powerK *= params.nearExtremumWeight;
-		if (levels.back().isExtrememum)
-			levels.begin()[-2].powerK *= params.nearExtremumWeight;
 	}
 
 	sort(levels.begin(), levels.end(), byRate);

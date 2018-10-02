@@ -9,7 +9,6 @@
 		"bodyTouchWeight": 1,
 		"crossWeight": -3,
 		"roundWeight": 3,
-		"nearExtremumWeight": 4,
 		"maxCrossRate": 0.5,
 		"minExtremumAgeBars": 20,
 		"minTouches": 3
