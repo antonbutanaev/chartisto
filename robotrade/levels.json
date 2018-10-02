@@ -1,16 +1,17 @@
 {
-	"default":	{
+	"default": {
 		"priceRangeK": 0.2,
-		"minTouches": 3,
 		"precisionK": 0.001,
+		"sameLevelK": 0.01,
 		"step": 0.01,
 		"numStepsForRound": 100,
-		"bodyTouchWeight": 1,
 		"tailTouchWeight": 2,
-		"crossWeight": -4,
-		"sameLevelK": 0.03,
-		"maxlevels": 10,
+		"bodyTouchWeight": 1,
+		"crossWeight": -3,
+		"roundWeight": 3,
+		"nearExtremumWeight": 4,
+		"maxCrossRate": 0.5,
 		"minExtremumAgeBars": 20,
-		"extremumNumTouches": 100
+		"minTouches": 3
 	}
 }
