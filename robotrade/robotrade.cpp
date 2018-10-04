@@ -55,7 +55,7 @@ int main(int ac, char *av[]) try {
 
 		const auto bars = robotrade::parse(ifs);
 		if (vm.count(argLevelsJson)) {
-			findLevels(bars, 0, bars->num(), vm[argLevelsJson].as<string>());
+			Levels(vm[argLevelsJson].as<string>()).process(bars);
 		} else
 			throw runtime_error("What to do with quotes?");
 	}

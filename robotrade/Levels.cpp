@@ -11,37 +11,13 @@ using namespace chart;
 
 namespace robotrade {
 
-struct FindLevelsParams {
-	double priceRangeK = 0.2;
-	Price precisionK = 0.001;
-	Price roundPrecisionK = 0.0001;
-	double sameLevelK = 0.01;
-	Price step = 0.01;
-	size_t numStepsForRound = 100;
-	double tailTouchWeight = 2;
-	double bodyTouchWeight = 1;
-	double crossWeight = -3;
-	double roundWeight = 3;
-	double maxCrossRate = 0.5;
-	size_t minExtremumAgeBars = 20;
-	size_t minTouches = 3;
-};
-
-struct Level {
-	size_t numTailTouches;
-	size_t numBodyTouches;
-	size_t numBodyCrosses;
-	Price level;
-	bool isExtrememum = false;
-	bool isRound = false;
-};
-
-FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &section) {
-	if (!config.isMember(section))
+FindLevelsParams Levels::getLevelsParams(const std::string &section) {
+	if (!config_.isMember(section))
 		throw runtime_error("No section " + section + " in config");
 
-	const auto &sectionJson = config[section];
+	const auto &sectionJson = config_[section];
 	FindLevelsParams result;
+	return result;
 
 	if (sectionJson.isMember("priceRangeK"))
 		result.priceRangeK = sectionJson["priceRangeK"].asDouble();
@@ -73,19 +49,12 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 	return result;
 }
 
-void findLevels(data::PBars bars, size_t from, size_t to, const std::string &config) {
-	cout << "Using config " << config << endl;
-	ifstream ifs(config);
-	if (!ifs)
-		throw runtime_error("Could not read config " + config);
-	Json::Value configJson;
-	ifs >> configJson;
-
-	const auto params = getLevelsParams(configJson, "default");
+vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
+	const auto params = getLevelsParams("default");
 
 	std::vector<Level> levels;
 	if (from >= to)
-		return;
+		return {};
 
 	struct ExtremumPrice {
 		Price price;
@@ -114,6 +83,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	rangeLow = std::max(minPrice.price, rangeLow);
 	rangeHigh = std::min(maxPrice.price, rangeHigh);
 
+	cout << "Price range: " << bars->time(from) << " " << bars->time(to) << endl;
 	cout << "Price range: " << rangeLow << " " << rangeHigh << endl;
 
 	if (
@@ -213,7 +183,40 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 	}
 
 	sort(levels.begin(), levels.end(), byRate);
-	print("Compacted");
+	print("Levels compacted");
+	return levels;
+}
+
+Levels::Levels(const std::string &config) {
+	cout << "Using config " << config << endl;
+	ifstream ifs(config);
+	if (!ifs)
+		throw runtime_error("Could not read config " + config);
+	Json::Value configJson;
+	ifs >> config_;
+}
+
+void Levels::process(chart::data::PBars bars) {
+	const auto params = getLevelsParams("default");
+	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
+		const auto levels = findLevels(bars, barFrom, barTo);
+		for (const auto &level: levels) {
+			const auto upperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
+			const auto lowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
+			const auto open = bars->open(barTo - 1);
+			const auto close = bars->close(barTo - 1);
+			if (
+				(open > upperBound && close < lowerBound) ||
+				(close > upperBound && open < lowerBound)
+			)
+				cout
+					<< "CROSS " << bars->time(barTo - 1)
+					<< " open " << open
+					<< " close " << close
+					<< " level " << level.level
+					<< endl;
+		}
+	}
 }
 
 }
