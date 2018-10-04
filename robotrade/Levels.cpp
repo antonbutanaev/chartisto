@@ -14,6 +14,7 @@ namespace robotrade {
 struct FindLevelsParams {
 	double priceRangeK = 0.2;
 	Price precisionK = 0.001;
+	Price roundPrecisionK = 0.0001;
 	double sameLevelK = 0.01;
 	Price step = 0.01;
 	size_t numStepsForRound = 100;
@@ -32,7 +33,7 @@ struct Level {
 	size_t numBodyCrosses;
 	Price level;
 	bool isExtrememum = false;
-	double powerK = 1;
+	bool isRound = false;
 };
 
 FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &section) {
@@ -46,6 +47,8 @@ FindLevelsParams getLevelsParams(const Json::Value &config, const std::string &s
 		result.priceRangeK = sectionJson["priceRangeK"].asDouble();
 	if (sectionJson.isMember("precisionK"))
 		result.precisionK = sectionJson["precisionK"].asDouble();
+	if (sectionJson.isMember("roundPrecisionK"))
+		result.roundPrecisionK = sectionJson["roundPrecisionK"].asDouble();
 	if (sectionJson.isMember("sameLevelK"))
 		result.sameLevelK = sectionJson["sameLevelK"].asDouble();
 	if (sectionJson.isMember("step"))
@@ -155,8 +158,8 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 		const auto roundK = params.step * params.numStepsForRound;
 		const auto roundPrice = round(price / roundK) * roundK;
-		if (fabs(level.level / roundPrice - 1) < params.precisionK)
-			level.powerK *= params.roundWeight;
+		if (fabs(level.level / roundPrice - 1) < params.roundPrecisionK)
+			level.isRound = 1;
 
 		if (
 			level.numBodyTouches + level.numTailTouches >= params.minTouches &&
@@ -172,7 +175,7 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 					level.numTailTouches * params.tailTouchWeight +
 					level.numBodyTouches * params.bodyTouchWeight +
 					level.numBodyCrosses * params.crossWeight
-				) * level.powerK;
+				) * (level.isRound? params.roundWeight : 1);
 		};
 
 		return
@@ -182,15 +185,15 @@ void findLevels(data::PBars bars, size_t from, size_t to, const std::string &con
 
 	const auto print = [&] (const char *tag) {
 		cout << tag << ": " << levels.size() << endl;
-		cout << "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tk\tisExtremum" << endl;
+		cout << "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tisExtremum\tisRound" << endl;
 		for (const auto & level: levels)
 			cout
 				<< level.numTailTouches << '\t'
 				<< level.numBodyTouches << '\t'
 				<< level.numBodyCrosses << '\t'
 				<< level.level << '\t'
-				<< level.powerK << '\t'
-				<< level.isExtrememum
+				<< level.isExtrememum << '\t'
+				<< level.isRound
 				<< endl;
 	};
 
