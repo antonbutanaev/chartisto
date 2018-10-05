@@ -21,7 +21,8 @@ struct FindLevelsParams {
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 3;
 	size_t numBarsForLevel = 400;
-	double levelBodyCrossPrecisionK = 0.01;
+	double levelBodyCrossPrecisionK = 0.005;
+	size_t numBarsComing = 5;
 };
 
 struct Level {

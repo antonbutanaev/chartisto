@@ -201,20 +201,37 @@ void Levels::process(chart::data::PBars bars) {
 	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
 		const auto levels = findLevels(bars, barFrom, barTo);
 		for (const auto &level: levels) {
-			const auto upperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
-			const auto lowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
-			const auto open = bars->open(barTo - 1);
-			const auto close = bars->close(barTo - 1);
+			const auto upperBound = level.level * (1 + params.precisionK);
+			const auto lowerBound = level.level * (1 - params.precisionK);
+			size_t numBarsBelow = 0;
+			size_t numBarsAbove = 0;
+			for (auto barNum = barTo - 1 - params.numBarsComing; barNum < barTo - 1; ++barNum) {
+				const auto open = bars->open(barNum);
+				const auto close = bars->close(barNum);
+				if (open < upperBound && close < upperBound)
+					++numBarsBelow;
+				if (open > lowerBound && close > lowerBound)
+					++numBarsAbove;
+			}
 			if (
-				(open > upperBound && close < lowerBound) ||
-				(close > upperBound && open < lowerBound)
-			)
-				cout
-					<< "CROSS " << bars->time(barTo - 1)
-					<< " open " << open
-					<< " close " << close
-					<< " level " << level.level
-					<< endl;
+				numBarsBelow == params.numBarsComing ||
+				numBarsAbove == params.numBarsComing
+			) {
+				const auto crossUpperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
+				const auto crossLowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
+				const auto open = bars->open(barTo - 1);
+				const auto close = bars->close(barTo - 1);
+				if (
+					(open > crossUpperBound && close < crossLowerBound) ||
+					(close > crossUpperBound && open < crossLowerBound)
+				)
+					cout
+						<< "CROSS " << bars->time(barTo - 1)
+						<< " open " << open
+						<< " close " << close
+						<< " level " << level.level
+						<< endl;
+			}
 		}
 	}
 }
