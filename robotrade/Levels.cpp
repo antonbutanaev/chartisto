@@ -222,15 +222,17 @@ void Levels::process(chart::data::PBars bars) {
 				const auto open = bars->open(barTo - 1);
 				const auto close = bars->close(barTo - 1);
 				if (
-					(open > crossUpperBound && close < crossLowerBound) ||
-					(close > crossUpperBound && open < crossLowerBound)
-				)
+					(numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) ||
+					(numBarsBelow == params.numBarsComing && close > crossUpperBound && open < crossLowerBound)
+				) {
 					cout
 						<< "CROSS " << bars->time(barTo - 1)
 						<< " open " << open
 						<< " close " << close
 						<< " level " << level.level
 						<< endl;
+					break;
+				}
 			}
 		}
 	}
