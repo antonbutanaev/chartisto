@@ -199,6 +199,11 @@ Levels::Levels(const std::string &config) {
 
 void Levels::process(chart::data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
+	struct Result {
+		Time time;
+		optional<EntryAnalyzer::Result> result;
+	};
+	vector<Result> results;
 	const auto params = getLevelsParams("default");
 	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
 		const auto levels = findLevels(bars, barFrom, barTo);
@@ -225,23 +230,42 @@ void Levels::process(chart::data::PBars bars) {
 				const auto open = bars->open(lastBarNum);
 				const auto close = bars->close(lastBarNum);
 
-				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound)
-					entryAnalyzer.analyze(
-						EntryAnalyzer::Direction::Buy,
-						level.level * (1 + params.levelBodyCrossPrecisionK),
-						bars->open(lastBarNum - 1),
-						lastBarNum
-					);
+				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
+					results.push_back({
+						bars->time(lastBarNum),
+						entryAnalyzer.analyze(
+							EntryAnalyzer::Direction::Buy,
+							level.level * (1 + params.levelBodyCrossPrecisionK),
+							bars->open(lastBarNum - 1),
+							lastBarNum
+						)
+					});
 
-				if (numBarsBelow == params.numBarsComing && open < crossUpperBound && close > crossLowerBound)
-					entryAnalyzer.analyze(
-						EntryAnalyzer::Direction::Sell,
-						level.level * (1 - params.levelBodyCrossPrecisionK),
-						bars->open(lastBarNum - 1),
-						lastBarNum
-					);
+					cout << "CROSS DOWN level " << level.level << " at " << bars->time(lastBarNum) <<  endl;
+					break;
+				}
+
+				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
+					results.push_back({
+						bars->time(lastBarNum),
+						entryAnalyzer.analyze(
+							EntryAnalyzer::Direction::Sell,
+							level.level * (1 - params.levelBodyCrossPrecisionK),
+							bars->open(lastBarNum - 1),
+							lastBarNum
+						)
+					});
+
+					cout << "CROSS UP level " << level.level << " at " << bars->time(lastBarNum) <<  endl;
+					break;
+				}
 			}
 		}
+	}
+
+	cout << "Results" << endl;
+	for (const auto &result: results) {
+		cout << "Time " << result.time << endl;
 	}
 }
 

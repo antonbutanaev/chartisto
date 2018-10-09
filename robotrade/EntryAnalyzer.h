@@ -10,8 +10,8 @@ public:
 	EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {}
 
 	struct Result {
-		double profitK;
 		size_t numBars;
+		std::optional<double> profitK;
 	};
 
 	enum class Direction{Buy, Sell};
