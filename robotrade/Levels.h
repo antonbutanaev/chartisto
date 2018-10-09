@@ -23,6 +23,7 @@ struct FindLevelsParams {
 	size_t numBarsForLevel = 400;
 	double levelBodyCrossPrecisionK = 0.005;
 	size_t numBarsComing = 5;
+	double crossLimitOrderAboveLimitK = 0.005;
 };
 
 struct Level {

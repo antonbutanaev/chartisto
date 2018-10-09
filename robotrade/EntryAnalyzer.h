@@ -16,7 +16,12 @@ public:
 
 	enum class Direction{Buy, Sell};
 
-	std::optional<Result> analyze(Direction direction, chart::Price limitOrderPrice);
+	std::optional<Result> analyze(
+		Direction direction,
+		chart::Price limitOrderPrice,
+		chart::Price stopPrice,
+		size_t orderBarNum
+	);
 
 private:
 	chart::data::PBars bars_;
