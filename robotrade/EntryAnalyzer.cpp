@@ -5,48 +5,68 @@ using namespace std;
 
 namespace robotrade {
 
-std::optional<EntryAnalyzer::Result> EntryAnalyzer::analyze(
+ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
+	using chart::operator <<;
+	if (result.filled)
+		o << "Filled " << result.filled->time << " price " << result.filled->fillPrice << " ";
+	if (result.stopped)
+		o << "Stopped " << result.stopped->time << " price " << result.stopped->stopPrice << " ";
+	if (result.profit)
+		o << "Profit " << result.profit->time << " profitPerStop " << result.profit->profitPerStopK << " ";
+	return o;
+}
+
+EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Direction direction,
-	Price limitOrderPrice,
+	Price limitPrice,
 	Price stopPrice,
 	size_t orderBarNum
 ) {
-	bool filled = false;
-	bool stopped = false;
-	auto stopDelta = fabs(limitOrderPrice - stopPrice);
+	Result result;
+	auto stopDelta = fabs(limitPrice - stopPrice);
 	Price profitDelta = 0;
 	size_t numBars = 0;
-	for (auto barNum = orderBarNum; barNum < bars_->num(); ++barNum) {
+	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 		++numBars;
-		filled = filled || (
-			(direction == Direction::Buy && bars_->low(barNum) <= limitOrderPrice) ||
-			(direction == Direction::Sell && bars_->high(barNum) >= limitOrderPrice)
-		);
-		stopped = (
-			(direction == Direction::Buy && bars_->low(barNum) <= stopPrice) ||
-			(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
-		);
-
-		if (stopped) {
-			break;
+		if (
+			!result.filled && (
+				(direction == Direction::Buy && bars_->low(barNum) <= limitPrice) ||
+				(direction == Direction::Sell && bars_->high(barNum) >= limitPrice)
+			)
+		) {
+			result.filled = {
+				limitPrice,
+				bars_->time(barNum)
+			};
 		}
 
-		if (filled)
-			profitDelta = max(
-				profitDelta,
-				direction == Direction::Buy?
-					bars_->high(barNum) - limitOrderPrice :
-					limitOrderPrice - bars_->low(barNum)
-			);
+		if (
+			!result.stopped && (
+				(direction == Direction::Buy && bars_->low(barNum) <= stopPrice) ||
+				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
+			)
+		) {
+			result.stopped = {
+				stopPrice,
+				bars_->time(barNum)
+			};
+		}
 
+		if (result.stopped)
+			break;
+
+		const auto profit = direction == Direction::Buy?
+			bars_->high(barNum) - limitPrice
+			:
+			limitPrice - bars_->low(barNum);
+		if (profitDelta < profit) {
+			profitDelta = profit;
+			result.profit = {
+				profitDelta / stopDelta,
+				bars_->time(barNum)
+			};
+		}
 	}
-
-	if (!filled)
-		return {};
-
-	Result result{numBars, {}};
-	if (!stopped)
-		result.profitK = profitDelta / stopDelta;
 
 	return result;
 }

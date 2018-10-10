@@ -17,7 +17,7 @@ using Time = std::chrono::time_point<std::chrono::system_clock, std::chrono::min
 constexpr auto NoPrice = std::numeric_limits<Price>::max();
 constexpr auto NoTime = Time::max();
 
-inline std::ostream &operator<<(std::ostream &o, Time time) {
+inline std::ostream &operator<<(std::ostream &o, const Time &time) {
 	const auto day = std::chrono::time_point_cast<date::days>(time);
 	const auto ymd = date::year_month_day(day);
 	auto tod = date::make_time(time - day);
