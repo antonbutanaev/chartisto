@@ -270,9 +270,22 @@ void Levels::process(chart::data::PBars bars) {
 	}
 
 	cout << "Results:" << endl;
+	if (results.empty())
+		return;
+
+	double num = 0;
+	double num3 = 0;
 	for (const auto &result: results) {
+		++num;
+		if (result.profit && result.profit->profitPerStopK > 3)
+			++num3;
 		cout << result << endl;
 	}
+	cout
+		<< "Num " << num
+		<< " Num3 " << num3
+		<< " Ratio " << num3/num
+		<< endl;
 }
 
 }
