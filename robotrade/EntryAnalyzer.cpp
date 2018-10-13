@@ -31,8 +31,15 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		++numBars;
 		if (
 			!result.filled && (
-				(direction == Direction::Buy && bars_->high(barNum) >= stopEnterPrice) ||
-				(direction == Direction::Sell && bars_->low(barNum) <= stopEnterPrice)
+				(
+					direction == Direction::Buy &&
+					bars_->high(barNum) >= stopEnterPrice &&
+					bars_->low(barNum) <= stopEnterPrice
+				) || (
+					direction == Direction::Sell &&
+					bars_->low(barNum) <= stopEnterPrice &&
+					bars_->high(barNum) >= stopEnterPrice
+				)
 			)
 		) {
 			result.filled = {
@@ -57,16 +64,18 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			};
 		}
 
-		const auto profit = direction == Direction::Buy?
-			bars_->high(barNum) - stopEnterPrice
-			:
-			stopEnterPrice - bars_->low(barNum);
-		if (profitDelta < profit) {
-			profitDelta = profit;
-			result.profit = {
-				profitDelta / stopDelta,
-				bars_->time(barNum)
-			};
+		if (result.filled) {
+			const auto profit = direction == Direction::Buy?
+				bars_->high(barNum) - stopEnterPrice
+				:
+				stopEnterPrice - bars_->low(barNum);
+			if (profitDelta < profit) {
+				profitDelta = profit;
+				result.profit = {
+					profitDelta / stopDelta,
+					bars_->time(barNum)
+				};
+			}
 		}
 
 		if (result.stopped)
