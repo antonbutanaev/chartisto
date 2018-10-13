@@ -231,13 +231,18 @@ void Levels::process(chart::data::PBars bars) {
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
 							level.level * (1 + params.levelBodyCrossPrecisionK),
-							open,
+							close,
 							lastBarNum
 						)
 					);
 
-					cout << "CROSS DOWN level " << level.level << " at " << bars->time(lastBarNum) << endl;
-					cout << "Result " << results.back() << endl;
+					cout
+						<< "CROSS DOWN level " << level.level
+						<< " at " << bars->time(lastBarNum)
+						<< " stop " << close
+						<< endl
+						<< "Result " << results.back()
+						<< endl;
 					break;
 				}
 
@@ -251,8 +256,13 @@ void Levels::process(chart::data::PBars bars) {
 						)
 					);
 
-					cout << "CROSS UP level " << level.level << " at " << bars->time(lastBarNum) << endl;
-					cout << "Result " << results.back() << endl;
+					cout
+						<< "CROSS UP level " << level.level
+						<< " at " << bars->time(lastBarNum)
+						<< " stop " << close
+						<< endl
+						<< "Result " << results.back()
+						<< endl;
 					break;
 				}
 			}

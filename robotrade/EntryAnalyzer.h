@@ -36,7 +36,7 @@ public:
 
 	Result analyze(
 		Direction direction,
-		chart::Price limitOrderPrice,
+		chart::Price stopEnterPrice,
 		chart::Price stopPrice,
 		size_t orderBarNum
 	);
