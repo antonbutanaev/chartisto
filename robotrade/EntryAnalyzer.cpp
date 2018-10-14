@@ -25,10 +25,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Result result;
 	auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	Price profitDelta = 0;
-	size_t numBars = 0;
-	int stopCount = 0;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
-		++numBars;
 		if (
 			!result.filled && (
 				(
@@ -55,7 +52,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
 			) && (
 				bars_->time(barNum) != result.filled->time ||
-				++stopCount % 2 == 0
+				++barNum % 2 == 0
 			)
 		) {
 			result.stopped = {
@@ -66,9 +63,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 
 		if (result.filled) {
 			const auto profit = direction == Direction::Buy?
-				bars_->high(barNum) - stopEnterPrice
-				:
+				bars_->high(barNum) - stopEnterPrice :
 				stopEnterPrice - bars_->low(barNum);
+
 			if (profitDelta < profit) {
 				profitDelta = profit;
 				result.profit = {

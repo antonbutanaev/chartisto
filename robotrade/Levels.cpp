@@ -197,10 +197,23 @@ Levels::Levels(const std::string &config) {
 	ifs >> config_;
 }
 
-void Levels::process(chart::data::PBars bars) {
+void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
-	const auto params = getLevelsParams("default");
+	auto params = getLevelsParams("default");
+
+	auto step = numeric_limits<Price>::max();
+	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
+		for (const auto &a: data::Bars::PriceTypes)
+			for (const auto &b: data::Bars::PriceTypes) {
+				const auto delta = fabs(bars->get(a, barNum) - bars->get(b, barNum - 1));
+				if (delta > 1e-6)
+					step = std::min(step, delta);
+			}
+	}
+	params.step = step;
+	cout << "Step " << step << endl;
+
 	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
 		const auto levels = findLevels(bars, barFrom, barTo);
 		for (const auto &level: levels) {
@@ -231,7 +244,7 @@ void Levels::process(chart::data::PBars bars) {
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
 							level.level * (1 + params.levelBodyCrossPrecisionK),
-							close,
+							bars->low(lastBarNum) - 2 * params.step,
 							lastBarNum
 						)
 					);
@@ -251,7 +264,7 @@ void Levels::process(chart::data::PBars bars) {
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Sell,
 							level.level * (1 - params.levelBodyCrossPrecisionK),
-							close,
+							bars->high(lastBarNum) + 2 * params.step,
 							lastBarNum
 						)
 					);
@@ -273,18 +286,22 @@ void Levels::process(chart::data::PBars bars) {
 	if (results.empty())
 		return;
 
-	double num = 0;
-	double num3 = 0;
+	size_t num = 0;
+	size_t numProfit = 0;
+	size_t numLoss = 0;
 	for (const auto &result: results) {
 		++num;
 		if (result.profit && result.profit->profitPerStopK > 3)
-			++num3;
+			++numProfit;
+		if (result.profit && result.profit->profitPerStopK < 2)
+			++numLoss;
 		cout << result << endl;
 	}
 	cout
-		<< "Num " << num
-		<< " Num3 " << num3
-		<< " Ratio " << num3/num
+		<< "Num " << num << endl
+		<< " NumProfit " << numProfit << endl
+		<< " NumLoss " << numLoss << endl
+		<< " Ratio " << static_cast<double>(numProfit)/numLoss
 		<< endl;
 }
 
