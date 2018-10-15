@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <thread>
 #include <json/json.h>
 #include <boost/program_options.hpp>
 #include <log4cplus/logger.h>
@@ -16,6 +17,38 @@ using namespace date;
 
 using namespace std;
 
+void processLevels(const string &configJson, const vector<string> &quoteFiles) {
+	const auto runLevels = [&](unsigned offset) {
+		for (auto fileNum = offset; fileNum < quoteFiles.size(); ++fileNum) {
+			ifstream ifs(quoteFiles[fileNum].c_str());
+			if (!ifs)
+				throw runtime_error("Could not open file: " + quoteFiles[fileNum]);
+
+			auto resultFile = quoteFiles[fileNum];
+			const auto slash = resultFile.find_last_of('/');
+			if (slash != string::npos)
+				resultFile = resultFile.substr(slash + 1);
+			Levels(configJson, resultFile + ".result").process(robotrade::parse(ifs));
+		};
+	};
+
+	vector<thread> threads;
+	const auto nThreads = std::thread::hardware_concurrency();
+	for (unsigned i = 1; i < nThreads; ++i)
+		threads.push_back(thread(
+			[i, &runLevels] {
+				try {
+					runLevels(i);
+				} catch (const exception &x) {
+					cerr << "Error: " << x.what() << endl;
+				}
+			}
+		));
+	runLevels(0);
+	for (auto &thread: threads)
+		thread.join();
+}
+
 int main(int ac, char *av[]) try {
 	const char
 		*argHelp = "help",
@@ -24,16 +57,25 @@ int main(int ac, char *av[]) try {
 		*argLog = "log";
 
 	namespace po = boost::program_options;
+
+	po::positional_options_description p;
+	p.add(argQuotes, -1);
+
 	po::options_description desc("Allowed options");
 	desc.add_options()
 		(argHelp, "produce help message")
-		(argQuotes, po::value<string>(), "file with quotes")
+		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
-		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file")
-		;
+		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
 
 	po::variables_map vm;
-	po::store(po::parse_command_line(ac, av, desc), vm);
+	po::store(
+		po::command_line_parser(ac, av)
+			.options(desc)
+			.positional(p)
+			.run(),
+		vm
+	);
 	po::notify(vm);
 
 	log4cplus::initialize();
@@ -48,14 +90,8 @@ int main(int ac, char *av[]) try {
 	}
 
 	if (vm.count(argQuotes)) {
-		const auto quotes = vm[argQuotes].as<string>();
-		ifstream ifs(quotes.c_str());
-		if (!ifs)
-			throw runtime_error("Could not open file: " + quotes);
-
-		const auto bars = robotrade::parse(ifs);
 		if (vm.count(argLevelsJson)) {
-			Levels(vm[argLevelsJson].as<string>()).process(bars);
+			processLevels(vm[argLevelsJson].as<string>(), vm[argQuotes].as<vector<string>>());
 		} else
 			throw runtime_error("What to do with quotes?");
 	}

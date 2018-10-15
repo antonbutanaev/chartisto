@@ -84,8 +84,9 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	rangeLow = std::max(minPrice.price, rangeLow);
 	rangeHigh = std::min(maxPrice.price, rangeHigh);
 
-	cout << "Price range: " << bars->time(from) << " " << bars->time(to) << endl;
-	cout << "Price range: " << rangeLow << " " << rangeHigh << endl;
+	result_
+		<< "Price range: " << bars->time(from) << " " << bars->time(to) << endl
+		<< "Price range: " << rangeLow << " " << rangeHigh << endl;
 
 	if (
 		minPrice.price >= rangeLow &&
@@ -155,10 +156,11 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	};
 
 	const auto print = [&] (const char *tag) {
-		cout << tag << ": " << levels.size() << endl;
-		cout << "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tisExtremum\tisRound" << endl;
+		result_
+			<< tag << ": " << levels.size() << endl
+			<< "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tisExtremum\tisRound" << endl;
 		for (const auto & level: levels)
-			cout
+			result_
 				<< level.numTailTouches << '\t'
 				<< level.numBodyTouches << '\t'
 				<< level.numBodyCrosses << '\t'
@@ -188,8 +190,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	return levels;
 }
 
-Levels::Levels(const std::string &config) {
-	cout << "Using config " << config << endl;
+Levels::Levels(const std::string &config, const std::string &resultFile) : result_(resultFile) {
+	result_ << resultFile << " using config " << config << endl;
 	ifstream ifs(config);
 	if (!ifs)
 		throw runtime_error("Could not read config " + config);
@@ -212,7 +214,7 @@ void Levels::process(data::PBars bars) {
 			}
 	}
 	params.step = step;
-	cout << "Step " << step << endl;
+	result_ << "Step " << step << endl;
 
 	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
 		const auto levels = findLevels(bars, barFrom, barTo);
@@ -249,7 +251,7 @@ void Levels::process(data::PBars bars) {
 						)
 					);
 
-					cout
+					result_
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << close
@@ -269,7 +271,7 @@ void Levels::process(data::PBars bars) {
 						)
 					);
 
-					cout
+					result_
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << close
@@ -282,7 +284,7 @@ void Levels::process(data::PBars bars) {
 		}
 	}
 
-	cout << "Results:" << endl;
+	result_ << "Results:" << endl;
 	if (results.empty())
 		return;
 
@@ -295,9 +297,9 @@ void Levels::process(data::PBars bars) {
 			++numProfit;
 		if (result.profit && result.profit->profitPerStopK < 2)
 			++numLoss;
-		cout << result << endl;
+		result_ << result << endl;
 	}
-	cout
+	result_
 		<< "Num " << num << endl
 		<< " NumProfit " << numProfit << endl
 		<< " NumLoss " << numLoss << endl
