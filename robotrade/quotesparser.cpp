@@ -54,9 +54,6 @@ public:
 
             smatch match;
             if (regex_search(line, match, re)) {
-                if (title_.empty())
-                    title_ = match[Ticker];
-
                 const auto dateTime =
                     sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
                     hours{stoi(match[Hours])} +
@@ -68,14 +65,15 @@ public:
                     stod(match[Close]),
                     stod(match[High]),
                     stod(match[Low]),
-                    stod(match[Volume])
+                    stod(match[Volume]),
+                    match[Ticker],
                 });
             }
         }
     }
 
 private:
-    std::string title() const override {return title_;}
+    std::string title(size_t n) const override {return bars_[n].title;}
     Time time(size_t n) const override {return bars_[n].time;}
     Price open(size_t n) const override {return bars_[n].open;}
     Price close(size_t n) const override {return bars_[n].close;}
@@ -89,9 +87,9 @@ private:
         Time time;
         Price open, close, high, low;
         Volume volume;
+        string title;
     };
     vector<Bar> bars_;
-    string title_;
 };
 
 }

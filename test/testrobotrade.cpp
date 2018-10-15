@@ -25,7 +25,7 @@ TEST(TestRobotrade, Parse) {
 
 	ASSERT_EQ(bars->num(), 2);
 
-	EXPECT_EQ(bars->title(), "VTBR");
+	EXPECT_EQ(bars->title(0), "VTBR");
 
 	EXPECT_EQ(bars->time(0), sys_days{2013_y/1/8});
 	EXPECT_EQ(bars->open(0), .055);

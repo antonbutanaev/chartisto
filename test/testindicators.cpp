@@ -10,7 +10,7 @@ using namespace date;
 
 TEST(TestIndicators, EMA) {
 	class Points: public data::Points {
-		std::string title() const override {return "TestEma";}
+		std::string title(size_t) const override {return "TestEma";}
 		Time time(size_t n) const override {return sys_days{2017_y/2/(n+1)};}
 		Price close(size_t n) const override {return n+1;}
 		size_t num() const override {return 3;}
@@ -18,7 +18,7 @@ TEST(TestIndicators, EMA) {
 
 	const auto emaPoints = indicators::ema(make_shared<Points>(), 3);
 	ASSERT_EQ(emaPoints->num(), 3);
-	EXPECT_EQ(emaPoints->title(), "TestEma EMA 3");
+	EXPECT_EQ(emaPoints->title(0), "TestEma EMA 3");
 
 	const auto k = 2. / (1 + 3);
 	const auto ema1 = 1;

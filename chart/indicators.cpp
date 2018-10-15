@@ -14,7 +14,7 @@ public:
 		data::PPoints &&points,
 		size_t period
 	) : points_(move(points)) {
-		title_ = points_->title() + " EMA " + to_string(period);
+		title_ = points_->title(0) + " EMA " + to_string(period);
 		ema_.reserve(num());
 		size_t i = 0;
 		for(; points_->close(i) == NoPrice; ++i)
@@ -30,7 +30,7 @@ public:
 		}
 	}
 
-    std::string title() const override {return title_;}
+    std::string title(size_t) const override {return title_;}
     Time time(size_t n) const override {return points_->time(n);}
     Price close(size_t n) const override {return ema_[n];}
     size_t num() const override {return points_->num();}

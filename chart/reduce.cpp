@@ -13,7 +13,7 @@ namespace {
 class Bars: public data::Bars {
 public:
     Bars(const data::Bars &bars, const ReduceFunc &reduceFunc) {
-        title_ = bars.title();
+        title_ = bars.title(0);
         for (size_t i = 0; i < bars.num(); ++i) {
             const auto time = reduceFunc(bars.time(i));
 
@@ -34,7 +34,7 @@ public:
     }
 
 private:
-    std::string title() const override {return title_;}
+    std::string title(size_t) const override {return title_;}
     Time time(size_t n) const override {return bars_[n].time;}
     Price open(size_t n) const override {return bars_[n].open;}
     Price close(size_t n) const override {return bars_[n].close;}

@@ -30,7 +30,7 @@ class Bars {
 public:
     virtual ~Bars() = default;
 
-    virtual std::string title() const = 0;
+    virtual std::string title(size_t) const = 0;
     virtual Time time(size_t) const = 0;
     virtual Price open(size_t) const = 0;
     virtual Price close(size_t) const = 0;
@@ -64,7 +64,7 @@ class Points {
 public:
     virtual ~Points() = default;
 
-    virtual std::string title() const = 0;
+    virtual std::string title(size_t) const = 0;
     virtual Time time(size_t) const = 0;
     virtual Price close(size_t) const = 0;
 
@@ -81,7 +81,7 @@ public:
         fClose_(std::move(fClose)) {
     }
 
-    std::string title() const override {return source_->title();}
+    std::string title(size_t n) const override {return source_->title(n);}
     Time time(size_t n) const override {return source_->time(n);}
     Price close(size_t n) const override {return fClose_(n);}
 
