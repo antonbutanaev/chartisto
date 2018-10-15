@@ -39,7 +39,7 @@ void processLevels(const string &configJson, const vector<string> &quoteFiles) {
 
 	vector<thread> threads;
 	const auto nThreads = std::thread::hardware_concurrency();
-	for (unsigned i = 1; i < nThreads; ++i)
+	for (unsigned threadNum = 1; threadNum < nThreads; ++threadNum)
 		threads.push_back(thread(runLevels));
 	runLevels();
 	for (auto &thread: threads)
@@ -55,11 +55,10 @@ int main(int ac, char *av[]) try {
 
 	namespace po = boost::program_options;
 
-	po::positional_options_description p;
-	p.add(argQuotes, -1);
-
-	po::options_description desc("Allowed options");
-	desc.add_options()
+	po::positional_options_description positional;
+	positional.add(argQuotes, -1);
+	po::options_description description("Allowed options");
+	description.add_options()
 		(argHelp, "produce help message")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
@@ -68,8 +67,8 @@ int main(int ac, char *av[]) try {
 	po::variables_map vm;
 	po::store(
 		po::command_line_parser(ac, av)
-			.options(desc)
-			.positional(p)
+			.options(description)
+			.positional(positional)
 			.run(),
 		vm
 	);
@@ -82,7 +81,7 @@ int main(int ac, char *av[]) try {
 	LOG4CPLUS_DEBUG(logger, "start");
 
 	if (vm.count(argHelp)) {
-		cout << desc << endl;
+		cout << description << endl;
 		return 1;
 	}
 
