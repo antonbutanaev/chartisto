@@ -12,12 +12,23 @@ using namespace chart;
 
 namespace robotrade {
 
-FindLevelsParams Levels::getLevelsParams(const std::string &section) {
+FindLevelsParams Levels::getLevelsParams(const std::string &section, data::PBars bars) {
 	if (!config_.isMember(section))
 		throw runtime_error("No section " + section + " in config");
 
 	const auto &sectionJson = config_[section];
 	FindLevelsParams result;
+
+	auto step = numeric_limits<Price>::max();
+	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
+		for (const auto &a: data::Bars::PriceTypes)
+			for (const auto &b: data::Bars::PriceTypes) {
+				const auto delta = fabs(bars->get(a, barNum) - bars->get(b, barNum - 1));
+				if (delta > 1e-6)
+					step = std::min(step, delta);
+			}
+	}
+	result.step = step;
 	return result;
 
 	if (sectionJson.isMember("priceRangeK"))
@@ -51,7 +62,7 @@ FindLevelsParams Levels::getLevelsParams(const std::string &section) {
 }
 
 vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
-	const auto params = getLevelsParams("default");
+	const auto params = getLevelsParams("default", bars);
 
 	std::vector<Level> levels;
 	if (from >= to)
@@ -202,19 +213,8 @@ Levels::Levels(const std::string &config, const std::string &resultFile) : resul
 void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
-	auto params = getLevelsParams("default");
-
-	auto step = numeric_limits<Price>::max();
-	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
-		for (const auto &a: data::Bars::PriceTypes)
-			for (const auto &b: data::Bars::PriceTypes) {
-				const auto delta = fabs(bars->get(a, barNum) - bars->get(b, barNum - 1));
-				if (delta > 1e-6)
-					step = std::min(step, delta);
-			}
-	}
-	params.step = step;
-	result_ << "Step " << step << endl;
+	const auto params = getLevelsParams("default", bars);
+	result_ << "Step " << params.step << endl;
 
 	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
 		const auto levels = findLevels(bars, barFrom, barTo);
