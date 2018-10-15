@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <thread>
+#include <atomic>
 #include <json/json.h>
 #include <boost/program_options.hpp>
 #include <log4cplus/logger.h>
@@ -18,13 +19,17 @@ using namespace date;
 using namespace std;
 
 void processLevels(const string &configJson, const vector<string> &quoteFiles) {
-	const auto runLevels = [&](unsigned offset) {
-		for (auto fileNum = offset; fileNum < quoteFiles.size(); ++fileNum) {
-			ifstream ifs(quoteFiles[fileNum].c_str());
+	atomic<unsigned> fileNum = 0;
+	const auto runLevels = [&]{
+		for (;;) {
+			unsigned localFileNum = fileNum++;
+			if (localFileNum >= quoteFiles.size())
+				break;
+			ifstream ifs(quoteFiles[localFileNum].c_str());
 			if (!ifs)
-				throw runtime_error("Could not open file: " + quoteFiles[fileNum]);
+				throw runtime_error("Could not open file: " + quoteFiles[localFileNum]);
 
-			auto resultFile = quoteFiles[fileNum];
+			auto resultFile = quoteFiles[localFileNum];
 			const auto slash = resultFile.find_last_of('/');
 			if (slash != string::npos)
 				resultFile = resultFile.substr(slash + 1);
@@ -35,16 +40,8 @@ void processLevels(const string &configJson, const vector<string> &quoteFiles) {
 	vector<thread> threads;
 	const auto nThreads = std::thread::hardware_concurrency();
 	for (unsigned i = 1; i < nThreads; ++i)
-		threads.push_back(thread(
-			[i, &runLevels] {
-				try {
-					runLevels(i);
-				} catch (const exception &x) {
-					cerr << "Error: " << x.what() << endl;
-				}
-			}
-		));
-	runLevels(0);
+		threads.push_back(thread(runLevels));
+	runLevels();
 	for (auto &thread: threads)
 		thread.join();
 }
