@@ -191,7 +191,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 }
 
 Levels::Levels(const std::string &config, const std::string &resultFile) : result_(resultFile) {
-	result_ << resultFile << " using config " << config << endl;
+	result_ << "Processing " << resultFile << " using config " << config << endl;
 	ifstream ifs(config);
 	if (!ifs)
 		throw runtime_error("Could not read config " + config);
