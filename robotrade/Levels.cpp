@@ -12,21 +12,27 @@ using namespace chart;
 
 namespace robotrade {
 
-FindLevelsParams Levels::getLevelsParams(const std::string &section, data::PBars bars) {
+FindLevelsParams Levels::getLevelsParams(
+	const std::string &section, data::PBars bars, size_t barFrom, size_t barTo
+) {
 	if (!config_.isMember(section))
 		throw runtime_error("No section " + section + " in config");
 
 	const auto &sectionJson = config_[section];
 	FindLevelsParams result;
 
-	const auto epsilon = 1e-10;
 	auto step = numeric_limits<Price>::max();
-	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
+	for (size_t barNum = barFrom + 1; barNum < barTo; ++barNum) {
 		for (const auto &a: data::Bars::PriceTypes)
 			for (const auto &b: data::Bars::PriceTypes) {
-				const auto delta = fabs(bars->get(a, barNum) - bars->get(b, barNum - 1));
-				if (delta > epsilon)
-					step = std::min(step, delta);
+				const auto updateStep = [&](size_t barNum1, size_t barNum2) {
+					auto delta = fabs(bars->get(a, barNum1) - bars->get(b, barNum2));
+					if (delta > PriceEpsilon)
+						step = std::min(step, delta);
+				};
+				updateStep(barNum, barNum);
+				updateStep(barNum, barNum - 1);
+				updateStep(barNum - 1, barNum - 1);
 			}
 	}
 	result.step = step;
@@ -63,7 +69,7 @@ FindLevelsParams Levels::getLevelsParams(const std::string &section, data::PBars
 }
 
 vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
-	const auto params = getLevelsParams("default", bars);
+	const auto params = getLevelsParams("default", bars, from, to);
 
 	std::vector<Level> levels;
 	if (from >= to)
@@ -218,9 +224,7 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
-	const auto params = getLevelsParams("default", bars);
-	result_ << "Step " << params.step << endl;
-
+	const auto params = getLevelsParams("default", bars, 0,0);
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -228,6 +232,9 @@ void Levels::process(data::PBars bars) {
 		++barFrom, ++barTo
 	) {
 		result_ << endl;
+
+		const auto params = getLevelsParams("default", bars, barFrom, barTo);
+		result_ << "Step " << params.step << endl;
 
 		const auto levels = findLevels(bars, barFrom, barTo);
 		for (const auto &level: levels) {
@@ -298,10 +305,10 @@ void Levels::process(data::PBars bars) {
 		}
 	}
 
-	result_ << "Results:" << endl;
 	if (results.empty())
 		return;
 
+	result_ << endl << "Results:" << endl;
 	size_t num = 0;
 	size_t numProfit = 0;
 	size_t numLoss = 0;
@@ -314,6 +321,7 @@ void Levels::process(data::PBars bars) {
 		result_ << result << endl;
 	}
 	result_
+		<< endl
 		<< "Num " << num << endl
 		<< "Profit " << numProfit << endl
 		<< "Loss " << numLoss << endl;

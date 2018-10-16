@@ -40,7 +40,7 @@ public:
 	Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile);
 	void process(chart::data::PBars bars);
 private:
-	FindLevelsParams getLevelsParams(const std::string &section, chart::data::PBars);
+	FindLevelsParams getLevelsParams(const std::string &section, chart::data::PBars, size_t barFrom, size_t barTo);
 	std::vector<Level> findLevels(chart::data::PBars, size_t from, size_t to);
 
 	Json::Value config_;

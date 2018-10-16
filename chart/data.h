@@ -15,6 +15,7 @@ using Volume = double;
 using Price = double;
 using Time = std::chrono::time_point<std::chrono::system_clock, std::chrono::minutes>;
 constexpr auto NoPrice = std::numeric_limits<Price>::max();
+constexpr auto PriceEpsilon = 1e-10;
 constexpr auto NoTime = Time::max();
 
 inline std::ostream &operator<<(std::ostream &o, const Time &time) {
