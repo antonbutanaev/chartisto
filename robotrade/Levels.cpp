@@ -201,7 +201,11 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	return levels;
 }
 
-Levels::Levels(const std::string &config, const std::string &resultFile) : result_(resultFile) {
+Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile)
+:
+	daysToAnalyze_(daysToAnalyze),
+	result_(resultFile)
+{
 	result_ << "Processing " << resultFile << " using config " << config << endl;
 	ifstream ifs(config);
 	if (!ifs)
@@ -216,14 +220,21 @@ void Levels::process(data::PBars bars) {
 	const auto params = getLevelsParams("default", bars);
 	result_ << "Step " << params.step << endl;
 
-	for (size_t barFrom = 0, barTo = params.numBarsForLevel; barTo < bars->num(); ++barFrom, ++barTo) {
+	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
+	for (
+		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
+		barTo < bars->num() - 1;
+		++barFrom, ++barTo
+	) {
+		result_ << endl;
+
 		const auto levels = findLevels(bars, barFrom, barTo);
 		for (const auto &level: levels) {
 			const auto upperBound = level.level * (1 + params.precisionK);
 			const auto lowerBound = level.level * (1 - params.precisionK);
 			size_t numBarsBelow = 0;
 			size_t numBarsAbove = 0;
-			auto lastBarNum = barTo - 1;
+			auto lastBarNum = barTo;
 			for (auto barNum = lastBarNum - params.numBarsComing; barNum < lastBarNum; ++barNum) {
 				const auto open = bars->open(barNum);
 				const auto close = bars->close(barNum);
@@ -242,11 +253,12 @@ void Levels::process(data::PBars bars) {
 				const auto close = bars->close(lastBarNum);
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
+					const auto stop = bars->low(lastBarNum) - 2 * params.step;
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
 							level.level * (1 + params.levelBodyCrossPrecisionK),
-							bars->low(lastBarNum) - 2 * params.step,
+							stop,
 							lastBarNum
 						)
 					);
@@ -254,7 +266,7 @@ void Levels::process(data::PBars bars) {
 					result_
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
-						<< " stop " << close
+						<< " stop " << stop
 						<< endl
 						<< "Result " << results.back()
 						<< endl;
@@ -262,11 +274,12 @@ void Levels::process(data::PBars bars) {
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
+					const auto stop = bars->high(lastBarNum) + 2 * params.step;
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Sell,
 							level.level * (1 - params.levelBodyCrossPrecisionK),
-							bars->high(lastBarNum) + 2 * params.step,
+							stop,
 							lastBarNum
 						)
 					);
@@ -274,7 +287,7 @@ void Levels::process(data::PBars bars) {
 					result_
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
-						<< " stop " << close
+						<< " stop " << stop
 						<< endl
 						<< "Result " << results.back()
 						<< endl;
@@ -301,10 +314,12 @@ void Levels::process(data::PBars bars) {
 	}
 	result_
 		<< "Num " << num << endl
-		<< " NumProfit " << numProfit << endl
-		<< " NumLoss " << numLoss << endl
-		<< " Ratio " << static_cast<double>(numProfit)/numLoss
-		<< endl;
+		<< "Profit " << numProfit << endl
+		<< "Loss " << numLoss << endl;
+	if (numLoss)
+		result_
+			<< "Ratio " << static_cast<double>(numProfit) / numLoss	<< endl;
+
 }
 
 }

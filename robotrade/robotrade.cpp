@@ -67,7 +67,7 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 	}
 }
 
-void processLevels(const string &configJson, const vector<string> &quoteFiles) {
+void processLevels(const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles) {
 	atomic<unsigned> fileNum = 0;
 	const auto runLevels = [&]{
 		for (;;) {
@@ -82,7 +82,7 @@ void processLevels(const string &configJson, const vector<string> &quoteFiles) {
 			const auto slash = resultFile.find_last_of('/');
 			if (slash != string::npos)
 				resultFile = resultFile.substr(slash + 1);
-			Levels(configJson, resultFile + ".result").process(robotrade::parse(ifs));
+			Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
 		};
 	};
 
@@ -101,6 +101,7 @@ int main(int ac, char *av[]) try {
 		*argQuotes = "quotes",
 		*argUpdateQuotes = "update-quotes",
 		*argLevelsJson = "levels",
+		*argLevelsDays = "levels-days",
 		*argLog = "log";
 
 	namespace po = boost::program_options;
@@ -113,6 +114,7 @@ int main(int ac, char *av[]) try {
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
+		(argLevelsDays, po::value<int>()->default_value(0), "Days to analyze, 0 means all")
 		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
 
 	po::variables_map vm;
@@ -140,7 +142,11 @@ int main(int ac, char *av[]) try {
 		if (vm.count(argUpdateQuotes)) {
 			updateQuotes(vm[argUpdateQuotes].as<string>(), vm[argQuotes].as<vector<string>>());
 		} else if (vm.count(argLevelsJson)) {
-			processLevels(vm[argLevelsJson].as<string>(), vm[argQuotes].as<vector<string>>());
+			processLevels(
+				vm[argLevelsJson].as<string>(),
+				vm[argLevelsDays].as<int>(),
+				vm[argQuotes].as<vector<string>>()
+			);
 		} else
 			throw runtime_error("What to do with quotes?");
 	}
