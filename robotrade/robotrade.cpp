@@ -25,37 +25,30 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 		data::PBars bars;
 	};
 
-	map<string, Quotes> quotesByTicker;
+	map<string, Quotes> quotesByTitle;
 	for (const auto &quoteFile: quoteFiles) {
 		Quotes quotes;
 		quotes.quoteFile = quoteFile;
 		ifstream ifs(quoteFile.c_str());
 		quotes.bars = robotrade::parse(ifs);
-		quotesByTicker[quotes.bars->title(0)] = move(quotes);
+		quotesByTitle[quotes.bars->title(0)] = move(quotes);
 	}
 
 	ifstream ifs(quoteUpdatesFile.c_str());
 	auto updateBars = robotrade::parse(ifs);
 
 	for (size_t barNum = 0; barNum < updateBars->num(); ++barNum) {
-		const auto quotesIt = quotesByTicker.find(updateBars->title(barNum));
-		if (quotesIt == quotesByTicker.end()) {
-			cerr << "Update quotes title " << updateBars->title(barNum) << " not found" << endl;
+		const auto quotesIt = quotesByTitle.find(updateBars->title(barNum));
+		if (quotesIt == quotesByTitle.end()) {
+			cerr << "Update quotes, title " << updateBars->title(barNum) << " not found" << endl;
 			continue;
 		}
 
 		const auto &quotes = quotesIt->second;
 		ofstream ofs(quotes.quoteFile.c_str(), ios::app);
 
-		cerr << "Update quotes title " << updateBars->title(barNum) << " FOUND" << endl;
-
-		if (updateBars->time(barNum) > quotes.bars->time(quotes.bars->num()-1)) {
-			cerr
-				<< "Adding to " << quotes.quoteFile
-				<< " ending with " << quotes.bars->time(quotes.bars->num()-1)
-				<< " quote for " << updateBars->time(barNum)
-				<< endl;
-
+		auto lastBarNum = quotes.bars->num() - 1;
+		if (updateBars->time(barNum) > quotes.bars->time(lastBarNum)) {
 			const auto day = chrono::time_point_cast<date::days>(updateBars->time(barNum));
 			const auto ymd = year_month_day(day);
 			ofs
