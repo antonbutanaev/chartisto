@@ -61,7 +61,8 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 				<< updateBars->open(barNum) << ","
 				<< updateBars->high(barNum) << ","
 				<< updateBars->low(barNum) << ","
-				<< updateBars->close(barNum) << ",0"
+				<< updateBars->close(barNum) << ","
+				<< fixed << setprecision(0) << updateBars->volume(barNum) << ",0"
 				<< endl;
 		}
 	}
