@@ -52,7 +52,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
 			) && (
 				bars_->time(barNum) != result.filled->time ||
-				++barNum % 2 == 0
+				barNum % 2 == 0
 			)
 		) {
 			result.stopped = {

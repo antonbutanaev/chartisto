@@ -20,7 +20,7 @@ struct FindLevelsParams {
 	double maxCrossRate = 0.4;
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 3;
-	size_t numBarsForLevel = 250;
+	size_t numBarsForLevel = 400;
 	double levelBodyCrossPrecisionK = 0.002;
 	size_t numBarsComing = 5;
 	double crossLimitOrderAboveLimitK = 0.005;
