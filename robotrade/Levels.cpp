@@ -19,12 +19,13 @@ FindLevelsParams Levels::getLevelsParams(const std::string &section, data::PBars
 	const auto &sectionJson = config_[section];
 	FindLevelsParams result;
 
+	const auto epsilon = 1e-10;
 	auto step = numeric_limits<Price>::max();
 	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
 		for (const auto &a: data::Bars::PriceTypes)
 			for (const auto &b: data::Bars::PriceTypes) {
 				const auto delta = fabs(bars->get(a, barNum) - bars->get(b, barNum - 1));
-				if (delta > 1e-6)
+				if (delta > epsilon)
 					step = std::min(step, delta);
 			}
 	}
@@ -96,7 +97,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	rangeHigh = std::min(maxPrice.price, rangeHigh);
 
 	result_
-		<< "Price range: " << bars->time(from) << " " << bars->time(to) << endl
+		<< "Date  range: " << bars->time(from) << " " << bars->time(to) << endl
 		<< "Price range: " << rangeLow << " " << rangeHigh << endl;
 
 	if (
@@ -223,7 +224,7 @@ void Levels::process(data::PBars bars) {
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
-		barTo < bars->num() - 1;
+		barTo < bars->num();
 		++barFrom, ++barTo
 	) {
 		result_ << endl;
