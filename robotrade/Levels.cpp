@@ -108,15 +108,15 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 
 	if (
 		minPrice.price >= rangeLow &&
-		minPrice.barNum + params.minExtremumAgeBars <= to &&
+		minPrice.barNum + params.minExtremumAgeBars < to &&
 		minPrice.barNum - params.minExtremumAgeBars >= from
 	)
 		levels.push_back({0, 0, 0, minPrice.price, true});
 
 	if (
 		maxPrice.price <= rangeHigh &&
-		maxPrice.barNum + params.minExtremumAgeBars <= to &&
-		maxPrice.barNum + params.minExtremumAgeBars >= from
+		maxPrice.barNum + params.minExtremumAgeBars < to &&
+		maxPrice.barNum - params.minExtremumAgeBars >= from
 	)
 		levels.push_back({0, 0, 0, maxPrice.price, true});
 

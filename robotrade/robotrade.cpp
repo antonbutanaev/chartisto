@@ -37,6 +37,7 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 	ifstream ifs(quoteUpdatesFile.c_str());
 	auto updateBars = robotrade::parse(ifs);
 
+	size_t added = 0;
 	for (size_t barNum = 0; barNum < updateBars->num(); ++barNum) {
 		const auto quotesIt = quotesByTitle.find(updateBars->title(barNum));
 		if (quotesIt == quotesByTitle.end()) {
@@ -49,6 +50,7 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 
 		auto lastBarNum = quotes.bars->num() - 1;
 		if (updateBars->time(barNum) > quotes.bars->time(lastBarNum)) {
+			++added;
 			const auto day = chrono::time_point_cast<date::days>(updateBars->time(barNum));
 			const auto ymd = year_month_day(day);
 			ofs
@@ -66,6 +68,7 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 				<< endl;
 		}
 	}
+	cout << "Processed " << updateBars->num() << " update quotes, added " << added << endl;
 }
 
 void processLevels(const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles) {
