@@ -9,7 +9,7 @@ namespace robotrade {
 
 struct FindLevelsParams {
 	double priceRangeK = 0.1;
-	double precisionK = 0.002;
+	double precisionK = 0.001;
 	double roundPrecisionK = 0.0001;
 	double sameLevelK = 0.01;
 	double step = 0.01;
@@ -22,7 +22,7 @@ struct FindLevelsParams {
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 5;
 	size_t numBarsForLevel = 200;
-	double levelBodyCrossPrecisionK = 0.003;
+	double levelBodyCrossPrecisionK = 0.0025;
 	size_t numBarsComing = 5;
 	double crossLimitOrderAboveLimitK = 0.005;
 };
