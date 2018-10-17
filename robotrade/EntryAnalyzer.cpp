@@ -37,16 +37,17 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	result.stopPrice = stopPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	Price profitDelta = 0;
+	size_t stopOnSameDayCount = 0;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 
 		if (
 			!result.filled && (
 				(
 					direction == Direction::Buy &&
-					stopPrice - bars_->close(barNum) > params.runAwayFromStopK * stopDelta
+					stopEnterPrice - bars_->close(barNum) > params.runAwayFromStopK * stopDelta
 				) || (
 					direction == Direction::Sell &&
-					bars_->close(barNum) - stopPrice > params.runAwayFromStopK * stopDelta
+					bars_->close(barNum) - stopEnterPrice > params.runAwayFromStopK * stopDelta
 				)
 			)
 		) {
@@ -80,7 +81,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
 			) && (
 				bars_->time(barNum) != result.filled->fillTime ||
-				barNum % params.stopOnSameDayEveryNthTime == 0
+				++stopOnSameDayCount % params.stopOnSameDayEveryNthTime == 0
 			)
 		)
 			result.stopped = bars_->time(barNum);
