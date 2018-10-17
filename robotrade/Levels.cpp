@@ -314,9 +314,9 @@ void Levels::process(data::PBars bars) {
 	size_t numLoss = 0;
 	for (const auto &result: results) {
 		++num;
-		if (result.profit && result.profit->profitPerStopK > 3)
+		if (result.filled && result.filled->profitPerStopK > 3)
 			++numProfit;
-		if (result.profit && result.profit->profitPerStopK < 2)
+		if (result.filled && result.filled->profitPerStopK < 2)
 			++numLoss;
 		result_ << result << endl;
 	}
