@@ -37,6 +37,11 @@ FindLevelsParams Levels::getLevelsParams(
 			}
 	}
 	result.step = step;
+
+	result.volume = {
+		20,
+		2.
+	};
 	return result;
 
 	if (sectionJson.isMember("priceRangeK"))
@@ -223,12 +228,16 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 }
 
 void Levels::process(data::PBars bars) {
-	const auto volumes = data::createPoints(bars, [bars](size_t n) {return bars->volume(n);});
-	const auto volumeEma = indicators::ema(volumes, 20);
-
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams("default", bars, 0,0);
+
+	data::PPoints volumes, volumeEma;
+	if (params.volume) {
+		volumes = data::createPoints(bars, [bars](size_t n) {return bars->volume(n);});
+		volumeEma = indicators::ema(volumes, params.volume->emaPeriod);
+	}
+
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -259,6 +268,14 @@ void Levels::process(data::PBars bars) {
 				numBarsBelow == params.numBarsComing ||
 				numBarsAbove == params.numBarsComing
 			) {
+				if (params.volume) {
+					const auto volumeAboveAvg = bars->volume(lastBarNum) / volumeEma->close(lastBarNum);
+					if (volumeAboveAvg > params.volume->maxAboveAvgK) {
+						result_ << "Skip volume " << volumeAboveAvg << endl;
+						continue;
+					}
+				}
+
 				const auto crossUpperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
 				const auto crossLowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
 				const auto open = bars->open(lastBarNum);
@@ -267,6 +284,7 @@ void Levels::process(data::PBars bars) {
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
 
 					const auto stop = bars->close(lastBarNum) - 2 * params.step;
+
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
@@ -280,8 +298,7 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
-						<< " volume " << bars->volume(lastBarNum) / volumeEma->close(lastBarNum)
-						//<< endl
+						<< endl
 						<< " Result " << results.back()
 						<< endl;
 					break;
@@ -302,8 +319,7 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
-						<< " volume " << bars->volume(lastBarNum) / volumeEma->close(lastBarNum)
-						//<< endl
+						<< endl
 						<< " Result " << results.back()
 						<< endl;
 					break;

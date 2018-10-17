@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include <json/value.h>
 #include <cstddef>
 #include <chart/data.h>
@@ -24,6 +25,12 @@ struct FindLevelsParams {
 	double levelBodyCrossPrecisionK = 0.003;
 	size_t numBarsComing = 5;
 	double crossLimitOrderAboveLimitK = 0.005;
+
+	struct Volume {
+		size_t emaPeriod;
+		double maxAboveAvgK;
+	};
+	std::optional<Volume> volume;
 };
 
 struct Level {
