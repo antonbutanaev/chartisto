@@ -37,11 +37,6 @@ FindLevelsParams Levels::getLevelsParams(
 			}
 	}
 	result.step = step;
-
-	result.volume = {
-		20,
-		2.
-	};
 	return result;
 
 	if (sectionJson.isMember("priceRangeK"))
@@ -231,13 +226,6 @@ void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams("default", bars, 0,0);
-
-	data::PPoints volumes, volumeEma;
-	if (params.volume) {
-		volumes = data::createPoints(bars, [bars](size_t n) {return bars->volume(n);});
-		volumeEma = indicators::ema(volumes, params.volume->emaPeriod);
-	}
-
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -268,14 +256,6 @@ void Levels::process(data::PBars bars) {
 				numBarsBelow == params.numBarsComing ||
 				numBarsAbove == params.numBarsComing
 			) {
-				if (params.volume) {
-					const auto volumeAboveAvg = bars->volume(lastBarNum) / volumeEma->close(lastBarNum);
-					if (volumeAboveAvg > params.volume->maxAboveAvgK) {
-						result_ << "Skip volume " << volumeAboveAvg << endl;
-						continue;
-					}
-				}
-
 				const auto crossUpperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
 				const auto crossLowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
 				const auto open = bars->open(lastBarNum);
