@@ -261,7 +261,7 @@ void Levels::process(data::PBars bars) {
 				const auto close = bars->close(lastBarNum);
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
-					const auto stop = bars->low(lastBarNum) - 2 * params.step;
+					const auto stop = bars->close(lastBarNum) - 2 * params.step;
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
@@ -282,7 +282,7 @@ void Levels::process(data::PBars bars) {
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
-					const auto stop = bars->high(lastBarNum) + 2 * params.step;
+					const auto stop = bars->close(lastBarNum) + 2 * params.step;
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Sell,
