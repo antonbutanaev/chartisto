@@ -16,6 +16,7 @@ public:
 	EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {}
 
 	struct Result {
+		chart::Time orderActivated;
 		chart::Price stopEnterPrice;
 		chart::Price stopPrice;
 		std::optional<chart::Time> stopped;
@@ -26,8 +27,7 @@ public:
 			chart::Time profitTime;
 		};
 		std::optional<Filled> filled;
-
-		bool runAway = false;
+		std::optional<chart::Time> runAway;
 
 		friend std::ostream &operator<<(std::ostream&, const Result&);
 	};

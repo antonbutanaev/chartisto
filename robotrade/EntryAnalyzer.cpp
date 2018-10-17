@@ -7,13 +7,20 @@ namespace robotrade {
 
 ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	using chart::operator <<;
-	o << "Order: enter " << result.stopEnterPrice << " stop " << result.stopPrice;
+	o
+		<< "Order: " << result.orderActivated
+		<< " enter " << result.stopEnterPrice
+		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)
-		o << " Run away";
-	if (result.filled)
-		o << " Filled " << result.filled->fillTime;
+		o << " Run away " << *result.runAway << ';';
 	if (result.stopped)
-		o << " Stopped " << *result.stopped;
+		o << " Stopped " << *result.stopped << ';';
+	if (result.filled)
+		o
+			<< " Filled " << result.filled->fillTime
+			<< " profit on " << result.filled->profitTime
+			<< " " << result.filled->profitPerStopK
+			<< ';';
 	return o;
 }
 
@@ -25,6 +32,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 ) {
 	EntryAnalyzerParams params;
 	Result result;
+	result.orderActivated = bars_->time(orderBarNum);
+	result.stopEnterPrice = stopEnterPrice;
+	result.stopPrice = stopPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	Price profitDelta = 0;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
@@ -40,7 +50,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				)
 			)
 		) {
-			result.runAway = true;
+			result.runAway = bars_->time(barNum);
 			break;
 		}
 
