@@ -43,6 +43,7 @@ public:
 
 private:
 	chart::data::PBars bars_;
+	size_t stopOnSameDayCount_ = 0;
 };
 
 }

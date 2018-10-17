@@ -18,8 +18,8 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	if (result.filled)
 		o
 			<< " Filled " << result.filled->fillTime
-			<< " profit on " << result.filled->profitTime
-			<< " " << result.filled->profitPerStopK
+			<< " profit " << result.filled->profitPerStopK
+			<< " on " << result.filled->profitTime
 			<< ';';
 	return o;
 }
@@ -37,7 +37,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	result.stopPrice = stopPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	Price profitDelta = 0;
-	size_t stopOnSameDayCount = 0;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 
 		if (
@@ -81,7 +80,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
 			) && (
 				bars_->time(barNum) != result.filled->fillTime ||
-				++stopOnSameDayCount % params.stopOnSameDayEveryNthTime == 0
+				++stopOnSameDayCount_ % params.stopOnSameDayEveryNthTime == 0
 			)
 		)
 			result.stopped = bars_->time(barNum);

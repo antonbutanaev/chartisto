@@ -6,6 +6,7 @@
 #include <json/json.h>
 #include <robotrade/Levels.h>
 #include <robotrade/EntryAnalyzer.h>
+#include <chart/indicators.h>
 
 using namespace std;
 using namespace chart;
@@ -222,6 +223,9 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 }
 
 void Levels::process(data::PBars bars) {
+	const auto volumes = data::createPoints(bars, [bars](size_t n) {return bars->volume(n);});
+	const auto volumeEma = indicators::ema(volumes, 20);
+
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams("default", bars, 0,0);
@@ -261,6 +265,7 @@ void Levels::process(data::PBars bars) {
 				const auto close = bars->close(lastBarNum);
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
+
 					const auto stop = bars->close(lastBarNum) - 2 * params.step;
 					results.push_back(
 						entryAnalyzer.analyze(
@@ -275,8 +280,9 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
-						<< endl
-						<< "Result " << results.back()
+						<< " volume " << bars->volume(lastBarNum) / volumeEma->close(lastBarNum)
+						//<< endl
+						<< " Result " << results.back()
 						<< endl;
 					break;
 				}
@@ -296,8 +302,9 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
-						<< endl
-						<< "Result " << results.back()
+						<< " volume " << bars->volume(lastBarNum) / volumeEma->close(lastBarNum)
+						//<< endl
+						<< " Result " << results.back()
 						<< endl;
 					break;
 				}
