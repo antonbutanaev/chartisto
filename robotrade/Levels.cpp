@@ -111,18 +111,34 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		minPrice.price >= rangeLow &&
 		minPrice.barNum + params.minExtremumAgeBars < to &&
 		minPrice.barNum - params.minExtremumAgeBars >= from
-	)
-		levels.push_back({0, 0, 0, minPrice.price, true});
+	) {
+		Level level;
+		level.level = minPrice.price;
+		level.isExtrememum = true;
+		level.from = minPrice.barNum;
+		level.to = minPrice.barNum;
+		levels.push_back(level);
+	}
 
 	if (
 		maxPrice.price <= rangeHigh &&
 		maxPrice.barNum + params.minExtremumAgeBars < to &&
 		maxPrice.barNum - params.minExtremumAgeBars >= from
-	)
-		levels.push_back({0, 0, 0, maxPrice.price, true});
+	) {
+		Level level;
+		level.level = maxPrice.price;
+		level.isExtrememum = true;
+		level.from = maxPrice.barNum;
+		level.to = maxPrice.barNum;
+		levels.push_back(level);
+	}
 
 	for (auto price = rangeLow; price <= rangeHigh; price += params.step) {
-		Level level{0, 0, 0, price};
+		Level level;
+		level.level = price;
+		level.from = to;
+		level.to = from;
+
 		for (size_t barNum = from; barNum < to; ++barNum) {
 			const auto upperBound = price * (1 + params.precisionK);
 			const auto lowerBound = price * (1 - params.precisionK);
@@ -135,6 +151,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 						priceType == data::Bars::PriceType::Low?
 							level.numTailTouches : level.numBodyTouches
 					) += 1;
+					level.from = min(level.from, barNum);
+					level.to = max(level.to, barNum);
 				}
 			}
 
@@ -143,8 +161,11 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			if (
 				(barOpen > upperBound && barClose < lowerBound) ||
 				(barOpen < lowerBound && barClose > upperBound)
-			)
+			) {
 				level.numBodyCrosses += 1;
+				level.from = min(level.from, barNum);
+				level.to = max(level.to, barNum);
+			}
 		}
 
 		const auto roundK = params.step * params.numStepsForRound;
@@ -177,7 +198,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	const auto print = [&] (const char *tag) {
 		result_
 			<< tag << ": " << levels.size() << endl
-			<< "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tisExtremum\tisRound" << endl;
+			<< "numTailTouches\tnumBodyTouches\tnumBodyCrosses\tlevel\tisExtremum\tisRound\tlength\tfrom\tto" << endl;
 		for (const auto & level: levels)
 			result_
 				<< level.numTailTouches << '\t'
@@ -185,7 +206,10 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 				<< level.numBodyCrosses << '\t'
 				<< level.level << '\t'
 				<< level.isExtrememum << '\t'
-				<< level.isRound
+				<< level.isRound << '\t'
+				<< level.to - level.from << '\t'
+				<< bars->time(level.from) << '\t'
+				<< bars->time(level.to)
 				<< endl;
 	};
 

@@ -23,17 +23,19 @@ struct FindLevelsParams {
 	size_t minTouches = 5;
 	size_t numBarsForLevel = 200;
 	double levelBodyCrossPrecisionK = 0.0025;
-	size_t numBarsComing = 5;
+	size_t numBarsComing = 10;
 	double crossLimitOrderAboveLimitK = 0.005;
 };
 
 struct Level {
-	size_t numTailTouches;
-	size_t numBodyTouches;
-	size_t numBodyCrosses;
-	chart::Price level;
+	size_t numTailTouches = 0;
+	size_t numBodyTouches = 0;
+	size_t numBodyCrosses = 0;
+	chart::Price level = 0;
 	bool isExtrememum = false;
 	bool isRound = false;
+	size_t from = 0;
+	size_t to = 0;
 };
 
 class Levels {

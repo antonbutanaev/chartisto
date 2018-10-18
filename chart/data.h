@@ -22,7 +22,10 @@ inline std::ostream &operator<<(std::ostream &o, const Time &time) {
 	const auto day = std::chrono::time_point_cast<date::days>(time);
 	const auto ymd = date::year_month_day(day);
 	auto tod = date::make_time(time - day);
-	return o << ymd << ' ' << tod;
+	o << ymd;
+	if (tod.hours() != std::chrono::hours(0) || tod.minutes() != std::chrono::minutes(0))
+		o << ' ' << tod;
+	return o;
 }
 
 namespace data {
