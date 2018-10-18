@@ -13,14 +13,14 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)
 		o << " Run away " << *result.runAway << ';';
-	if (result.stopped)
-		o << " Stopped " << *result.stopped << ';';
 	if (result.filled)
 		o
 			<< " Filled " << result.filled->fillTime
 			<< " profit " << result.filled->profitPerStopK
 			<< " on " << result.filled->profitTime
 			<< ';';
+	if (result.stopped)
+		o << " Stopped " << *result.stopped << ';';
 	return o;
 }
 
