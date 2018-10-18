@@ -4,6 +4,7 @@
 #include <limits>
 #include <vector>
 #include <cmath>
+#include <boost/io/ios_state.hpp>
 #include <json/json.h>
 #include <robotrade/Levels.h>
 #include <robotrade/EntryAnalyzer.h>
@@ -11,6 +12,7 @@
 
 using namespace std;
 using namespace chart;
+using namespace boost::io;
 
 namespace robotrade {
 
@@ -170,8 +172,10 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			}
 		}
 
-		if (level.numTailTouches + level.numBodyTouches)
+		if (level.numTailTouches + level.numBodyTouches) {
 			level.avgDeviation /= level.numTailTouches + level.numBodyTouches;
+			level.avgDeviation = 100 * level.avgDeviation / level.level;
+		}
 
 		const auto roundK = params.step * params.numStepsForRound;
 		const auto roundPrice = round(price / roundK) * roundK;
@@ -189,6 +193,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		const auto rate = [&] (const auto &level) {
 			return
 				(
+					level.avgDeviation * params.avgDeviationWeight +
 					level.numTailTouches * params.tailTouchWeight +
 					level.numBodyTouches * params.bodyTouchWeight +
 					level.numBodyCrosses * params.crossWeight
@@ -204,7 +209,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		result_
 			<< tag << ": " << levels.size() << endl
 			<< "TailTch\tBodyTch\tBodyX\tLevel\t\tExtr\tRound\tLen\tAvgDev%\tFrom\t\tTo" << endl;
-		for (const auto & level: levels)
+		for (const auto & level: levels) {
+			ios_all_saver save(result_);
 			result_
 				<< level.numTailTouches << '\t'
 				<< level.numBodyTouches << '\t'
@@ -213,10 +219,11 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 				<< level.isExtrememum << '\t'
 				<< level.isRound << '\t'
 				<< level.to - level.from << '\t'
-				<< fixed << setprecision(3) << 100 * level.avgDeviation / level.level << '\t'
+				<< fixed << setprecision(3) << level.avgDeviation << '\t'
 				<< bars->time(level.from) << '\t'
 				<< bars->time(level.to)
 				<< endl;
+		}
 	};
 
 	sort(levels.begin(), levels.end(), byRate);
@@ -293,12 +300,13 @@ void Levels::process(data::PBars bars) {
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
 
-					const auto stop = bars->close(lastBarNum) - 2 * params.step;
+					const auto stop = bars->close(lastBarNum) - params.stepsForStop * params.step;
+					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
 
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
-							level.level + 3 * params.step,
+							enterStop,
 							stop,
 							lastBarNum
 						)
@@ -308,6 +316,7 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
+						<< " enter " << enterStop
 						<< endl
 						<< "Result " << results.back()
 						<< endl;
@@ -315,11 +324,14 @@ void Levels::process(data::PBars bars) {
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
-					const auto stop = bars->close(lastBarNum) + 2 * params.step;
+
+					const auto stop = bars->close(lastBarNum) + params.stepsForStop * params.step;
+					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
+
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Sell,
-							level.level - 3 * params.step,
+							enterStop,
 							stop,
 							lastBarNum
 						)
@@ -329,6 +341,7 @@ void Levels::process(data::PBars bars) {
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
+						<< " enter " << enterStop
 						<< endl
 						<< "Result " << results.back()
 						<< endl;

@@ -18,6 +18,7 @@ struct FindLevelsParams {
 	double bodyTouchWeight = 1;
 	double crossWeight = -3;
 	double roundWeight = 3;
+	double avgDeviationWeight = -0.2;
 	double maxCrossRate = 0.4;
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 5;
@@ -25,6 +26,8 @@ struct FindLevelsParams {
 	double levelBodyCrossPrecisionK = 0.0025;
 	size_t numBarsComing = 10;
 	double crossLimitOrderAboveLimitK = 0.005;
+	size_t stepsForStop = 2;
+	size_t stepsForEnterStop = 3;
 };
 
 struct Level {
