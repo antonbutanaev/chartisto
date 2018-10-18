@@ -275,6 +275,18 @@ void Levels::process(data::PBars bars) {
 		result_ << "Step " << params.step << endl;
 
 		const auto levels = findLevels(bars, barFrom, barTo);
+
+		const auto findLevels = [&](Price from, Price to) {
+			bool found = false;
+			for (const auto &level: levels) {
+				if (level.level > from && level.level < to) {
+					result_ << level.level << endl;
+					found = true;
+				}
+			}
+			return found;
+		};
+
 		for (const auto &level: levels) {
 			const auto upperBound = level.level * (1 + params.precisionK);
 			const auto lowerBound = level.level * (1 - params.precisionK);
@@ -299,54 +311,56 @@ void Levels::process(data::PBars bars) {
 				const auto close = bars->close(lastBarNum);
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
-
 					const auto stop = bars->close(lastBarNum) - params.stepsForStop * params.step;
 					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
-
-					results.push_back(
-						entryAnalyzer.analyze(
-							EntryAnalyzer::Direction::Buy,
-							enterStop,
-							stop,
-							lastBarNum
-						)
-					);
-
+					const auto target = enterStop + 3 * (enterStop - stop);
 					result_
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
-						<< " target " << enterStop + 3 * (enterStop - stop)
-						<< endl
-						<< "Result " << results.back()
+						<< " target " << target
 						<< endl;
+
+					if (!findLevels(enterStop, target)) {
+						results.push_back(
+							entryAnalyzer.analyze(
+								EntryAnalyzer::Direction::Buy,
+								enterStop,
+								stop,
+								lastBarNum
+							)
+						);
+						result_ << "Result " << results.back() << endl;
+					} else
+						result_ << "Skip" << endl;
 					break;
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
-
 					const auto stop = bars->close(lastBarNum) + params.stepsForStop * params.step;
 					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
-
-					results.push_back(
-						entryAnalyzer.analyze(
-							EntryAnalyzer::Direction::Sell,
-							enterStop,
-							stop,
-							lastBarNum
-						)
-					);
-
+					const auto target = enterStop - 3 * (stop - enterStop);
 					result_
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
-						<< " target " << enterStop - 3 * (stop - enterStop)
-						<< endl
-						<< "Result " << results.back()
+						<< " target " << target
 						<< endl;
+
+					if (!findLevels(target, enterStop)) {
+						results.push_back(
+							entryAnalyzer.analyze(
+								EntryAnalyzer::Direction::Sell,
+								enterStop,
+								stop,
+								lastBarNum
+							)
+						);
+						result_ << "Result " << results.back() << endl;
+					} else
+						result_ << "Skip" << endl;
 					break;
 				}
 			}
