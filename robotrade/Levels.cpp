@@ -303,7 +303,7 @@ void Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< endl
-						<< " Result " << results.back()
+						<< "Result " << results.back()
 						<< endl;
 					break;
 				}
@@ -324,7 +324,7 @@ void Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< endl
-						<< " Result " << results.back()
+						<< "Result " << results.back()
 						<< endl;
 					break;
 				}
