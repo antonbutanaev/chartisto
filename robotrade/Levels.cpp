@@ -292,7 +292,7 @@ void Levels::process(data::PBars bars) {
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Buy,
-							level.level * (1 + params.levelBodyCrossPrecisionK),
+							level.level + 3 * params.step,
 							stop,
 							lastBarNum
 						)
@@ -313,7 +313,7 @@ void Levels::process(data::PBars bars) {
 					results.push_back(
 						entryAnalyzer.analyze(
 							EntryAnalyzer::Direction::Sell,
-							level.level * (1 - params.levelBodyCrossPrecisionK),
+							level.level - 3 * params.step,
 							stop,
 							lastBarNum
 						)
