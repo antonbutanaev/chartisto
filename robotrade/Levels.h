@@ -36,6 +36,7 @@ struct Level {
 	bool isRound = false;
 	size_t from = 0;
 	size_t to = 0;
+	double avgDeviation = 0;
 };
 
 class Levels {
