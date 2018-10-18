@@ -18,7 +18,7 @@ struct FindLevelsParams {
 	double bodyTouchWeight = 1;
 	double crossWeight = -3;
 	double roundWeight = 3;
-	double avgDeviationWeight = -0.2;
+	double avgDeviationWeight = -1;
 	double maxCrossRate = 0.4;
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 5;
