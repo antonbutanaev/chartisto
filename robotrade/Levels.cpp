@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <vector>
 #include <cmath>
@@ -146,6 +147,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			for (const auto &priceType: data::Bars::PriceTypes) {
 				const auto barPrice = bars->get(priceType, barNum);
 				if (barPrice >= lowerBound && barPrice <= upperBound) {
+					level.avgDeviation += fabs(barPrice - price);
 					(
 						priceType == data::Bars::PriceType::High ||
 						priceType == data::Bars::PriceType::Low?
@@ -167,6 +169,9 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 				level.to = max(level.to, barNum);
 			}
 		}
+
+		if (level.numTailTouches + level.numBodyTouches)
+			level.avgDeviation /= level.numTailTouches + level.numBodyTouches;
 
 		const auto roundK = params.step * params.numStepsForRound;
 		const auto roundPrice = round(price / roundK) * roundK;
@@ -198,17 +203,17 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	const auto print = [&] (const char *tag) {
 		result_
 			<< tag << ": " << levels.size() << endl
-			<< "TailTch\tBodyTch\tBodyX\tLevel\tExtr\tRound\tLen\tAvgDev\tFrom\t\tTo" << endl;
+			<< "TailTch\tBodyTch\tBodyX\tLevel\t\tExtr\tRound\tLen\tAvgDev%\tFrom\t\tTo" << endl;
 		for (const auto & level: levels)
 			result_
 				<< level.numTailTouches << '\t'
 				<< level.numBodyTouches << '\t'
 				<< level.numBodyCrosses << '\t'
-				<< level.level << '\t'
+				<< setw(10) << left << level.level << '\t'
 				<< level.isExtrememum << '\t'
 				<< level.isRound << '\t'
 				<< level.to - level.from << '\t'
-				<< level.avgDeviation << '\t'
+				<< fixed << setprecision(3) << 100 * level.avgDeviation / level.level << '\t'
 				<< bars->time(level.from) << '\t'
 				<< bars->time(level.to)
 				<< endl;
