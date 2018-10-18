@@ -317,6 +317,7 @@ void Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
+						<< " target " << enterStop + 3 * (enterStop - stop)
 						<< endl
 						<< "Result " << results.back()
 						<< endl;
@@ -342,6 +343,7 @@ void Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
+						<< " target " << enterStop - 3 * (stop - enterStop)
 						<< endl
 						<< "Result " << results.back()
 						<< endl;
