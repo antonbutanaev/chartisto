@@ -114,9 +114,13 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 	);
 
 	cout << "Title\t\tProfits\tLosses\tFinRes" << endl;
-	double totalFinResult = 0;
+	size_t numLosses = 0;
+	size_t numProfits = 0;
+	double finResult = 0;
 	for (const auto result: results) {
-		totalFinResult += result.finResult;
+		finResult += result.finResult;
+		numProfits += result.numProfits;
+		numLosses += result.numLosses;
 		cout
 			<< setw(15) << left << result.title << '\t'
 			<< result.numProfits << '\t'
@@ -124,7 +128,13 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 			<< result.finResult
 			<< endl;
 	}
-	cout << "Total fin result:\t\t" << totalFinResult << endl;
+	cout
+		<< endl
+		<< setw(15) << left << "Total" << '\t'
+		<< numProfits << '\t'
+		<< numLosses << '\t'
+		<< finResult
+		<< endl;
 }
 
 int main(int ac, char *av[]) try {
