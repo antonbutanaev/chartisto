@@ -17,62 +17,62 @@ using namespace boost::io;
 namespace robotrade {
 
 FindLevelsParams Levels::getLevelsParams(
-	const std::string &section, data::PBars bars, size_t barFrom, size_t barTo
+	data::PBars bars, size_t barFrom, size_t barTo
 ) {
-	if (!config_.isMember(section))
-		throw runtime_error("No section " + section + " in config");
+	FindLevelsParams params;
+	const auto extract = [&] (const Json::Value &section) {
+		if (section.isMember("priceRangeK")) params.priceRangeK = section["priceRangeK"].asDouble();
+		if (section.isMember("precisionK")) params.precisionK = section["precisionK"].asDouble();
+		if (section.isMember("roundPrecisionK")) params.roundPrecisionK = section["roundPrecisionK"].asDouble();
+		if (section.isMember("sameLevelK")) params.sameLevelK = section["sameLevelK"].asDouble();
+		if (section.isMember("step")) params.step = section["step"].asDouble();
+		if (section.isMember("numStepsForRound")) params.numStepsForRound = section["numStepsForRound"].asUInt();
+		if (section.isMember("tailTouchWeight")) params.tailTouchWeight = section["tailTouchWeight"].asDouble();
+		if (section.isMember("bodyTouchWeight")) params.bodyTouchWeight = section["bodyTouchWeight"].asDouble();
+		if (section.isMember("crossWeight")) params.crossWeight = section["crossWeight"].asDouble();
+		if (section.isMember("roundWeight")) params.roundWeight = section["roundWeight"].asDouble();
+		if (section.isMember("avgDeviationWeight")) params.avgDeviationWeight = section["avgDeviationWeight"].asDouble();
+		if (section.isMember("maxCrossRate")) params.maxCrossRate = section["maxCrossRate"].asDouble();
+		if (section.isMember("minExtremumAgeBars")) params.minExtremumAgeBars = section["minExtremumAgeBars"].asUInt();
+		if (section.isMember("minTouches")) params.minTouches = section["minTouches"].asUInt();
+		if (section.isMember("numBarsForLevel")) params.numBarsForLevel = section["numBarsForLevel"].asUInt();
+		if (section.isMember("levelBodyCrossPrecisionK")) params.levelBodyCrossPrecisionK = section["levelBodyCrossPrecisionK"].asDouble();
+		if (section.isMember("numBarsComing")) params.numBarsComing = section["numBarsComing"].asUInt();
+		if (section.isMember("crossLimitOrderAboveLimitK")) params.crossLimitOrderAboveLimitK = section["crossLimitOrderAboveLimitK"].asDouble();
+		if (section.isMember("stepsForStop")) params.stepsForStop = section["stepsForStop"].asDouble();
+		if (section.isMember("stepsForEnterStop")) params.stepsForEnterStop = section["stepsForEnterStop"].asUInt();
+		if (section.isMember("losslessStopK")) params.losslessStopK = section["losslessStopK"].asUInt();
+		if (section.isMember("profitPerLossK")) params.profitPerLossK = section["profitPerLossK"].asDouble();
+	};
 
-	const auto &sectionJson = config_[section];
-	FindLevelsParams result;
+	if (!config_.isMember("levels"))
+		throw runtime_error("No section 'levels' in config");
+	const auto levelsJson = config_["levels"];
 
-	auto step = numeric_limits<Price>::max();
-	for (size_t barNum = barFrom + 1; barNum < barTo; ++barNum) {
-		for (const auto &a: data::Bars::PriceTypes)
-			for (const auto &b: data::Bars::PriceTypes) {
-				const auto updateStep = [&](size_t barNum1, size_t barNum2) {
-					auto delta = fabs(bars->get(a, barNum1) - bars->get(b, barNum2));
-					if (delta > PriceEpsilon)
-						step = std::min(step, delta);
-				};
-				updateStep(barNum, barNum);
-				updateStep(barNum, barNum - 1);
-			}
+	if (!levelsJson.isMember("default"))
+		extract(levelsJson["default"]);
+	if (!levelsJson.isMember(bars->title(0)))
+		extract(levelsJson[bars->title(0)]);
+
+	if (params.step == FindLevelsParams::NoStep) {
+		for (size_t barNum = barFrom + 1; barNum < barTo; ++barNum) {
+			for (const auto &a: data::Bars::PriceTypes)
+				for (const auto &b: data::Bars::PriceTypes) {
+					const auto updateStep = [&](size_t barNum1, size_t barNum2) {
+						auto delta = fabs(bars->get(a, barNum1) - bars->get(b, barNum2));
+						if (delta > PriceEpsilon)
+							params.step = std::min(params.step, delta);
+					};
+					updateStep(barNum, barNum);
+					updateStep(barNum, barNum - 1);
+				}
+		}
 	}
-	result.step = step;
-	return result;
-
-	if (sectionJson.isMember("priceRangeK"))
-		result.priceRangeK = sectionJson["priceRangeK"].asDouble();
-	if (sectionJson.isMember("precisionK"))
-		result.precisionK = sectionJson["precisionK"].asDouble();
-	if (sectionJson.isMember("roundPrecisionK"))
-		result.roundPrecisionK = sectionJson["roundPrecisionK"].asDouble();
-	if (sectionJson.isMember("sameLevelK"))
-		result.sameLevelK = sectionJson["sameLevelK"].asDouble();
-	if (sectionJson.isMember("step"))
-		result.step = sectionJson["step"].asDouble();
-	if (sectionJson.isMember("numStepsForRound"))
-		result.numStepsForRound = sectionJson["numStepsForRound"].asUInt();
-	if (sectionJson.isMember("tailTouchWeight"))
-		result.tailTouchWeight = sectionJson["tailTouchWeight"].asDouble();
-	if (sectionJson.isMember("bodyTouchWeight"))
-		result.bodyTouchWeight = sectionJson["bodyTouchWeight"].asDouble();
-	if (sectionJson.isMember("crossWeight"))
-		result.crossWeight = sectionJson["crossWeight"].asDouble();
-	if (sectionJson.isMember("roundWeight"))
-		result.roundWeight = sectionJson["roundWeight"].asDouble();
-	if (sectionJson.isMember("maxCrossRate"))
-		result.maxCrossRate = sectionJson["maxCrossRate"].asDouble();
-	if (sectionJson.isMember("minExtremumAgeBars"))
-		result.minExtremumAgeBars = sectionJson["minExtremumAgeBars"].asUInt();
-	if (sectionJson.isMember("minTouches"))
-		result.minTouches = sectionJson["minTouches"].asUInt();
-
-	return result;
+	return params;
 }
 
 vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
-	const auto params = getLevelsParams("default", bars, from, to);
+	const auto params = getLevelsParams(bars, from, to);
 
 	std::vector<Level> levels;
 	if (from >= to)
@@ -261,7 +261,7 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
-	const auto params = getLevelsParams("default", bars, 0,0);
+	const auto params = getLevelsParams(bars, 0,0);
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -270,7 +270,7 @@ void Levels::process(data::PBars bars) {
 	) {
 		result_ << endl;
 
-		const auto params = getLevelsParams("default", bars, barFrom, barTo);
+		const auto params = getLevelsParams(bars, barFrom, barTo);
 		result_ << "Step " << params.step << endl;
 
 		const auto levels = findLevels(bars, barFrom, barTo);

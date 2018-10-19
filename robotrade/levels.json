@@ -1,17 +1,28 @@
 {
-	"default": {
-		"priceRangeK": 0.2,
-		"precisionK": 0.001,
-		"roundPrecisionK": 0.0001,
-		"sameLevelK": 0.01,
-		"step": 0.01,
-		"numStepsForRound": 100,
-		"tailTouchWeight": 2,
-		"bodyTouchWeight": 1,
-		"crossWeight": -3,
-		"roundWeight": 3,
-		"maxCrossRate": 0.5,
-		"minExtremumAgeBars": 20,
-		"minTouches": 3
+	"levels": {
+		"default": {
+			"priceRangeK": 0.1,
+			"precisionK": 0.001,
+			"roundPrecisionK": 0.0001,
+			"sameLevelK": 0.01,
+			"step": 0.01,
+			"numStepsForRound": 100,
+			"tailTouchWeight": 2,
+			"bodyTouchWeight": 1,
+			"crossWeight": -3,
+			"roundWeight": 3,
+			"avgDeviationWeight": -1,
+			"maxCrossRate": 0.4,
+			"minExtremumAgeBars": 20,
+			"minTouches": 5,
+			"numBarsForLevel": 200,
+			"levelBodyCrossPrecisionK": 0.0025,
+			"numBarsComing": 10,
+			"crossLimitOrderAboveLimitK": 0.005,
+			"stepsForStop": 2,
+			"stepsForEnterStop": 3,
+			"losslessStopK": 2,
+			"profitPerLossK": 3
+		}
 	}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits>
 #include <optional>
 #include <json/value.h>
 #include <cstddef>
@@ -8,11 +9,12 @@
 namespace robotrade {
 
 struct FindLevelsParams {
+	static constexpr double NoStep = std::numeric_limits<double>::max();
 	double priceRangeK = 0.1;
 	double precisionK = 0.001;
 	double roundPrecisionK = 0.0001;
 	double sameLevelK = 0.01;
-	double step = 0.01;
+	double step = NoStep;
 	size_t numStepsForRound = 100;
 	double tailTouchWeight = 2;
 	double bodyTouchWeight = 1;
@@ -50,7 +52,7 @@ public:
 	Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile);
 	void process(chart::data::PBars bars);
 private:
-	FindLevelsParams getLevelsParams(const std::string &section, chart::data::PBars, size_t barFrom, size_t barTo);
+	FindLevelsParams getLevelsParams(chart::data::PBars, size_t barFrom, size_t barTo);
 	std::vector<Level> findLevels(chart::data::PBars, size_t from, size_t to);
 
 	Json::Value config_;
