@@ -34,7 +34,6 @@ ostream &operator<<(ostream &o, const FindLevelsParams &params) {
 		<< "numBarsForLevel " << params.numBarsForLevel << endl
 		<< "levelBodyCrossPrecisionK " << params.levelBodyCrossPrecisionK << endl
 		<< "numBarsComing " << params.numBarsComing << endl
-		<< "crossLimitOrderAboveLimitK " << params.crossLimitOrderAboveLimitK << endl
 		<< "stepsForStop " << params.stepsForStop << endl
 		<< "stepsForEnterStop " << params.stepsForEnterStop << endl
 		<< "losslessStopK " << params.losslessStopK << endl
@@ -68,7 +67,6 @@ FindLevelsParams Levels::getLevelsParams(
 		if (section.isMember("numBarsForLevel")) params.numBarsForLevel = section["numBarsForLevel"].asUInt();
 		if (section.isMember("levelBodyCrossPrecisionK")) params.levelBodyCrossPrecisionK = section["levelBodyCrossPrecisionK"].asDouble();
 		if (section.isMember("numBarsComing")) params.numBarsComing = section["numBarsComing"].asUInt();
-		if (section.isMember("crossLimitOrderAboveLimitK")) params.crossLimitOrderAboveLimitK = section["crossLimitOrderAboveLimitK"].asDouble();
 		if (section.isMember("stepsForStop")) params.stepsForStop = section["stepsForStop"].asUInt();
 		if (section.isMember("stepsForEnterStop")) params.stepsForEnterStop = section["stepsForEnterStop"].asUInt();
 		if (section.isMember("losslessStopK")) params.losslessStopK = section["losslessStopK"].asUInt();

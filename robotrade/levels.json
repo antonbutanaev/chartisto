@@ -17,7 +17,6 @@
 			"numBarsForLevel": 200,
 			"levelBodyCrossPrecisionK": 0.0025,
 			"numBarsComing": 10,
-			"crossLimitOrderAboveLimitK": 0.005,
 			"stepsForStop": 2,
 			"stepsForEnterStop": 3,
 			"losslessStopK": 2,
