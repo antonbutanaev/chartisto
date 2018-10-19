@@ -16,6 +16,36 @@ using namespace boost::io;
 
 namespace robotrade {
 
+ostream &operator<<(ostream &o, const FindLevelsParams &params) {
+	o
+		<< "priceRangeK " << params.priceRangeK << endl
+		<< "precisionK " << params.precisionK << endl
+		<< "roundPrecisionK " << params.roundPrecisionK << endl
+		<< "sameLevelK " << params.sameLevelK << endl
+		<< "numStepsForRound " << params.numStepsForRound << endl
+		<< "tailTouchWeight " << params.tailTouchWeight << endl
+		<< "bodyTouchWeight " << params.bodyTouchWeight << endl
+		<< "crossWeight " << params.crossWeight << endl
+		<< "roundWeight " << params.roundWeight << endl
+		<< "avgDeviationWeight " << params.avgDeviationWeight << endl
+		<< "maxCrossRate " << params.maxCrossRate << endl
+		<< "minExtremumAgeBars " << params.minExtremumAgeBars << endl
+		<< "minTouches " << params.minTouches << endl
+		<< "numBarsForLevel " << params.numBarsForLevel << endl
+		<< "levelBodyCrossPrecisionK " << params.levelBodyCrossPrecisionK << endl
+		<< "numBarsComing " << params.numBarsComing << endl
+		<< "crossLimitOrderAboveLimitK " << params.crossLimitOrderAboveLimitK << endl
+		<< "stepsForStop " << params.stepsForStop << endl
+		<< "stepsForEnterStop " << params.stepsForEnterStop << endl
+		<< "losslessStopK " << params.losslessStopK << endl
+		<< "profitPerLossK " << params.profitPerLossK << endl;
+
+	if (params.step != FindLevelsParams::NoStep)
+		o << "step " << params.step << endl;
+
+	return o;
+}
+
 FindLevelsParams Levels::getLevelsParams(
 	data::PBars bars, size_t barFrom, size_t barTo
 ) {
@@ -49,9 +79,9 @@ FindLevelsParams Levels::getLevelsParams(
 		throw runtime_error("No section 'levels' in config");
 	const auto levelsJson = config_["levels"];
 
-	if (!levelsJson.isMember("default"))
+	if (levelsJson.isMember("default"))
 		extract(levelsJson["default"]);
-	if (!levelsJson.isMember(bars->title(0)))
+	if (levelsJson.isMember(bars->title(0)))
 		extract(levelsJson[bars->title(0)]);
 
 	if (params.step == FindLevelsParams::NoStep) {
@@ -105,6 +135,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	rangeLow = std::max(minPrice.price, rangeLow);
 	rangeHigh = std::min(maxPrice.price, rangeHigh);
 
+	using chart::operator <<;
 	result_
 		<< "Date  range: " << bars->time(from) << " " << bars->time(to) << endl
 		<< "Price range: " << rangeLow << " " << rangeHigh << endl;
@@ -262,6 +293,7 @@ void Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams(bars, 0,0);
+	result_ << "Using params:" << endl << params;
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -317,6 +349,7 @@ void Levels::process(data::PBars bars) {
 					const auto stop = bars->close(lastBarNum) - params.stepsForStop * params.step;
 					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
 					const auto target = enterStop + params.profitPerLossK * (enterStop - stop);
+					using chart::operator <<;
 					result_
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
@@ -343,6 +376,7 @@ void Levels::process(data::PBars bars) {
 					const auto stop = bars->close(lastBarNum) + params.stepsForStop * params.step;
 					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
 					const auto target = enterStop - params.profitPerLossK * (stop - enterStop);
+					using chart::operator <<;
 					result_
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)

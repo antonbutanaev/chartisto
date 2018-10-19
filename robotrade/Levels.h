@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iosfwd>
 #include <limits>
 #include <optional>
 #include <json/value.h>
@@ -10,6 +11,7 @@ namespace robotrade {
 
 struct FindLevelsParams {
 	static constexpr double NoStep = std::numeric_limits<double>::max();
+
 	double priceRangeK = 0.1;
 	double precisionK = 0.001;
 	double roundPrecisionK = 0.0001;
@@ -33,6 +35,7 @@ struct FindLevelsParams {
 	double losslessStopK = 2;
 	double profitPerLossK = 3;
 
+	friend std::ostream &operator<<(std::ostream&, const FindLevelsParams&);
 };
 
 struct Level {

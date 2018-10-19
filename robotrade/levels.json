@@ -5,7 +5,6 @@
 			"precisionK": 0.001,
 			"roundPrecisionK": 0.0001,
 			"sameLevelK": 0.01,
-			"step": 0.01,
 			"numStepsForRound": 100,
 			"tailTouchWeight": 2,
 			"bodyTouchWeight": 1,
