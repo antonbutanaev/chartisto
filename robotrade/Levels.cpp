@@ -289,7 +289,7 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 	ifs >> config_;
 }
 
-void Levels::process(data::PBars bars) {
+Levels::ProcessResult Levels::process(data::PBars bars) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams(bars, 0,0);
@@ -402,29 +402,29 @@ void Levels::process(data::PBars bars) {
 		}
 	}
 
-	if (results.empty())
-		return;
-
 	result_ << endl << "Results:" << endl;
-	size_t num = 0;
-	size_t numProfit = 0;
-	size_t numLoss = 0;
+	ProcessResult ret{};
+	ret.title = bars->title(0);
 	for (const auto &result: results) {
-		++num;
+		++ret.numOrders;
 		if (result.filled && result.filled->profitPerStopK > params.profitPerLossK)
-			++numProfit;
+			++ret.numProfits;
 		if (result.filled && result.filled->profitPerStopK < params.losslessStopK)
-			++numLoss;
+			++ret.numLosses;
 		result_ << result << endl;
 	}
+
+	ret.finResult = -1. * ret.numLosses + params.profitPerLossK * ret.numProfits;
+
 	result_
 		<< endl
-		<< "Num " << num << endl
-		<< "Profit " << numProfit << endl
-		<< "Loss " << numLoss << endl
-		<< "Ratio " << -1. * numLoss + params.profitPerLossK * numProfit
+		<< "Num " << ret.numOrders << endl
+		<< "Profit " << ret.numProfits << endl
+		<< "Loss " << ret.numLosses << endl
+		<< "Ratio " << ret.finResult
 		<< endl;
 
+	return ret;
 }
 
 }

@@ -53,7 +53,15 @@ struct Level {
 class Levels {
 public:
 	Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile);
-	void process(chart::data::PBars bars);
+
+	struct ProcessResult {
+		std::string title;
+		size_t numOrders;
+		size_t numLosses;
+		size_t numProfits;
+		double finResult;
+	};
+	ProcessResult process(chart::data::PBars bars);
 private:
 	FindLevelsParams getLevelsParams(chart::data::PBars, size_t barFrom, size_t barTo);
 	std::vector<Level> findLevels(chart::data::PBars, size_t from, size_t to);

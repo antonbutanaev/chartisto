@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <fstream>
 #include <thread>
+#include <mutex>
 #include <atomic>
 #include <json/json.h>
 #include <boost/program_options.hpp>
@@ -73,6 +74,10 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 
 void processLevels(const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles) {
 	atomic<unsigned> fileNum = 0;
+
+	mutex resultsMutex;
+	vector<Levels::ProcessResult> results;
+
 	const auto runLevels = [&]{
 		for (;;) {
 			unsigned localFileNum = fileNum++;
@@ -86,7 +91,12 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 			const auto slash = resultFile.find_last_of('/');
 			if (slash != string::npos)
 				resultFile = resultFile.substr(slash + 1);
-			Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
+
+			const auto result =
+				Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
+
+			lock_guard l(resultsMutex);
+			results.push_back(result);
 		};
 	};
 
@@ -97,6 +107,24 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 	runLevels();
 	for (auto &thread: threads)
 		thread.join();
+
+	sort(
+		results.begin(), results.end(),
+		[](const auto &a, const auto &b) {return a.finResult > b.finResult;}
+	);
+
+	cout << "Title\t\tProfits\tLosses\tFinRes" << endl;
+	double totalFinResult = 0;
+	for (const auto result: results) {
+		totalFinResult += result.finResult;
+		cout
+			<< setw(15) << left << result.title << '\t'
+			<< result.numProfits << '\t'
+			<< result.numLosses << '\t'
+			<< result.finResult
+			<< endl;
+	}
+	cout << "Total fin result:\t\t" << totalFinResult << endl;
 }
 
 int main(int ac, char *av[]) try {
