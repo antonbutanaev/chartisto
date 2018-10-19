@@ -28,6 +28,9 @@ struct FindLevelsParams {
 	double crossLimitOrderAboveLimitK = 0.005;
 	size_t stepsForStop = 2;
 	size_t stepsForEnterStop = 3;
+	double losslessStopK = 2;
+	double profitPerLossK = 3;
+
 };
 
 struct Level {

@@ -280,10 +280,14 @@ void Levels::process(data::PBars bars) {
 			bool found = false;
 			for (const auto &level: levels) {
 				if (level.level > from && level.level < to) {
-					result_ << level.level << endl;
+					if (!found)
+						result_ << "Found levels between enter and target:";
 					found = true;
+					result_ << ' ' << level.level;
 				}
 			}
+			if (found)
+				result_ << endl;
 			return found;
 		};
 
@@ -313,7 +317,7 @@ void Levels::process(data::PBars bars) {
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
 					const auto stop = bars->close(lastBarNum) - params.stepsForStop * params.step;
 					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
-					const auto target = enterStop + 3 * (enterStop - stop);
+					const auto target = enterStop + params.profitPerLossK * (enterStop - stop);
 					result_
 						<< "CROSS DOWN level " << level.level
 						<< " at " << bars->time(lastBarNum)
@@ -332,15 +336,14 @@ void Levels::process(data::PBars bars) {
 							)
 						);
 						result_ << "Result " << results.back() << endl;
-					} else
-						result_ << "Skip" << endl;
+					}
 					break;
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
 					const auto stop = bars->close(lastBarNum) + params.stepsForStop * params.step;
 					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
-					const auto target = enterStop - 3 * (stop - enterStop);
+					const auto target = enterStop - params.profitPerLossK * (stop - enterStop);
 					result_
 						<< "CROSS UP level " << level.level
 						<< " at " << bars->time(lastBarNum)
@@ -359,8 +362,7 @@ void Levels::process(data::PBars bars) {
 							)
 						);
 						result_ << "Result " << results.back() << endl;
-					} else
-						result_ << "Skip" << endl;
+					}
 					break;
 				}
 			}
@@ -376,9 +378,9 @@ void Levels::process(data::PBars bars) {
 	size_t numLoss = 0;
 	for (const auto &result: results) {
 		++num;
-		if (result.filled && result.filled->profitPerStopK > 3)
+		if (result.filled && result.filled->profitPerStopK > params.profitPerLossK)
 			++numProfit;
-		if (result.filled && result.filled->profitPerStopK < 2)
+		if (result.filled && result.filled->profitPerStopK < params.losslessStopK)
 			++numLoss;
 		result_ << result << endl;
 	}
@@ -386,10 +388,9 @@ void Levels::process(data::PBars bars) {
 		<< endl
 		<< "Num " << num << endl
 		<< "Profit " << numProfit << endl
-		<< "Loss " << numLoss << endl;
-	if (numLoss)
-		result_
-			<< "Ratio " << static_cast<double>(numProfit) / numLoss	<< endl;
+		<< "Loss " << numLoss << endl
+		<< "Ratio " << -1. * numLoss + params.profitPerLossK * numProfit
+		<< endl;
 
 }
 
