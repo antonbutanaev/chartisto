@@ -69,7 +69,7 @@ FindLevelsParams Levels::getLevelsParams(
 		if (section.isMember("levelBodyCrossPrecisionK")) params.levelBodyCrossPrecisionK = section["levelBodyCrossPrecisionK"].asDouble();
 		if (section.isMember("numBarsComing")) params.numBarsComing = section["numBarsComing"].asUInt();
 		if (section.isMember("crossLimitOrderAboveLimitK")) params.crossLimitOrderAboveLimitK = section["crossLimitOrderAboveLimitK"].asDouble();
-		if (section.isMember("stepsForStop")) params.stepsForStop = section["stepsForStop"].asDouble();
+		if (section.isMember("stepsForStop")) params.stepsForStop = section["stepsForStop"].asUInt();
 		if (section.isMember("stepsForEnterStop")) params.stepsForEnterStop = section["stepsForEnterStop"].asUInt();
 		if (section.isMember("losslessStopK")) params.losslessStopK = section["losslessStopK"].asUInt();
 		if (section.isMember("profitPerLossK")) params.profitPerLossK = section["profitPerLossK"].asDouble();

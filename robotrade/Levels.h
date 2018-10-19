@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iosfwd>
+#include <fstream>
 #include <limits>
 #include <optional>
 #include <json/value.h>
@@ -67,7 +67,7 @@ private:
 	std::vector<Level> findLevels(chart::data::PBars, size_t from, size_t to);
 
 	Json::Value config_;
-	int daysToAnalyze_;
+	unsigned daysToAnalyze_;
 	std::ofstream result_;
 };
 
