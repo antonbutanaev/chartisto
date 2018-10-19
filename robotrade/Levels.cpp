@@ -36,7 +36,6 @@ FindLevelsParams Levels::getLevelsParams(
 				};
 				updateStep(barNum, barNum);
 				updateStep(barNum, barNum - 1);
-				updateStep(barNum - 1, barNum - 1);
 			}
 	}
 	result.step = step;
@@ -149,7 +148,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			for (const auto &priceType: data::Bars::PriceTypes) {
 				const auto barPrice = bars->get(priceType, barNum);
 				if (barPrice >= lowerBound && barPrice <= upperBound) {
-					level.avgDeviation += fabs(barPrice - price);
+					level.avgDeviationPerCent += fabs(barPrice - price);
 					(
 						priceType == data::Bars::PriceType::High ||
 						priceType == data::Bars::PriceType::Low?
@@ -173,8 +172,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		}
 
 		if (level.numTailTouches + level.numBodyTouches) {
-			level.avgDeviation /= level.numTailTouches + level.numBodyTouches;
-			level.avgDeviation = 100 * level.avgDeviation / level.level;
+			level.avgDeviationPerCent /= level.numTailTouches + level.numBodyTouches;
+			level.avgDeviationPerCent = 100 * level.avgDeviationPerCent / level.level;
 		}
 
 		const auto roundK = params.step * params.numStepsForRound;
@@ -193,7 +192,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		const auto rate = [&] (const auto &level) {
 			return
 				(
-					level.avgDeviation * params.avgDeviationWeight +
+					level.avgDeviationPerCent * params.avgDeviationWeight +
 					level.numTailTouches * params.tailTouchWeight +
 					level.numBodyTouches * params.bodyTouchWeight +
 					level.numBodyCrosses * params.crossWeight
@@ -219,7 +218,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 				<< level.isExtrememum << '\t'
 				<< level.isRound << '\t'
 				<< level.to - level.from << '\t'
-				<< fixed << setprecision(3) << level.avgDeviation << '\t'
+				<< fixed << setprecision(3) << level.avgDeviationPerCent << '\t'
 				<< bars->time(level.from) << '\t'
 				<< bars->time(level.to)
 				<< endl;
