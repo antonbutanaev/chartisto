@@ -27,7 +27,12 @@ public:
 			chart::Time profitTime;
 		};
 		std::optional<Filled> filled;
-		std::optional<chart::Time> runAway;
+
+		struct RanAway {
+			chart::Time time;
+			chart::Price price;
+		};
+		std::optional<RanAway> runAway;
 
 		friend std::ostream &operator<<(std::ostream&, const Result&);
 	};

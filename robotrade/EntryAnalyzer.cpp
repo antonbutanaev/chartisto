@@ -12,7 +12,7 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " enter " << result.stopEnterPrice
 		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)
-		o << " Run away " << *result.runAway << ';';
+		o << " Run away " << result.runAway->time << " " << result.runAway->price << ';';
 	if (result.filled)
 		o
 			<< " Filled " << result.filled->fillTime
@@ -50,7 +50,10 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				)
 			)
 		) {
-			result.runAway = bars_->time(barNum);
+			result.runAway = {
+				bars_->time(barNum),
+				(direction == Direction::Buy? -1:1) * params.runAwayFromStopK * stopDelta + stopEnterPrice
+			};
 			break;
 		}
 
