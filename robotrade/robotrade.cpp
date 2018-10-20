@@ -31,12 +31,16 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 		Quotes quotes;
 		quotes.quoteFile = quoteFile;
 		ifstream ifs(quoteFile.c_str());
+		if (!ifs)
+			throw runtime_error("could not open " + quoteFile);
 		quotes.bars = robotrade::parse(ifs);
 		quotesByTitle[quotes.bars->title(0)] = move(quotes);
 	}
 
 	ifstream ifs(quoteUpdatesFile.c_str());
-	auto updateBars = robotrade::parse(ifs);
+	if (!ifs)
+		throw runtime_error("could not open " + quoteUpdatesFile);
+	const auto updateBars = robotrade::parse(ifs);
 
 	size_t added = 0;
 	for (size_t barNum = 0; barNum < updateBars->num(); ++barNum) {
@@ -48,6 +52,8 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 
 		const auto &quotes = quotesIt->second;
 		ofstream ofs(quotes.quoteFile.c_str(), ios::app);
+		if (!ofs)
+			throw runtime_error("could not open " + quoteUpdatesFile);
 
 		auto lastBarNum = quotes.bars->num() - 1;
 		if (updateBars->time(barNum) > quotes.bars->time(lastBarNum)) {
