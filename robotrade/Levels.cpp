@@ -367,7 +367,6 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 						);
 						result_ << "Result " << results.back() << endl;
 					}
-					break;
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
@@ -394,7 +393,6 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 						);
 						result_ << "Result " << results.back() << endl;
 					}
-					break;
 				}
 			}
 		}
