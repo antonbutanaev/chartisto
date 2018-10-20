@@ -72,11 +72,18 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 	cout << "Processed " << updateBars->num() << " update quotes, added " << added << endl;
 }
 
-void processLevels(const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles) {
+void processLevels(
+	const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles,
+	bool printSummary, bool printResultFiles
+) {
 	atomic<unsigned> fileNum = 0;
 
 	mutex resultsMutex;
-	vector<Levels::ProcessResult> results;
+	struct Result {
+		Levels::ProcessResult result;
+		std::string resultFile;
+	};
+	vector<Result> results;
 
 	const auto runLevels = [&]{
 		try {
@@ -92,12 +99,13 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 				const auto slash = resultFile.find_last_of('/');
 				if (slash != string::npos)
 					resultFile = resultFile.substr(slash + 1);
+				resultFile +=  + ".result";
 
 				const auto result =
-					Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
+					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs));
 
 				lock_guard l(resultsMutex);
-				results.push_back(result);
+				results.push_back({result, resultFile});
 			};
 		} catch (const exception &x) {
 			cerr << "Levels: exception: " << x.what() << endl;
@@ -112,36 +120,45 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 	for (auto &thread: threads)
 		thread.join();
 
-	sort(
-		results.begin(), results.end(),
-		[](const auto &a, const auto &b) {return a.finResult > b.finResult;}
-	);
+	if (printSummary) {
+		sort(
+			results.begin(), results.end(),
+			[](const auto &a, const auto &b) {return a.result.finResult > b.result.finResult;}
+		);
 
-	cout << "#\tTitle\t\tProfits\tLosses\tFinRes" << endl;
-	size_t num = 0;
-	size_t numLosses = 0;
-	size_t numProfits = 0;
-	double finResult = 0;
-	for (const auto &result: results) {
-		finResult += result.finResult;
-		numProfits += result.numProfits;
-		numLosses += result.numLosses;
+		cout << "#\tTitle\t\tProfits\tLosses\tFinRes" << endl;
+		size_t num = 0;
+		size_t numLosses = 0;
+		size_t numProfits = 0;
+		double finResult = 0;
+		for (const auto &resultsIt: results) {
+			const auto &result = resultsIt.result;
+			finResult += result.finResult;
+			numProfits += result.numProfits;
+			numLosses += result.numLosses;
+			cout
+				<< ++num << ".\t"
+				<< setw(15) << left << result.title << '\t'
+				<< result.numProfits << '\t'
+				<< result.numLosses << '\t'
+				<< result.finResult
+				<< endl;
+		}
 		cout
-			<< ++num << ".\t"
-			<< setw(15) << left << result.title << '\t'
-			<< result.numProfits << '\t'
-			<< result.numLosses << '\t'
-			<< result.finResult
+			<< endl
+			<< '\t'
+			<< setw(15) << left << "Total" << '\t'
+			<< numProfits << '\t'
+			<< numLosses << '\t'
+			<< finResult
 			<< endl;
 	}
-	cout
-		<< endl
-		<< '\t'
-		<< setw(15) << left << "Total" << '\t'
-		<< numProfits << '\t'
-		<< numLosses << '\t'
-		<< finResult
-		<< endl;
+
+	if (printResultFiles) {
+		for (const auto &resultsIt: results)
+			if (resultsIt.result.numOrders != 0)
+				cout << resultsIt.resultFile << endl;
+	}
 }
 
 int main(int ac, char *av[]) try {
@@ -151,6 +168,8 @@ int main(int ac, char *av[]) try {
 		*argUpdateQuotes = "update-quotes",
 		*argLevelsJson = "levels",
 		*argLevelsDays = "levels-days",
+		*argLevelsSummary = "levels-summary",
+		*argLevelsResults = "levels-results",
 		*argLog = "log";
 
 	namespace po = boost::program_options;
@@ -164,6 +183,8 @@ int main(int ac, char *av[]) try {
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
 		(argLevelsDays, po::value<int>()->default_value(0), "Days to analyze, 0 means all")
+		(argLevelsSummary, "Print levels summary")
+		(argLevelsResults, "Print levels result files")
 		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
 
 	po::variables_map vm;
@@ -194,7 +215,9 @@ int main(int ac, char *av[]) try {
 			processLevels(
 				vm[argLevelsJson].as<string>(),
 				vm[argLevelsDays].as<int>(),
-				vm[argQuotes].as<vector<string>>()
+				vm[argQuotes].as<vector<string>>(),
+				vm.count(argLevelsSummary) > 0,
+				vm.count(argLevelsResults) > 0
 			);
 		} else
 			throw runtime_error("What to do with quotes?");
