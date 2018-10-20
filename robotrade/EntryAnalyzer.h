@@ -24,7 +24,7 @@ public:
 			chart::Time time;
 		};
 		std::optional<Stopped> stopped;
-		std::optional<bool> onSameDayStopped;
+		std::optional<bool> onFillDayStop;
 
 		struct Filled {
 			chart::Time fillTime;

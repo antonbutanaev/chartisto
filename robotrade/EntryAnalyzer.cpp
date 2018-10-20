@@ -28,8 +28,8 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		o << " Stopped " << result.stopped->time << ';';
 	}
 
-	if (result.onSameDayStopped)
-		o << " stop on fill day " << *result.onSameDayStopped << ';';
+	if (result.onFillDayStop)
+		o << " stop on fill day " << *result.onFillDayStop << ';';
 
 	return o;
 }
@@ -102,8 +102,8 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			if (bars_->time(barNum) != result.filled->fillTime)
 				runStop();
 			else {
-				result.onSameDayStopped = probablyHappens();
-				if (*result.onSameDayStopped)
+				result.onFillDayStop = probablyHappens();
+				if (*result.onFillDayStop)
 					runStop();
 			}
 		}
