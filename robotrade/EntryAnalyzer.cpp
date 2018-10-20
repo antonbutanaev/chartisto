@@ -109,24 +109,30 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		}
 
 		if (result.filled) {
-			const auto calcProfit = [&] {
-				const auto profit = direction == Direction::Buy?
-					bars_->high(barNum) - stopEnterPrice :
-					stopEnterPrice - bars_->low(barNum);
+			const auto profit = direction == Direction::Buy?
+				bars_->high(barNum) - stopEnterPrice :
+				stopEnterPrice - bars_->low(barNum);
 
-				if (profitDelta < profit) {
-					profitDelta = profit;
-					result.filled->profitPerStopK = profitDelta / stopDelta;
-					result.filled->profitTime = bars_->time(barNum);
+			if (profitDelta < profit) {
+				const auto applyProfit = [&] {
+					const auto profit = direction == Direction::Buy?
+						bars_->high(barNum) - stopEnterPrice :
+						stopEnterPrice - bars_->low(barNum);
+
+					if (profitDelta < profit) {
+						profitDelta = profit;
+						result.filled->profitPerStopK = profitDelta / stopDelta;
+						result.filled->profitTime = bars_->time(barNum);
+					}
+				};
+
+				if (!result.stopped)
+					applyProfit();
+				else {
+					result.onStopDayProfit = probablyHappens();
+					if (*result.onStopDayProfit)
+						applyProfit();
 				}
-			};
-
-			if (!result.stopped)
-				calcProfit();
-			else {
-				result.onStopDayProfit = probablyHappens();
-				if (*result.onStopDayProfit)
-					calcProfit();
 			}
 		}
 
