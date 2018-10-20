@@ -79,25 +79,29 @@ void processLevels(const string &configJson, int daysToAnalyze, const vector<str
 	vector<Levels::ProcessResult> results;
 
 	const auto runLevels = [&]{
-		for (;;) {
-			unsigned localFileNum = fileNum++;
-			if (localFileNum >= quoteFiles.size())
-				break;
-			ifstream ifs(quoteFiles[localFileNum].c_str());
-			if (!ifs)
-				throw runtime_error("Could not open file: " + quoteFiles[localFileNum]);
+		try {
+			for (;;) {
+				unsigned localFileNum = fileNum++;
+				if (localFileNum >= quoteFiles.size())
+					break;
+				ifstream ifs(quoteFiles[localFileNum].c_str());
+				if (!ifs)
+					throw runtime_error("Could not open file: " + quoteFiles[localFileNum]);
 
-			auto resultFile = quoteFiles[localFileNum];
-			const auto slash = resultFile.find_last_of('/');
-			if (slash != string::npos)
-				resultFile = resultFile.substr(slash + 1);
+				auto resultFile = quoteFiles[localFileNum];
+				const auto slash = resultFile.find_last_of('/');
+				if (slash != string::npos)
+					resultFile = resultFile.substr(slash + 1);
 
-			const auto result =
-				Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
+				const auto result =
+					Levels(configJson, daysToAnalyze, resultFile + ".result").process(robotrade::parse(ifs));
 
-			lock_guard l(resultsMutex);
-			results.push_back(result);
-		};
+				lock_guard l(resultsMutex);
+				results.push_back(result);
+			};
+		} catch (const exception &x) {
+			cerr << "Levels: exception: " << x.what() << endl;
+		}
 	};
 
 	vector<thread> threads;
@@ -196,7 +200,7 @@ int main(int ac, char *av[]) try {
 			throw runtime_error("What to do with quotes?");
 	}
 	return 0;
-} catch (const std::exception &x) {
-	cerr << x.what() << endl;
+} catch (const exception &x) {
+	cerr << "main: exception: " << x.what() << endl;
 	return 1;
 }

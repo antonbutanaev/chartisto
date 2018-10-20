@@ -310,7 +310,7 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 			for (const auto &level: levels) {
 				if (level.level > from && level.level < to) {
 					if (!found)
-						result_ << "Found levels between enter and target:";
+						result_ << "SKIP found levels between enter and target:";
 					found = true;
 					result_ << ' ' << level.level;
 				}
