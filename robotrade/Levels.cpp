@@ -193,11 +193,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			if (
 				(barOpen > upperBound && barClose < lowerBound) ||
 				(barOpen < lowerBound && barClose > upperBound)
-			) {
+			)
 				level.numBodyCrosses += 1;
-				level.from = min(level.from, barNum);
-				level.to = max(level.to, barNum);
-			}
 		}
 
 		if (level.numTailTouches + level.numBodyTouches) {

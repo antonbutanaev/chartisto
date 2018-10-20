@@ -13,15 +13,29 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)
 		o << " Run away " << result.runAway->time << " " << result.runAway->price << ';';
-	if (result.filled)
+	if (result.filled) {
 		o
 			<< " Filled " << result.filled->fillTime
 			<< " profit " << result.filled->profitPerStopK
-			<< " on " << result.filled->profitTime
-			<< ';';
-	if (result.stopped)
-		o << " Stopped " << *result.stopped << ';';
+			<< " on " << result.filled->profitTime << ';';
+
+	}
+
+	if (result.onStopDayProfit)
+		o << " profit on stop day " << *result.onStopDayProfit << ';';
+
+	if (result.stopped) {
+		o << " Stopped " << result.stopped->time << ';';
+	}
+
+	if (result.onSameDayStopped)
+		o << " stop on fill day " << *result.onSameDayStopped << ';';
+
 	return o;
+}
+
+EntryAnalyzer::EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {
+	rand_.seed(hash<string>()(bars->title(0)));
 }
 
 EntryAnalyzer::Result EntryAnalyzer::analyze(
@@ -31,6 +45,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	size_t orderBarNum
 ) {
 	EntryAnalyzerParams params;
+	const auto probablyHappens = [&]{return rand_() % params.stopOnSameDayEveryNthTime == 0;};
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
@@ -73,7 +88,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			result.filled = {
 				bars_->time(barNum),
 				0,
-				bars_->time(barNum),
+				bars_->time(barNum)
 			};
 
 		if (
@@ -81,22 +96,37 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			!result.stopped && (
 				(direction == Direction::Buy && bars_->low(barNum) <= stopPrice) ||
 				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
-			) && (
-				bars_->time(barNum) != result.filled->fillTime ||
-				++stopOnSameDayCount_ % params.stopOnSameDayEveryNthTime == 0
 			)
-		)
-			result.stopped = bars_->time(barNum);
+		) {
+			const auto runStop = [&] {result.stopped = {bars_->time(barNum)};};
+			if (bars_->time(barNum) != result.filled->fillTime)
+				runStop();
+			else {
+				result.onSameDayStopped = probablyHappens();
+				if (*result.onSameDayStopped)
+					runStop();
+			}
+		}
 
 		if (result.filled) {
-			const auto profit = direction == Direction::Buy?
-				bars_->high(barNum) - stopEnterPrice :
-				stopEnterPrice - bars_->low(barNum);
+			const auto calcProfit = [&] {
+				const auto profit = direction == Direction::Buy?
+					bars_->high(barNum) - stopEnterPrice :
+					stopEnterPrice - bars_->low(barNum);
 
-			if (profitDelta < profit) {
-				profitDelta = profit;
-				result.filled->profitPerStopK = profitDelta / stopDelta;
-				result.filled->profitTime = bars_->time(barNum);
+				if (profitDelta < profit) {
+					profitDelta = profit;
+					result.filled->profitPerStopK = profitDelta / stopDelta;
+					result.filled->profitTime = bars_->time(barNum);
+				}
+			};
+
+			if (!result.stopped)
+				calcProfit();
+			else {
+				result.onStopDayProfit = probablyHappens();
+				if (*result.onStopDayProfit)
+					calcProfit();
 			}
 		}
 

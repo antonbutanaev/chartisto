@@ -1,5 +1,6 @@
 #pragma once
 
+#include <random>
 #include <iostream>
 #include <optional>
 #include <chart/data.h>
@@ -13,13 +14,17 @@ struct EntryAnalyzerParams {
 
 class EntryAnalyzer {
 public:
-	EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {}
+	EntryAnalyzer(chart::data::PBars bars);
 
 	struct Result {
 		chart::Time orderActivated;
 		chart::Price stopEnterPrice;
 		chart::Price stopPrice;
-		std::optional<chart::Time> stopped;
+		struct Stopped {
+			chart::Time time;
+		};
+		std::optional<Stopped> stopped;
+		std::optional<bool> onSameDayStopped;
 
 		struct Filled {
 			chart::Time fillTime;
@@ -27,6 +32,7 @@ public:
 			chart::Time profitTime;
 		};
 		std::optional<Filled> filled;
+		std::optional<bool> onStopDayProfit;
 
 		struct RanAway {
 			chart::Time time;
@@ -48,7 +54,7 @@ public:
 
 private:
 	chart::data::PBars bars_;
-	size_t stopOnSameDayCount_ = 0;
+	std::mt19937 rand_;
 };
 
 }
