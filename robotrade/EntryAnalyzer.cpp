@@ -8,7 +8,7 @@ namespace robotrade {
 ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	using chart::operator <<;
 	o
-		<< "Order: " << result.orderActivated
+		<< "ORDER: " << result.orderActivated
 		<< " enter " << result.stopEnterPrice
 		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)

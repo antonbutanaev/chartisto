@@ -307,13 +307,11 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 			for (const auto &level: levels) {
 				if (level.level > from && level.level < to) {
 					if (!found)
-						result_ << "SKIP found levels between enter and target:";
+						result_ << " SKIP, levels between enter and target:";
 					found = true;
 					result_ << ' ' << level.level;
 				}
 			}
-			if (found)
-				result_ << endl;
 			return found;
 		};
 
@@ -350,8 +348,7 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
-						<< " target " << target
-						<< endl;
+						<< " target " << target;
 
 					if (!findLevels(enterStop, target)) {
 						results.push_back(
@@ -362,8 +359,9 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 								lastBarNum
 							)
 						);
-						result_ << "Result " << results.back() << endl;
+						result_ << " " << results.back() << endl;
 					}
+					result_ << endl;
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
@@ -376,8 +374,7 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 						<< " at " << bars->time(lastBarNum)
 						<< " stop " << stop
 						<< " enter " << enterStop
-						<< " target " << target
-						<< endl;
+						<< " target " << target;
 
 					if (!findLevels(target, enterStop)) {
 						results.push_back(
@@ -388,8 +385,9 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 								lastBarNum
 							)
 						);
-						result_ << "Result " << results.back() << endl;
+						result_ << " " << results.back() << endl;
 					}
+					result_ << endl;
 				}
 			}
 		}
