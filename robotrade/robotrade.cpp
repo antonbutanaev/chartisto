@@ -80,7 +80,7 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 
 void processLevels(
 	const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles,
-	bool printSummary, bool printResultFiles
+	bool printSummary, bool printResultFiles, unsigned seed
 ) {
 	atomic<unsigned> fileNum = 0;
 
@@ -108,7 +108,7 @@ void processLevels(
 				resultFile +=  + ".result";
 
 				const auto result =
-					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs));
+					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs), seed);
 
 				lock_guard l(resultsMutex);
 				results.push_back({result, resultFile});
@@ -176,6 +176,7 @@ int main(int ac, char *av[]) try {
 		*argLevelsDays = "levels-days",
 		*argLevelsSummary = "levels-summary",
 		*argLevelsResults = "levels-results",
+		*argSeed = "seed",
 		*argLog = "log";
 
 	namespace po = boost::program_options;
@@ -189,6 +190,7 @@ int main(int ac, char *av[]) try {
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
 		(argLevelsDays, po::value<int>()->default_value(0), "Days to analyze, 0 means all")
+		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
 		(argLevelsSummary, "Print levels summary")
 		(argLevelsResults, "Print levels result files")
 		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
@@ -223,7 +225,8 @@ int main(int ac, char *av[]) try {
 				vm[argLevelsDays].as<int>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm.count(argLevelsSummary) > 0,
-				vm.count(argLevelsResults) > 0
+				vm.count(argLevelsResults) > 0,
+				vm[argSeed].as<unsigned>()
 			);
 		} else
 			throw runtime_error("What to do with quotes?");

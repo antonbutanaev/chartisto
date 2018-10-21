@@ -60,7 +60,7 @@ public:
 		size_t numProfits;
 		double finResult;
 	};
-	ProcessResult process(chart::data::PBars bars);
+	ProcessResult process(chart::data::PBars bars, unsigned seed);
 private:
 	FindLevelsParams getLevelsParams(chart::data::PBars, size_t barFrom, size_t barTo);
 	std::vector<Level> findLevels(chart::data::PBars, size_t from, size_t to);

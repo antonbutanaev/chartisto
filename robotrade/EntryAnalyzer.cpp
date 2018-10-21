@@ -35,17 +35,20 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 }
 
 EntryAnalyzer::EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {
-	rand_.seed(hash<string>()(bars->title(0)));
 }
 
 EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Direction direction,
 	Price stopEnterPrice,
 	Price stopPrice,
-	size_t orderBarNum
+	size_t orderBarNum,
+	unsigned seed
 ) {
 	EntryAnalyzerParams params;
-	const auto probablyHappens = [&]{return rand_() % params.stopOnSameDayEveryNthTime == 0;};
+	std::mt19937 rand;
+	rand.seed(hash<string>()(bars_->title(0)) + orderBarNum + seed);
+	const auto probablyHappened = [&]{return rand() % params.stopOnSameDayEveryNthTime == 0;};
+
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
@@ -102,7 +105,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			if (bars_->time(barNum) != result.filled->fillTime)
 				runStop();
 			else {
-				result.onFillDayStop = probablyHappens();
+				result.onFillDayStop = probablyHappened();
 				if (*result.onFillDayStop)
 					runStop();
 			}
@@ -129,7 +132,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				if (!result.stopped)
 					applyProfit();
 				else {
-					result.onStopDayProfit = probablyHappens();
+					result.onStopDayProfit = probablyHappened();
 					if (*result.onStopDayProfit)
 						applyProfit();
 				}

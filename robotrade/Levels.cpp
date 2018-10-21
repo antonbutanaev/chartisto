@@ -284,11 +284,13 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 	ifs >> config_;
 }
 
-Levels::ProcessResult Levels::process(data::PBars bars) {
+Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	EntryAnalyzer entryAnalyzer(bars);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams(bars, 0,0);
 	result_ << "Using params:" << endl << params;
+	result_ << "Using seed: " << seed << endl;
+
 	size_t startFrom = daysToAnalyze_ == 0? 0 :  bars->num() - params.numBarsForLevel - daysToAnalyze_;
 	for (
 		size_t barFrom = startFrom, barTo = barFrom + params.numBarsForLevel;
@@ -356,7 +358,8 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 								EntryAnalyzer::Direction::Buy,
 								enterStop,
 								stop,
-								lastBarNum
+								lastBarNum,
+								seed
 							)
 						);
 						result_ << " " << results.back() << endl;
@@ -382,7 +385,8 @@ Levels::ProcessResult Levels::process(data::PBars bars) {
 								EntryAnalyzer::Direction::Sell,
 								enterStop,
 								stop,
-								lastBarNum
+								lastBarNum,
+								seed
 							)
 						);
 						result_ << " " << results.back() << endl;

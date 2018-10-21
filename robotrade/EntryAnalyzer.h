@@ -49,12 +49,12 @@ public:
 		Direction direction,
 		chart::Price stopEnterPrice,
 		chart::Price stopPrice,
-		size_t orderBarNum
+		size_t orderBarNum,
+		unsigned seed
 	);
 
 private:
 	chart::data::PBars bars_;
-	std::mt19937 rand_;
 };
 
 }
