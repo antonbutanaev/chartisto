@@ -304,17 +304,14 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 
 		const auto levels = findLevels(bars, barFrom, barTo);
 
-		const auto findLevels = [&](Price from, Price to) {
-			bool found = false;
+		const auto findResistance = [&](Price from, Price to) {
 			for (const auto &level: levels) {
 				if (level.level > from && level.level < to) {
-					if (!found)
-						result_ << " SKIP, levels between enter and target:";
-					found = true;
-					result_ << ' ' << level.level;
+					result_ << " SKIP, found resistance " << level.level;
+					return true;
 				}
 			}
-			return found;
+			return false;
 		};
 
 		for (const auto &level: levels) {
@@ -352,7 +349,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 						<< " enter " << enterStop
 						<< " target " << target;
 
-					if (!findLevels(enterStop, target)) {
+					if (!findResistance(enterStop, target)) {
 						results.push_back(
 							entryAnalyzer.analyze(
 								EntryAnalyzer::Direction::Buy,
@@ -379,7 +376,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 						<< " enter " << enterStop
 						<< " target " << target;
 
-					if (!findLevels(target, enterStop)) {
+					if (!findResistance(target, enterStop)) {
 						results.push_back(
 							entryAnalyzer.analyze(
 								EntryAnalyzer::Direction::Sell,
