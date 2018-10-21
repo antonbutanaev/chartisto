@@ -307,7 +307,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 		const auto findResistance = [&](Price from, Price to) {
 			for (const auto &level: levels) {
 				if (level.level > from && level.level < to) {
-					result_ << " SKIP, found resistance " << level.level;
+					result_ << " found RESISTANCE " << level.level;
 					return true;
 				}
 			}
