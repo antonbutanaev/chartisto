@@ -2,6 +2,8 @@
 
 #include <string>
 
+namespace util {
+
 class FNVHash {
 public:
 	template<class V> FNVHash &operator<<(V v) {
@@ -22,3 +24,5 @@ public:
 private:
 	unsigned h_ = 0x811c9dc5;
 };
+
+}

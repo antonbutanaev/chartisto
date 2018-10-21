@@ -46,11 +46,12 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	unsigned seed
 ) {
 	EntryAnalyzerParams params;
-	std::mt19937 rand;
-	FNVHash h;
-	h << bars_->title(0) << orderBarNum << seed;
-	rand.seed(h.value());
-	const auto probablyHappened = [&]{return rand() % params.stopOnSameDayEveryNthTime == 0;};
+	mt19937 rand;
+	util::FNVHash hash;
+	hash << bars_->title(0) << orderBarNum << seed;
+	rand.seed(hash.value());
+	uniform_int_distribution<unsigned> dist(1, params.stopOnSameDayEveryNthTime);
+	const auto probablyHappened = [&]{return dist(rand) == params.stopOnSameDayEveryNthTime;};
 
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
@@ -121,15 +122,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 
 			if (profitDelta < profit) {
 				const auto applyProfit = [&] {
-					const auto profit = direction == Direction::Buy?
-						bars_->high(barNum) - stopEnterPrice :
-						stopEnterPrice - bars_->low(barNum);
-
-					if (profitDelta < profit) {
-						profitDelta = profit;
-						result.filled->profitPerStopK = profitDelta / stopDelta;
-						result.filled->profitTime = bars_->time(barNum);
-					}
+					profitDelta = profit;
+					result.filled->profitPerStopK = profitDelta / stopDelta;
+					result.filled->profitTime = bars_->time(barNum);
 				};
 
 				if (!result.stopped)
