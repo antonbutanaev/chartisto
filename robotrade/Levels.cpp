@@ -214,6 +214,10 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			levels.push_back(level);
 	}
 
+	const auto byPrice = [&](const auto &a, const auto &b) {
+		return a.level > b.level;
+	};
+
 	const auto byRate = [&](const auto &a, const auto &b) {
 		const auto rate = [&] (const auto &level) {
 			return
@@ -264,6 +268,18 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			levelIt = levels.erase(levelIt);
 		else
 			++levelIt;
+	}
+
+	auto levelsByPrice = levels;
+	sort(levelsByPrice.begin(), levelsByPrice.end(), byPrice);
+	result_
+		<< "Price\t%%\t%%" << endl;
+
+	for (size_t i = 1; i < levelsByPrice.size(); ++i) {
+		result_
+			<< levelsByPrice[i-1].level << '\t'
+			<< 100 * (levelsByPrice[i-1].level / levelsByPrice[i].level - 1) << '\t'
+			<< 100 * (levelsByPrice[i].level/levelsByPrice[i-1].level - 1) << endl;
 	}
 
 	sort(levels.begin(), levels.end(), byRate);
