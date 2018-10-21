@@ -9,7 +9,7 @@ namespace robotrade {
 
 struct EntryAnalyzerParams {
 	double runAwayFromStopK = 2.;
-	unsigned stopOnSameDayEveryNthTime = 2;
+	double stopOnSameDayProb = .5;
 };
 
 class EntryAnalyzer {

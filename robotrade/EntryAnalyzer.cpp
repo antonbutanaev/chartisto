@@ -50,8 +50,8 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	util::FNVHash hash;
 	hash << bars_->title(0) << orderBarNum << seed;
 	rand.seed(hash.value());
-	uniform_int_distribution<unsigned> dist(1, params.stopOnSameDayEveryNthTime);
-	const auto probablyHappened = [&]{return dist(rand) == params.stopOnSameDayEveryNthTime;};
+	uniform_real_distribution<double> dist(0, 1);
+	const auto probablyHappened = [&]{return dist(rand) < params.stopOnSameDayProb;};
 
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
