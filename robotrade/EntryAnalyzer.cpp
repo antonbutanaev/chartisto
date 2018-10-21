@@ -1,3 +1,4 @@
+#include <util/fnv.h>
 #include <robotrade/EntryAnalyzer.h>
 
 using namespace chart;
@@ -46,7 +47,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 ) {
 	EntryAnalyzerParams params;
 	std::mt19937 rand;
-	rand.seed(hash<string>()(bars_->title(0)) + orderBarNum + seed);
+	FNVHash h;
+	h << bars_->title(0) << orderBarNum << seed;
+	rand.seed(h.value());
 	const auto probablyHappened = [&]{return rand() % params.stopOnSameDayEveryNthTime == 0;};
 
 	Result result;
