@@ -23,7 +23,7 @@ public:
 
 		struct Stopped {
 			chart::Time time;
-			bool losslessStop;
+			bool losslessStop = false;
 		};
 		std::optional<Stopped> stopped;
 
