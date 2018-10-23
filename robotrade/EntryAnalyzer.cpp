@@ -11,26 +11,24 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	o
 		<< "ORDER: " << result.orderActivated
 		<< " enter " << result.stopEnterPrice
+		<< " target " << result.targetPrice
 		<< " stop " << result.stopPrice << ';';
 	if (result.runAway)
 		o << " Run away " << result.runAway->time << " " << result.runAway->price << ';';
 	if (result.filled) {
 		o
-			<< " Filled " << result.filled->fillTime
-			<< " profit " << result.filled->profitPerStopK
-			<< " on " << result.filled->profitTime << ';';
-
+			<< " Filled " << result.filled->fillTime;
+			if (result.filled->profitTime)
+				o << " profit on " << *result.filled->profitTime;
+		o << ';';
 	}
-
-	if (result.onStopDayProfit)
-		o << " profit on stop day " << *result.onStopDayProfit << ';';
 
 	if (result.stopped) {
-		o << " Stopped " << result.stopped->time << ';';
+		o << " Stopped " << result.stopped->time;
+		if (result.stopped->losslessStop)
+			o << " lossless";
+		o << ';';
 	}
-
-	if (result.onFillDayStop)
-		o << " stop on fill day " << *result.onFillDayStop << ';';
 
 	return o;
 }
@@ -42,105 +40,114 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Direction direction,
 	Price stopEnterPrice,
 	Price stopPrice,
+	Price targetPrice,
 	size_t orderBarNum,
 	unsigned seed
 ) {
+	const auto buy = direction == Direction::Buy;
+	const auto sell = direction == Direction::Sell;
+
 	EntryAnalyzerParams params;
 	mt19937 rand;
 	util::FNVHash hash;
 	hash << bars_->title(0) << orderBarNum << seed;
 	rand.seed(hash.value());
 	uniform_real_distribution<double> dist(0, 1);
-	const auto probablyHappened = [&]{return dist(rand) < params.stopOnSameDayProb;};
+	const auto probably = [&] (double p){return dist(rand) < p;};
 
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
 	result.stopPrice = stopPrice;
+	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
-	Price profitDelta = 0;
+	const auto runAwayDelta = params.runAwayFromStopK * stopDelta;
+	bool losslessStop = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
+		const auto fillCondition =
+			(buy && bars_->high(barNum) >= stopEnterPrice) ||
+			(sell && bars_->low(barNum) <= stopEnterPrice);
 
-		if (
-			!result.filled && (
-				(
-					direction == Direction::Buy &&
-					stopEnterPrice - bars_->close(barNum) > params.runAwayFromStopK * stopDelta
-				) || (
-					direction == Direction::Sell &&
-					bars_->close(barNum) - stopEnterPrice > params.runAwayFromStopK * stopDelta
-				)
-			)
-		) {
+		if (!result.filled && fillCondition)
+			result.filled = {bars_->time(barNum), {}};
+
+		const auto runAwayCondition =
+			(buy && stopEnterPrice - bars_->close(barNum) > runAwayDelta) ||
+			(sell && bars_->close(barNum) - stopEnterPrice > runAwayDelta);
+
+		if (!result.filled && runAwayCondition) {
 			result.runAway = {
 				bars_->time(barNum),
-				(direction == Direction::Buy? -1:1) * params.runAwayFromStopK * stopDelta + stopEnterPrice
+				stopEnterPrice + (buy? -runAwayDelta : runAwayDelta)
 			};
 			break;
 		}
 
-		if (
-			!result.filled && (
-				(
-					direction == Direction::Buy &&
-					bars_->high(barNum) >= stopEnterPrice &&
-					bars_->low(barNum) <= stopEnterPrice
-				) || (
-					direction == Direction::Sell &&
-					bars_->low(barNum) <= stopEnterPrice &&
-					bars_->high(barNum) >= stopEnterPrice
-				)
-			)
-		)
-			result.filled = {
-				bars_->time(barNum),
-				0,
-				bars_->time(barNum)
-			};
+		if (!result.filled)
+			continue;
 
-		if (
-			result.filled &&
-			!result.stopped && (
-				(direction == Direction::Buy && bars_->low(barNum) <= stopPrice) ||
-				(direction == Direction::Sell && bars_->high(barNum) >= stopPrice)
-			)
-		) {
-			const auto runStop = [&] {result.stopped = {bars_->time(barNum)};};
-			if (bars_->time(barNum) != result.filled->fillTime)
-				runStop();
-			else {
-				result.onFillDayStop = probablyHappened();
-				if (*result.onFillDayStop)
-					runStop();
-			}
+		const auto certainlyTargeted =
+			(buy  && bars_->open(barNum) >= targetPrice) ||
+			(sell && bars_->open(barNum) <= targetPrice);
+
+		if (certainlyTargeted) {
+			result.stopped = {
+				bars_->time(barNum),
+				true
+			};
+			break;
 		}
 
-		if (result.filled) {
-			const auto profit = direction == Direction::Buy?
-				bars_->high(barNum) - stopEnterPrice :
-				stopEnterPrice - bars_->low(barNum);
+		const auto certainlyFilled =
+			bars_->time(barNum) > result.filled->fillTime ||
+			(buy  && bars_->open(barNum) >= stopEnterPrice) ||
+			(sell && bars_->open(barNum) <= stopEnterPrice);
 
-			if (profitDelta < profit) {
-				const auto applyProfit = [&] {
-					profitDelta = profit;
-					result.filled->profitPerStopK = profitDelta / stopDelta;
-					result.filled->profitTime = bars_->time(barNum);
-				};
+		const auto targetCondition =
+			(buy  && bars_->high(barNum) >= targetPrice) ||
+			(sell && bars_->low(barNum) <= targetPrice);
 
-				if (!result.stopped)
-					applyProfit();
-				else {
-					result.onStopDayProfit = probablyHappened();
-					if (*result.onStopDayProfit)
-						applyProfit();
-				}
-			}
+		const auto stopCondition =
+			(buy  && bars_->low(barNum) <= stopPrice) ||
+			(sell && bars_->high(barNum) >= stopPrice);
+
+		const auto stopCloseCondition =
+			(buy  && bars_->close(barNum) <= stopPrice) ||
+			(sell && bars_->close(barNum) >= stopPrice);
+
+		const auto runStop = [&] {
+			result.stopped = {bars_->time(barNum), losslessStop};
+		};
+
+		const auto runProft = [&] {
+			result.filled->profitTime = bars_->time(barNum);
+		};
+
+		if (stopCondition && targetCondition) {
+			if (probably(.5))
+				runStop();
+			else
+				runProft();
+		} else if (stopCondition) {
+			if (certainlyFilled || stopCloseCondition)
+				runStop();
+			else if (probably(.5))
+				runStop();
+		} else if (targetCondition)
+			runProft();
+
+		const auto makeLosslessStop =
+			(buy && bars_->close(barNum) - stopEnterPrice > stopDelta) ||
+			(sell && stopEnterPrice - bars_->close(barNum) > stopDelta);
+
+		if (makeLosslessStop) {
+			stopPrice = stopEnterPrice;
+			losslessStop = true;
 		}
 
 		if (result.stopped)
 			break;
 	}
-
 	return result;
 }
 

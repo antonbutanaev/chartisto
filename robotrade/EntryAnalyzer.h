@@ -9,7 +9,6 @@ namespace robotrade {
 
 struct EntryAnalyzerParams {
 	double runAwayFromStopK = 2.;
-	double stopOnSameDayProb = .5;
 };
 
 class EntryAnalyzer {
@@ -20,19 +19,19 @@ public:
 		chart::Time orderActivated;
 		chart::Price stopEnterPrice;
 		chart::Price stopPrice;
+		chart::Price targetPrice;
+
 		struct Stopped {
 			chart::Time time;
+			bool losslessStop;
 		};
 		std::optional<Stopped> stopped;
-		std::optional<bool> onFillDayStop;
 
 		struct Filled {
 			chart::Time fillTime;
-			double profitPerStopK;
-			chart::Time profitTime;
+			std::optional<chart::Time> profitTime;
 		};
 		std::optional<Filled> filled;
-		std::optional<bool> onStopDayProfit;
 
 		struct RanAway {
 			chart::Time time;
@@ -49,6 +48,7 @@ public:
 		Direction direction,
 		chart::Price stopEnterPrice,
 		chart::Price stopPrice,
+		chart::Price targetPrice,
 		size_t orderBarNum,
 		unsigned seed
 	);

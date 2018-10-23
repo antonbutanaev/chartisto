@@ -371,6 +371,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 								EntryAnalyzer::Direction::Buy,
 								enterStop,
 								stop,
+								target,
 								lastBarNum,
 								seed
 							)
@@ -398,6 +399,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 								EntryAnalyzer::Direction::Sell,
 								enterStop,
 								stop,
+								target,
 								lastBarNum,
 								seed
 							)
@@ -415,9 +417,9 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	ret.title = bars->title(0);
 	for (const auto &result: results) {
 		++ret.numOrders;
-		if (result.filled && result.filled->profitPerStopK > params.profitPerLossK)
+		if (result.filled && result.filled->profitTime)
 			++ret.numProfits;
-		if (result.filled && result.filled->profitPerStopK < params.losslessStopK)
+		if (result.stopped && !result.stopped->losslessStop)
 			++ret.numLosses;
 		result_ << result << endl;
 	}
