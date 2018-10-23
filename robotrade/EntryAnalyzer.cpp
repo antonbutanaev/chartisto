@@ -82,8 +82,8 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			result.filled = {bars_->time(barNum)};
 
 		const auto runAwayCondition =
-			(buy && bars_->close(barNum) - stopEnterPrice > runAwayDelta) ||
-			(sell && stopEnterPrice - bars_->close(barNum) > runAwayDelta);
+			(buy && stopEnterPrice - bars_->close(barNum) > runAwayDelta) ||
+			(sell && bars_->close(barNum) - stopEnterPrice > runAwayDelta);
 
 		if (!result.filled && runAwayCondition) {
 			result.runAway = {

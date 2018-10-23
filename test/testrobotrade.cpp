@@ -418,21 +418,21 @@ TEST(TestRobotrade, EntryAnalyzer1) {
 		{
 			const auto result = entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
-				100,90,200, 0,1
+				26,22,50, 0,1
 			);
+			EXPECT_FALSE(result.runAway);
 			EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
-			EXPECT_NEAR(result.stopEnterPrice, 100, PriceEpsilon);
-			EXPECT_NEAR(result.stopPrice, 90, PriceEpsilon);
-			EXPECT_NEAR(result.targetPrice, 200, PriceEpsilon);
+			EXPECT_NEAR(result.stopEnterPrice, 26, PriceEpsilon);
+			EXPECT_NEAR(result.stopPrice, 22, PriceEpsilon);
+			EXPECT_NEAR(result.targetPrice, 50, PriceEpsilon);
 			EXPECT_FALSE(result.filled);
 			EXPECT_FALSE(result.stopped);
 			EXPECT_FALSE(result.profit);
-			EXPECT_FALSE(result.runAway);
 		}
 		{
 			const auto result = entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
-				24,4,30, 0,1
+				24,4,100, 0,1
 			);
 			EXPECT_TRUE(result.filled);
 			EXPECT_FALSE(result.stopped);
