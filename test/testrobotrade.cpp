@@ -7,6 +7,7 @@
 #include <chart/reduce.h>
 #include <date/date.h>
 #include <fmt/format.h>
+#include <robotrade/EntryAnalyzer.h>
 
 using namespace std;
 using namespace date;
@@ -403,3 +404,42 @@ TEST(TestRobotrade, TraderStopSell) {
 	EXPECT_NEAR(trades[1].total, -(100.7-100)*1420, PriceEpsilon);
 }
 
+TEST(TestRobotrade, EntryAnalyzer1) {
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,25,5,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		EntryAnalyzer entryAnalyzer(bars, cout);
+
+		{
+			const auto result = entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Buy,
+				100,90,200, 0,1
+			);
+			EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
+			EXPECT_NEAR(result.stopEnterPrice, 100, PriceEpsilon);
+			EXPECT_NEAR(result.stopPrice, 90, PriceEpsilon);
+			EXPECT_NEAR(result.targetPrice, 200, PriceEpsilon);
+			EXPECT_FALSE(result.filled);
+			EXPECT_FALSE(result.stopped);
+			EXPECT_FALSE(result.profit);
+			EXPECT_FALSE(result.runAway);
+		}
+		{
+			const auto result = entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Buy,
+				24,4,30, 0,1
+			);
+			EXPECT_TRUE(result.filled);
+			EXPECT_FALSE(result.stopped);
+			EXPECT_FALSE(result.profit);
+			EXPECT_FALSE(result.runAway);
+			EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
+		}
+
+	}
+}
