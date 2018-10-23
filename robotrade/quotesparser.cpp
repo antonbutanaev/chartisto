@@ -1,5 +1,5 @@
 #include <iostream>
-#include <regex>
+#include <vector>
 #include <date/date.h>
 #include <chart/data.h>
 #include <robotrade/quotesparser.h>
@@ -12,63 +12,87 @@ using namespace chart;
 namespace robotrade {
 namespace {
 
+const char *header1 = "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>";
+const char *header2 = "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>,<OPENINT>";
+
 class Bars: public data::Bars {
 public:
     Bars(std::istream &is) {
-        string line;
-        const auto chopLine = [&]{
-          while (!line.empty() && (line.back() == '\r' || line.back() == '\n'))
-              line.pop_back();
+        int lineNum = 1;
+        const auto error = [&] (const string &message) {
+        	throw runtime_error(message + " at line " + to_string(lineNum));
         };
 
-        getline(is, line);
-        chopLine();
+        string line;
+        if(!getline(is, line))
+        	error("no header");
 
-        if (
-        	line != "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>" &&
-        	line != "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>,<OPENINT>"
-        )
-            throw runtime_error("Wrong header: " + line);
+        const auto fmt1 = line == header1;
+        const auto fmt2 = line == header2;
 
-        const regex re(R"RE(^([^,]+),\w+,(\d{4})(\d{2})(\d{2}),(\d{2})(\d{2})\d{2},([\d.]+),([\d.]+),([\d.]+),([\d.]+),(\d+)(,\d+)?$)RE");
+        if (!fmt1 && !fmt2)
+            throw runtime_error("wrong header: " + line);
 
-        enum {
-            Ticker=1,
-            Year,
-            Month,
-            Day,
-            Hours,
-            Minutes,
-            Open,
-            High,
-            Low,
-            Close,
-            Volume,
+        const auto check = [&] (char delim, int item) {
+        	char c;
+        	is.get(c);
+        	if (c != delim)
+        		error("expected delim after item " + to_string(item) + " got " + c);
         };
 
         for(;;) {
-            getline(is, line);
-            if (!is)
-                break;
-            chopLine();
+        	++lineNum;
+        	int item = 0;
+        	Bar bar;
+            if(!getline(is, bar.title, ','))
+            	break;
 
-            smatch match;
-            if (regex_search(line, match, re)) {
-                const auto dateTime =
-                    sys_days{year{stoi(match[Year])} / stoi(match[Month]) / stoi(match[Day])} +
-                    hours{stoi(match[Hours])} +
-                    minutes{stoi(match[Minutes])};
+            char per;
+            is >> per;
+            check(',', ++item);
 
-                bars_.push_back({
-                    dateTime,
-                    stod(match[Open]),
-                    stod(match[Close]),
-                    stod(match[High]),
-                    stod(match[Low]),
-                    stod(match[Volume]),
-                    match[Ticker],
-                });
+            int date;
+            is >> date;
+            check(',', ++item);
+
+            int time;
+            is >> time;
+            check(',', ++item);
+
+            const auto d = date % 100;
+            date /= 100;
+            const auto m = date % 100;
+            const auto y = date / 100;
+
+            time /= 100;
+            const auto M = time % 100;
+            const auto H = time / 100;
+
+			bar.time = sys_days{year{y}/m/d} + hours{H} + minutes{M};
+
+			is >> bar.open;
+            check(',', ++item);
+
+			is >> bar.high;
+            check(',', ++item);
+
+            is >> bar.low;
+            check(',', ++item);
+
+            is >> bar.close;
+            check(',', ++item);
+
+            is >> bar.volume;
+
+            if (fmt2) {
+            	check(',', ++item);
+            	int openInt;
+				is >> openInt;
             }
+
+            check('\n', ++item);
+
+			bars_.push_back(move(bar));
         }
     }
 
