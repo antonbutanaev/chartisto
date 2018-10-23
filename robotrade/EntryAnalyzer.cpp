@@ -135,6 +135,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				runStop();
 		} else if (targetCondition)
 			runProft();
+		
+		if (result.stopped || result.filled->profitTime)
+			break;
 
 		const auto makeLosslessStop =
 			(buy && bars_->close(barNum) - stopEnterPrice > stopDelta) ||
@@ -145,8 +148,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			losslessStop = true;
 		}
 
-		if (result.stopped)
-			break;
 	}
 	return result;
 }
