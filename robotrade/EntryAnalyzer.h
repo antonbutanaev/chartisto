@@ -13,7 +13,7 @@ struct EntryAnalyzerParams {
 
 class EntryAnalyzer {
 public:
-	EntryAnalyzer(chart::data::PBars bars);
+	EntryAnalyzer(chart::data::PBars bars, std::ostream&);
 
 	struct Result {
 		chart::Time orderActivated;
@@ -23,15 +23,21 @@ public:
 
 		struct Stopped {
 			chart::Time time;
-			bool losslessStop = false;
+			bool lossless = false;
+			bool probable = false;
 		};
 		std::optional<Stopped> stopped;
 
 		struct Filled {
-			chart::Time fillTime;
-			std::optional<chart::Time> profitTime;
+			chart::Time time;
 		};
 		std::optional<Filled> filled;
+
+		struct Profit {
+			chart::Time time;
+			bool probable = false;
+		};
+		std::optional<Profit> profit;
 
 		struct RanAway {
 			chart::Time time;
@@ -55,6 +61,7 @@ public:
 
 private:
 	chart::data::PBars bars_;
+	std::ostream &result_;
 };
 
 }

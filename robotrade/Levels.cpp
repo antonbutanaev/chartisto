@@ -301,7 +301,7 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 }
 
 Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
-	EntryAnalyzer entryAnalyzer(bars);
+	EntryAnalyzer entryAnalyzer(bars, result_);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams(bars, 0,0);
 	result_ << "Using params:" << endl << params;
@@ -417,9 +417,9 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	ret.title = bars->title(0);
 	for (const auto &result: results) {
 		++ret.numOrders;
-		if (result.filled && result.filled->profitTime)
+		if (result.filled && result.profit)
 			++ret.numProfits;
-		if (result.stopped && !result.stopped->losslessStop)
+		if (result.stopped && !result.stopped->lossless)
 			++ret.numLosses;
 		result_ << result << endl;
 	}

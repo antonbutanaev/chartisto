@@ -13,27 +13,37 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " enter " << result.stopEnterPrice
 		<< " target " << result.targetPrice
 		<< " stop " << result.stopPrice << ';';
+
 	if (result.runAway)
 		o << " Run away " << result.runAway->time << " " << result.runAway->price << ';';
-	if (result.filled) {
-		o
-			<< " Filled " << result.filled->fillTime;
-			if (result.filled->profitTime)
-				o << " profit on " << *result.filled->profitTime;
+
+	if (result.filled)
+		o << " Filled " << result.filled->time << ';';
+
+	if (result.profit) {
+		o << " Profit " << result.profit->time;
+		if (result.profit->probable)
+			o << " probable";
 		o << ';';
 	}
 
 	if (result.stopped) {
 		o << " Stopped " << result.stopped->time;
-		if (result.stopped->losslessStop)
+		if (result.stopped->lossless)
 			o << " lossless";
+		if (result.stopped->probable)
+			o << " probable";
 		o << ';';
 	}
 
 	return o;
 }
 
-EntryAnalyzer::EntryAnalyzer(chart::data::PBars bars) : bars_(bars) {
+EntryAnalyzer::EntryAnalyzer(chart::data::PBars bars, std::ostream &result)
+	:
+	bars_(bars),
+	result_(result)
+{
 }
 
 EntryAnalyzer::Result EntryAnalyzer::analyze(
@@ -69,7 +79,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			(sell && bars_->low(barNum) <= stopEnterPrice);
 
 		if (!result.filled && fillCondition)
-			result.filled = {bars_->time(barNum), {}};
+			result.filled = {bars_->time(barNum)};
 
 		const auto runAwayCondition =
 			(buy && stopEnterPrice - bars_->close(barNum) > runAwayDelta) ||
@@ -93,13 +103,14 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		if (certainlyTargeted) {
 			result.stopped = {
 				bars_->time(barNum),
-				true
+				true,
+				false
 			};
 			break;
 		}
 
 		const auto certainlyFilled =
-			bars_->time(barNum) > result.filled->fillTime ||
+			bars_->time(barNum) > result.filled->time ||
 			(buy  && bars_->open(barNum) >= stopEnterPrice) ||
 			(sell && bars_->open(barNum) <= stopEnterPrice);
 
@@ -115,28 +126,32 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			(buy  && bars_->close(barNum) <= stopPrice) ||
 			(sell && bars_->close(barNum) >= stopPrice);
 
-		const auto runStop = [&] {
-			result.stopped = {bars_->time(barNum), losslessStop};
+		const auto runStop = [&] (bool probable) {
+			result.stopped = {
+				bars_->time(barNum),
+				losslessStop,
+				probable
+			};
 		};
 
-		const auto runProft = [&] {
-			result.filled->profitTime = bars_->time(barNum);
+		const auto runProft = [&] (bool probable) {
+			result.profit = {bars_->time(barNum), probable};
 		};
 
 		if (stopCondition && targetCondition) {
 			if (probably(.5))
-				runStop();
+				runStop(true);
 			else
-				runProft();
+				runProft(true);
 		} else if (stopCondition) {
 			if (certainlyFilled || stopCloseCondition)
-				runStop();
+				runStop(false);
 			else if (probably(.5))
-				runStop();
+				runStop(true);
 		} else if (targetCondition)
-			runProft();
-		
-		if (result.stopped || result.filled->profitTime)
+			runProft(false);
+
+		if (result.stopped || result.profit)
 			break;
 
 		const auto makeLosslessStop =
@@ -147,7 +162,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			stopPrice = stopEnterPrice;
 			losslessStop = true;
 		}
-
 	}
 	return result;
 }
