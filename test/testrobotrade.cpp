@@ -404,7 +404,7 @@ TEST(TestRobotrade, TraderStopSell) {
 	EXPECT_NEAR(trades[1].total, -(100.7-100)*1420, PriceEpsilon);
 }
 
-TEST(TestRobotrade, EntryAnalyzer1) {
+TEST(TestRobotrade, EntryAnalyzer) {
 	{
 		string quotes =
 			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -417,10 +417,8 @@ TEST(TestRobotrade, EntryAnalyzer1) {
 
 		{
 			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy,
-				26,22,50, 0,1
+				EntryAnalyzer::Direction::Buy, 26,22,50, 0,1
 			);
-			EXPECT_FALSE(result.runAway);
 			EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
 			EXPECT_NEAR(result.stopEnterPrice, 26, PriceEpsilon);
 			EXPECT_NEAR(result.stopPrice, 22, PriceEpsilon);
@@ -428,18 +426,28 @@ TEST(TestRobotrade, EntryAnalyzer1) {
 			EXPECT_FALSE(result.filled);
 			EXPECT_FALSE(result.stopped);
 			EXPECT_FALSE(result.profit);
+			EXPECT_FALSE(result.runAway);
+
 		}
 		{
 			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy,
-				24,4,100, 0,1
+				EntryAnalyzer::Direction::Buy, 24,4,100, 0,1
 			);
-			EXPECT_TRUE(result.filled);
 			EXPECT_FALSE(result.stopped);
 			EXPECT_FALSE(result.profit);
 			EXPECT_FALSE(result.runAway);
+			ASSERT_TRUE(result.filled);
 			EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
 		}
-
+		{
+			const auto result = entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Buy, 30,29,100, 0,1
+			);
+			EXPECT_FALSE(result.stopped);
+			EXPECT_FALSE(result.profit);
+			EXPECT_FALSE(result.filled);
+			ASSERT_TRUE(result.runAway);
+			EXPECT_NEAR(result.runAway->price, 28, PriceEpsilon);
+		}
 	}
 }
