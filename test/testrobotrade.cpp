@@ -405,6 +405,15 @@ TEST(TestRobotrade, TraderStopSell) {
 }
 
 TEST(TestRobotrade, EntryAnalyzer) {
+	class ProbabilityProvider : public IProbabilityProvider {
+	public:
+		ProbabilityProvider(double rand) : rand_(rand) {}
+		void seed(unsigned) override {}
+		bool happened(double probability) override {return probability < rand_;}
+	private:
+		double rand_;
+	};
+
 	{
 		string quotes =
 			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
@@ -413,7 +422,8 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		stringstream ss(quotes);
 
 		const auto bars = parse(ss);
-		EntryAnalyzer entryAnalyzer(bars, cout);
+		ProbabilityProvider probabilityProvider(1);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
 
 		{
 			const auto result = entryAnalyzer.analyze(
@@ -448,6 +458,19 @@ TEST(TestRobotrade, EntryAnalyzer) {
 			EXPECT_FALSE(result.filled);
 			ASSERT_TRUE(result.runAway);
 			EXPECT_NEAR(result.runAway->price, 28, PriceEpsilon);
+		}
+		{
+			const auto result = entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Buy, 6,5,9, 0,1
+			);
+			ASSERT_TRUE(result.stopped);
+			ASSERT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
+			ASSERT_EQ(result.stopped->probable, false);
+			ASSERT_EQ(result.stopped->lossless, true);
+			EXPECT_FALSE(result.profit);
+			ASSERT_TRUE(result.filled);
+			EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
+			EXPECT_FALSE(result.runAway);
 		}
 	}
 }

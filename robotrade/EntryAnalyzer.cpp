@@ -39,9 +39,22 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	return o;
 }
 
-EntryAnalyzer::EntryAnalyzer(chart::data::PBars bars, std::ostream &result)
+void ProbabilityProvider::seed(unsigned value) {
+	rand_.seed(value);
+}
+
+bool ProbabilityProvider::happened(double probability) {
+	return dist_(rand_) < probability;
+}
+
+EntryAnalyzer::EntryAnalyzer(
+	chart::data::PBars bars,
+	IProbabilityProvider &probabilityProvider,
+	std::ostream &result
+)
 	:
 	bars_(bars),
+	probabilityProvider_(probabilityProvider),
 	result_(result)
 {
 }
@@ -58,12 +71,12 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	const auto sell = direction == Direction::Sell;
 
 	EntryAnalyzerParams params;
-	mt19937 rand;
 	util::FNVHash hash;
 	hash << bars_->title(0) << orderBarNum << seed;
-	rand.seed(hash.value());
-	uniform_real_distribution<double> dist(0, 1);
-	const auto probably = [&] (double p){return dist(rand) < p;};
+	probabilityProvider_.seed(hash.value());
+	const auto probablyHappened = [&] (double probability){
+		return probabilityProvider_.happened(probability);
+	};
 
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
@@ -139,14 +152,14 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		};
 
 		if (stopCondition && targetCondition) {
-			if (probably(.5))
+			if (probablyHappened(.5))
 				runStop(true);
 			else
 				runProft(true);
 		} else if (stopCondition) {
 			if (certainlyFilled || stopCloseCondition)
 				runStop(false);
-			else if (probably(.5))
+			else if (probablyHappened(.5))
 				runStop(true);
 		} else if (targetCondition)
 			runProft(false);

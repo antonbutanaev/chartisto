@@ -11,9 +11,25 @@ struct EntryAnalyzerParams {
 	double runAwayFromStopK = 2.;
 };
 
+class IProbabilityProvider {
+public:
+	virtual ~IProbabilityProvider() = default;
+	virtual void seed(unsigned) = 0;
+	virtual bool happened(double probability) = 0;
+};
+
+class ProbabilityProvider : public IProbabilityProvider {
+public:
+	void seed(unsigned) override;
+	bool happened(double probability) override;
+public:
+	std::mt19937 rand_;
+	std::uniform_real_distribution<double> dist_{0, 1};
+};
+
 class EntryAnalyzer {
 public:
-	EntryAnalyzer(chart::data::PBars bars, std::ostream&);
+	EntryAnalyzer(chart::data::PBars bars, IProbabilityProvider&, std::ostream&);
 
 	struct Result {
 		chart::Time orderActivated;
@@ -61,6 +77,7 @@ public:
 
 private:
 	chart::data::PBars bars_;
+	IProbabilityProvider &probabilityProvider_;
 	std::ostream &result_;
 };
 
