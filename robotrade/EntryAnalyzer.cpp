@@ -106,7 +106,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		}
 
 		if (!result.filled)
-			break;
+			continue;
 
 		const auto targetCondition =
 			(buy  && bars_->high(barNum) >= targetPrice) ||
