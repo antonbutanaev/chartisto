@@ -459,18 +459,5 @@ TEST(TestRobotrade, EntryAnalyzer) {
 			ASSERT_TRUE(result.runAway);
 			EXPECT_NEAR(result.runAway->price, 28, PriceEpsilon);
 		}
-		{
-			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy, 6,5,9, 0,1
-			);
-			ASSERT_TRUE(result.stopped);
-			ASSERT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
-			ASSERT_EQ(result.stopped->probable, false);
-			ASSERT_EQ(result.stopped->lossless, true);
-			EXPECT_FALSE(result.profit);
-			ASSERT_TRUE(result.filled);
-			EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
-			EXPECT_FALSE(result.runAway);
-		}
 	}
 }

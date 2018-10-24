@@ -85,18 +85,17 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	const auto runAwayDelta = params.runAwayFromStopK * stopDelta;
-	bool losslessStop = false;
+	bool stopMadeLossless = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 		const auto fillCondition =
-			(buy && bars_->high(barNum) >= stopEnterPrice) ||
-			(sell && bars_->low(barNum) <= stopEnterPrice);
+			bars_->high(barNum) >= stopEnterPrice && bars_->low(barNum) <= stopEnterPrice;
 
-		if (!result.filled && fillCondition)
+		const auto wasFilled = !!result.filled;
+		if (!wasFilled && fillCondition)
 			result.filled = {bars_->time(barNum)};
 
 		const auto runAwayCondition =
-			(buy && stopEnterPrice - bars_->close(barNum) > runAwayDelta) ||
-			(sell && bars_->close(barNum) - stopEnterPrice > runAwayDelta);
+			fabs(stopEnterPrice - bars_->close(barNum)) > runAwayDelta;
 
 		if (!result.filled && runAwayCondition) {
 			result.runAway = {
@@ -107,25 +106,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		}
 
 		if (!result.filled)
-			continue;
-
-		const auto certainlyTargeted =
-			(buy  && bars_->open(barNum) >= targetPrice) ||
-			(sell && bars_->open(barNum) <= targetPrice);
-
-		if (certainlyTargeted) {
-			result.stopped = {
-				bars_->time(barNum),
-				true,
-				false
-			};
 			break;
-		}
-
-		const auto certainlyFilled =
-			bars_->time(barNum) > result.filled->time ||
-			(buy  && bars_->open(barNum) >= stopEnterPrice) ||
-			(sell && bars_->open(barNum) <= stopEnterPrice);
 
 		const auto targetCondition =
 			(buy  && bars_->high(barNum) >= targetPrice) ||
@@ -142,7 +123,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		const auto runStop = [&] (bool probable) {
 			result.stopped = {
 				bars_->time(barNum),
-				losslessStop,
+				fabs(stopPrice - stopEnterPrice) < PriceEpsilon,
 				probable
 			};
 		};
@@ -157,7 +138,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			else
 				runProft(true);
 		} else if (stopCondition) {
-			if (certainlyFilled || stopCloseCondition)
+			if (wasFilled || stopCloseCondition)
 				runStop(false);
 			else if (probablyHappened(.5))
 				runStop(true);
@@ -167,13 +148,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		if (result.stopped || result.profit)
 			break;
 
-		const auto makeLosslessStop =
-			(buy && bars_->close(barNum) - stopEnterPrice > stopDelta) ||
-			(sell && stopEnterPrice - bars_->close(barNum) > stopDelta);
-
-		if (makeLosslessStop) {
+		if (!stopMadeLossless && fabs(bars_->close(barNum) - stopEnterPrice) > stopDelta) {
+			stopMadeLossless = true;
 			stopPrice = stopEnterPrice;
-			losslessStop = true;
 		}
 	}
 	return result;
