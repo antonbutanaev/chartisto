@@ -23,7 +23,14 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 	if (result.profit) {
 		o << " Profit " << result.profit->time;
 		if (result.profit->probable)
-			o << " probable";
+			o << " probably";
+		o << ';';
+	}
+
+	if (!result.probablyNoProfit.empty()) {
+		o << " probably no profit on";
+		for (const auto &time: result.probablyNoProfit)
+			o << ' ' << time;
 		o << ';';
 	}
 
@@ -32,7 +39,14 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		if (result.stopped->lossless)
 			o << " lossless";
 		if (result.stopped->probable)
-			o << " probable";
+			o << " probably";
+		o << ';';
+	}
+
+	if (!result.probablyNotStopped.empty()) {
+		o << " probably not stopped on";
+		for (const auto &time: result.probablyNotStopped)
+			o << ' ' << time;
 		o << ';';
 	}
 
@@ -85,6 +99,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	const auto runAwayDelta = params.runAwayFromStopK * stopDelta;
+	const auto losslessDelta = params.losslessStopK * stopDelta;
 	bool stopMadeLossless = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 		const auto fillCondition =
@@ -112,6 +127,11 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			(buy  && bars_->high(barNum) >= targetPrice) ||
 			(sell && bars_->low(barNum) <= targetPrice);
 
+		const auto targetCloseCondition =
+			(buy  && bars_->close(barNum) >= targetPrice) ||
+			(sell && bars_->close(barNum) <= targetPrice);
+
+
 		const auto stopCondition =
 			(buy  && bars_->low(barNum) <= stopPrice) ||
 			(sell && bars_->high(barNum) >= stopPrice);
@@ -128,27 +148,48 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			};
 		};
 
-		const auto runProft = [&] (bool probable) {
+		const auto probablyNotStopped = [&]{
+			result.probablyNotStopped.push_back(bars_->time(barNum));
+		};
+
+		const auto runProfit = [&] (bool probable) {
 			result.profit = {bars_->time(barNum), probable};
 		};
 
+		const auto probablyNoProfit = [&]{
+			result.probablyNoProfit.push_back(bars_->time(barNum));
+		};
+
 		if (stopCondition && targetCondition) {
-			if (probablyHappened(.5))
+			if (probablyHappened(.5)) {
 				runStop(true);
-			else
-				runProft(true);
+				probablyNoProfit();
+			} else {
+				runProfit(true);
+				probablyNotStopped();
+			}
+
 		} else if (stopCondition) {
 			if (wasFilled || stopCloseCondition)
 				runStop(false);
 			else if (probablyHappened(.5))
 				runStop(true);
-		} else if (targetCondition)
-			runProft(false);
+			else
+				probablyNotStopped();
+
+		} else if (targetCondition) {
+			if (wasFilled || targetCloseCondition)
+				runProfit(false);
+			else if (probablyHappened(.5))
+				runProfit(true);
+			else
+				probablyNoProfit();
+		}
 
 		if (result.stopped || result.profit)
 			break;
 
-		if (!stopMadeLossless && fabs(bars_->close(barNum) - stopEnterPrice) > stopDelta) {
+		if (!stopMadeLossless && fabs(bars_->close(barNum) - stopEnterPrice) > losslessDelta) {
 			stopMadeLossless = true;
 			stopPrice = stopEnterPrice;
 		}

@@ -9,6 +9,7 @@ namespace robotrade {
 
 struct EntryAnalyzerParams {
 	double runAwayFromStopK = 2.;
+	double losslessStopK = 2.;
 };
 
 class IProbabilityProvider {
@@ -43,6 +44,7 @@ public:
 			bool probable = false;
 		};
 		std::optional<Stopped> stopped;
+		std::vector<chart::Time> probablyNotStopped;
 
 		struct Filled {
 			chart::Time time;
@@ -54,6 +56,7 @@ public:
 			bool probable = false;
 		};
 		std::optional<Profit> profit;
+		std::vector<chart::Time> probablyNoProfit;
 
 		struct RanAway {
 			chart::Time time;
