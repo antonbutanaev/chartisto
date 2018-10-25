@@ -185,6 +185,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 					) += 1;
 					level.from = min(level.from, barNum);
 					level.to = max(level.to, barNum);
+					break;
 				}
 			}
 
@@ -209,7 +210,8 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 
 		if (
 			level.numBodyTouches + level.numTailTouches >= params.minTouches &&
-			level.numBodyCrosses < params.maxCrossRate * (level.numBodyTouches + level.numTailTouches)
+			level.numBodyCrosses < params.maxCrossRate * (level.numBodyTouches + level.numTailTouches) &&
+			level.to - level.from + 1 >= params.numBarsComing
 		)
 			levels.push_back(level);
 	}
@@ -270,16 +272,18 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			++levelIt;
 	}
 
-	auto levelsByPrice = levels;
-	sort(levelsByPrice.begin(), levelsByPrice.end(), byPrice);
-	result_
-		<< "Price\t%%\t%%" << endl;
-
-	for (size_t i = 1; i < levelsByPrice.size(); ++i) {
+	if (!levels.empty()) {
+		auto levelsByPrice = levels;
+		sort(levelsByPrice.begin(), levelsByPrice.end(), byPrice);
 		result_
-			<< levelsByPrice[i-1].level << '\t'
-			<< 100 * (levelsByPrice[i-1].level / levelsByPrice[i].level - 1) << '\t'
-			<< 100 * (levelsByPrice[i].level/levelsByPrice[i-1].level - 1) << endl;
+			<< "Price\t%%" << endl
+			<< levelsByPrice[0].level << endl;
+
+		for (size_t i = 1; i < levelsByPrice.size(); ++i) {
+			result_
+				<< levelsByPrice[i].level << '\t'
+				<< 100 * (levelsByPrice[i].level / levelsByPrice[i-1].level - 1) << endl;
+		}
 	}
 
 	sort(levels.begin(), levels.end(), byRate);
@@ -355,7 +359,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 				const auto close = bars->close(lastBarNum);
 
 				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
-					const auto stop = bars->close(lastBarNum) - params.stepsForStop * params.step;
+					const auto stop = bars->low(lastBarNum) - params.stepsForStop * params.step;
 					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
 					const auto target = enterStop + params.profitPerLossK * (enterStop - stop);
 					using chart::operator <<;
@@ -383,7 +387,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 				}
 
 				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
-					const auto stop = bars->close(lastBarNum) + params.stepsForStop * params.step;
+					const auto stop = bars->high(lastBarNum) + params.stepsForStop * params.step;
 					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
 					const auto target = enterStop - params.profitPerLossK * (stop - enterStop);
 					using chart::operator <<;

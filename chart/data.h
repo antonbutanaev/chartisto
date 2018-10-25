@@ -44,7 +44,7 @@ public:
 
     virtual size_t num() const = 0;
 
-    enum class PriceType{Open, Close, High, Low};
+    enum class PriceType{High, Low, Open, Close};
     static constexpr PriceType PriceTypes[]{
     	PriceType::Open, PriceType::Close,
     	PriceType::High, PriceType::Low
