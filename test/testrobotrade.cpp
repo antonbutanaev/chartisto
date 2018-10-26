@@ -423,7 +423,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 26,22,50, 0,1
@@ -447,7 +447,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 24,4,100, 0,1
 		);
@@ -466,7 +466,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 30,27,100, 0,1
 		);
@@ -485,7 +485,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
 		);
@@ -508,7 +508,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
 		);
@@ -530,7 +530,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
 		);
@@ -552,7 +552,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
 		);
@@ -573,7 +573,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
 		);
@@ -596,7 +596,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
 		);
@@ -619,7 +619,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
 		);
@@ -639,7 +639,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
 		);
@@ -659,7 +659,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
 		);
@@ -680,7 +680,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
 		);
@@ -702,7 +702,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
 		);
@@ -725,7 +725,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,9,100, 0,1
 		);
@@ -738,5 +738,4 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		ASSERT_FALSE(result.profit);
 		EXPECT_FALSE(result.runAway);
 	}
-
 }

@@ -62,11 +62,13 @@ unsigned ProbabilityProvider::whatHappened(unsigned numChances) {
 }
 
 EntryAnalyzer::EntryAnalyzer(
+	const EntryAnalyzerParams &params,
 	chart::data::PBars bars,
 	IProbabilityProvider &probabilityProvider,
 	std::ostream &result
 )
 	:
+	params_(params),
 	bars_(bars),
 	probabilityProvider_(probabilityProvider),
 	result_(result)
@@ -84,18 +86,17 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	const auto buy = direction == Direction::Buy;
 	const auto sell = direction == Direction::Sell;
 
-	EntryAnalyzerParams params;
 	util::FNVHash hash;
 	hash << bars_->title(0) << orderBarNum << seed;
-	probabilityProvider_.seed(hash.value());
+	probabilityProvider_.seed(hash);
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
 	result.stopPrice = stopPrice;
 	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
-	const auto runAwayDelta = params.runAwayFromStopK * stopDelta;
-	const auto losslessDelta = params.losslessStopK * stopDelta;
+	const auto runAwayDelta = params_.runAwayFromStopK * stopDelta;
+	const auto losslessDelta = params_.losslessStopK * stopDelta;
 	bool stopMadeLossless = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 		const auto fillCondition =
@@ -136,11 +137,13 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			(buy  && bars_->close(barNum) <= stopPrice) ||
 			(sell && bars_->close(barNum) >= stopPrice);
 
-		const auto runStop = [&] (bool probable) {
+		enum Probability{Probable, Certain};
+
+		const auto runStop = [&] (Probability probability) {
 			result.stopped = {
 				bars_->time(barNum),
 				fabs(stopPrice - stopEnterPrice) < PriceEpsilon,
-				probable
+				probability == Probable
 			};
 		};
 
@@ -148,8 +151,8 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			result.probablyNotStopped.push_back(bars_->time(barNum));
 		};
 
-		const auto runProfit = [&] (bool probable) {
-			result.profit = {bars_->time(barNum), probable};
+		const auto runProfit = [&] (Probability probability) {
+			result.profit = {bars_->time(barNum), probability == Probable};
 		};
 
 		const auto probablyNoProfit = [&]{
@@ -162,26 +165,26 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 
 		if (stopCondition && targetCondition) {
 			if (happenedFirstOfTwo()) {
-				runStop(true);
+				runStop(Probable);
 				probablyNoProfit();
 			} else {
-				runProfit(true);
+				runProfit(Probable);
 				probablyNotStopped();
 			}
 
 		} else if (stopCondition) {
 			if (wasFilled || stopCloseCondition)
-				runStop(false);
+				runStop(Certain);
 			else if (happenedFirstOfTwo())
-				runStop(true);
+				runStop(Probable);
 			else
 				probablyNotStopped();
 
 		} else if (targetCondition) {
 			if (wasFilled || targetCloseCondition)
-				runProfit(false);
+				runProfit(Certain);
 			else if (happenedFirstOfTwo())
-				runProfit(true);
+				runProfit(Probable);
 			else
 				probablyNoProfit();
 		}

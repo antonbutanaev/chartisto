@@ -306,7 +306,8 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 
 Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	ProbabilityProvider probabilityProvider;
-	EntryAnalyzer entryAnalyzer(bars, probabilityProvider, result_);
+	EntryAnalyzerParams entryAnalyzerParams;
+	EntryAnalyzer entryAnalyzer(entryAnalyzerParams, bars, probabilityProvider, result_);
 	vector<EntryAnalyzer::Result> results;
 	const auto params = getLevelsParams(bars, 0,0);
 	result_ << "Using params:" << endl << params;

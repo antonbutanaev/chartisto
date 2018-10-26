@@ -10,7 +10,7 @@ public:
 		h_ ^= static_cast<unsigned>(v);
 		h_ *= 0x01000193;
 		return *this;
-	};
+	}
 
 	FNVHash &operator<<(const std::string &v) {
 		for (const auto &ch: v)

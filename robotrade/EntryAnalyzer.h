@@ -30,7 +30,11 @@ public:
 
 class EntryAnalyzer {
 public:
-	EntryAnalyzer(chart::data::PBars bars, IProbabilityProvider&, std::ostream&);
+	EntryAnalyzer(
+		const EntryAnalyzerParams &params,
+		chart::data::PBars bars,
+		IProbabilityProvider&, std::ostream&
+	);
 
 	struct Result {
 		chart::Time orderActivated;
@@ -79,6 +83,7 @@ public:
 	);
 
 private:
+	EntryAnalyzerParams params_;
 	chart::data::PBars bars_;
 	IProbabilityProvider &probabilityProvider_;
 	std::ostream &result_;
