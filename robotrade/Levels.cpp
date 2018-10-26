@@ -138,32 +138,6 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		<< "Date  range: " << bars->time(from) << " " << bars->time(to) << endl
 		<< "Price range: " << rangeLow << " " << rangeHigh << endl;
 
-	if (
-		minPrice.price >= rangeLow &&
-		minPrice.barNum + params.minExtremumAgeBars < to &&
-		minPrice.barNum - params.minExtremumAgeBars >= from
-	) {
-		Level level;
-		level.level = minPrice.price;
-		level.isExtrememum = true;
-		level.from = minPrice.barNum;
-		level.to = minPrice.barNum;
-		levels.push_back(level);
-	}
-
-	if (
-		maxPrice.price <= rangeHigh &&
-		maxPrice.barNum + params.minExtremumAgeBars < to &&
-		maxPrice.barNum - params.minExtremumAgeBars >= from
-	) {
-		Level level;
-		level.level = maxPrice.price;
-		level.isExtrememum = true;
-		level.from = maxPrice.barNum;
-		level.to = maxPrice.barNum;
-		levels.push_back(level);
-	}
-
 	for (auto price = rangeLow; price <= rangeHigh; price += params.step) {
 		Level level;
 		level.level = price;
@@ -216,6 +190,30 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			levels.push_back(level);
 	}
 
+	// normalize and fill rates
+	size_t maxNumTailTouches = 0;
+	size_t maxNumBodyTouches = 0;
+	double maxBodyCross = 0;
+	double maxAvgDeviation = 0;
+	size_t maxLength = 0;
+
+	for (const auto &level: levels) {
+		maxNumTailTouches = max(maxNumTailTouches, level.numTailTouches);
+		maxNumBodyTouches = max(maxNumBodyTouches, level.numBodyTouches);
+		maxBodyCross = max(maxBodyCross, level.bodyCross());
+		maxAvgDeviation = max(maxAvgDeviation, level.avgDeviationPerCent);
+		maxLength = max(maxLength, level.length());
+	}
+
+	for (auto &level: levels) {
+		level.numTailTouchesRate = 100. * level.numTailTouches / maxNumTailTouches;
+		level.numBodyTouchesRate = 100. * level.numBodyTouches / maxNumBodyTouches;
+		level.bodyCrossRate = 100. * level.bodyCross() / maxBodyCross;
+		level.avgDeviationRate = 100. * level.avgDeviationPerCent / maxAvgDeviation;
+		level.lengthRate = 100. * level.length() / maxLength;
+	}
+
+
 	const auto byPrice = [&](const auto &a, const auto &b) {
 		return a.level > b.level;
 	};
@@ -224,39 +222,44 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		const auto rate = [&] (const auto &level) {
 			return
 				(
-					level.avgDeviationPerCent * params.avgDeviationWeight +
-					level.numTailTouches * params.tailTouchWeight +
-					level.numBodyTouches * params.bodyTouchWeight +
-					level.numBodyCrosses * params.crossWeight
+					level.avgDeviationRate * params.avgDeviationWeight +
+					level.numTailTouchesRate * params.tailTouchWeight +
+					level.numBodyTouchesRate * params.bodyTouchWeight +
+					level.bodyCrossRate * params.crossWeight
 				) * (level.isRound? params.roundWeight : 1);
 		};
-
-		return
-			a.isExtrememum != b.isExtrememum?
-				a.isExtrememum > b.isExtrememum : rate(a) > rate(b);
+		return rate(a) > rate(b);
 	};
 
 	const auto print = [&] (const char *tag) {
 		result_
 			<< tag << ": " << levels.size() << endl
-			<< "TailTch\tBodyTch\tBodyX\tLevel\t\tExtr\tRound\tLen\tAvgDev%\tFrom\t\tTo" << endl;
+			<< "TailTch\t\tBodyTch\t\tBodyX\t\tLevel\t\tExtr\tRound\tLen\t\tAvgDev%\t\tFrom\t\tTo" << endl;
 		for (const auto & level: levels) {
 			ios_all_saver save(result_);
 			result_
+				<< setprecision(3)
 				<< level.numTailTouches << '\t'
+				<< level.numTailTouchesRate << '\t'
 				<< level.numBodyTouches << '\t'
+				<< level.numBodyTouchesRate << '\t'
 				<< level.numBodyCrosses << '\t'
-				<< setw(10) << left << level.level << '\t'
+				<< level.bodyCrossRate << '\t'
+				<< setw(10) << setprecision(10) << left << level.level << '\t'
+				<< setprecision(3)
 				<< level.isExtrememum << '\t'
 				<< level.isRound << '\t'
-				<< level.to - level.from << '\t'
-				<< fixed << setprecision(3) << level.avgDeviationPerCent << '\t'
+				<< level.length() << '\t'
+				<< level.lengthRate << '\t'
+				<< level.avgDeviationPerCent << '\t'
+				<< level.avgDeviationRate << '\t'
 				<< bars->time(level.from) << '\t'
 				<< bars->time(level.to)
 				<< endl;
 		}
 	};
 
+	// throw away dup levels
 	sort(levels.begin(), levels.end(), byRate);
 	for (auto levelIt = levels.begin(); levelIt != levels.end(); ) {
 		bool levelRepeat = false;
@@ -272,6 +275,34 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 			++levelIt;
 	}
 
+	// add extremums
+	if (
+		minPrice.price >= rangeLow &&
+		minPrice.barNum + params.minExtremumAgeBars < to &&
+		minPrice.barNum - params.minExtremumAgeBars >= from
+	) {
+		Level level;
+		level.level = minPrice.price;
+		level.isExtrememum = true;
+		level.from = minPrice.barNum;
+		level.to = minPrice.barNum;
+		levels.push_back(level);
+	}
+
+	if (
+		maxPrice.price <= rangeHigh &&
+		maxPrice.barNum + params.minExtremumAgeBars < to &&
+		maxPrice.barNum - params.minExtremumAgeBars >= from
+	) {
+		Level level;
+		level.level = maxPrice.price;
+		level.isExtrememum = true;
+		level.from = maxPrice.barNum;
+		level.to = maxPrice.barNum;
+		levels.push_back(level);
+	}
+
+
 	if (!levels.empty()) {
 		auto levelsByPrice = levels;
 		sort(levelsByPrice.begin(), levelsByPrice.end(), byPrice);
@@ -286,7 +317,6 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		}
 	}
 
-	sort(levels.begin(), levels.end(), byRate);
 	print("Levels compacted");
 	return levels;
 }
@@ -356,10 +386,9 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 			) {
 				const auto crossUpperBound = level.level * (1 + params.levelBodyCrossPrecisionK);
 				const auto crossLowerBound = level.level * (1 - params.levelBodyCrossPrecisionK);
-				const auto open = bars->open(lastBarNum);
 				const auto close = bars->close(lastBarNum);
 
-				if (numBarsAbove == params.numBarsComing && open > crossUpperBound && close < crossLowerBound) {
+				if (numBarsAbove == params.numBarsComing && close < crossLowerBound) {
 					const auto stop = bars->low(lastBarNum) - params.stepsForStop * params.step;
 					const auto enterStop = level.level + params.stepsForEnterStop * params.step;
 					const auto target = enterStop + params.profitPerLossK * (enterStop - stop);
@@ -387,7 +416,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 					result_ << endl;
 				}
 
-				if (numBarsBelow == params.numBarsComing && open < crossLowerBound && close > crossUpperBound) {
+				if (numBarsBelow == params.numBarsComing && close > crossUpperBound) {
 					const auto stop = bars->high(lastBarNum) + params.stepsForStop * params.step;
 					const auto enterStop = level.level - params.stepsForEnterStop * params.step;
 					const auto target = enterStop - params.profitPerLossK * (stop - enterStop);

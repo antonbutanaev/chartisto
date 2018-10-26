@@ -18,10 +18,10 @@ struct FindLevelsParams {
 	double sameLevelK = 0.01;
 	double step = NoStep;
 	size_t numStepsForRound = 100;
-	double tailTouchWeight = 2;
+	double tailTouchWeight = 1;
 	double bodyTouchWeight = 1;
-	double crossWeight = -3;
-	double roundWeight = 3;
+	double crossWeight = -1;
+	double roundWeight = .1;
 	double avgDeviationWeight = -1;
 	double maxCrossRate = 0.4;
 	size_t minExtremumAgeBars = 20;
@@ -47,6 +47,15 @@ struct Level {
 	size_t from = 0;
 	size_t to = 0;
 	double avgDeviationPerCent = 0;
+
+	double numTailTouchesRate = 0;
+	double numBodyTouchesRate = 0;
+	double bodyCrossRate = 0;
+	double avgDeviationRate = 0;
+	double lengthRate = 0;
+
+	size_t length() const {return to - from + 1;}
+	double bodyCross() const {return 1. * numBodyCrosses / (numTailTouches + numBodyTouches);}
 };
 
 class Levels {
