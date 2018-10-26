@@ -57,8 +57,8 @@ void ProbabilityProvider::seed(unsigned value) {
 	rand_.seed(value);
 }
 
-bool ProbabilityProvider::happened(double probability) {
-	return dist_(rand_) < probability;
+unsigned ProbabilityProvider::whatHappened(unsigned numChances) {
+	return 1 + static_cast<unsigned>(dist_(rand_) / (1. / numChances));
 }
 
 EntryAnalyzer::EntryAnalyzer(
@@ -88,10 +88,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	util::FNVHash hash;
 	hash << bars_->title(0) << orderBarNum << seed;
 	probabilityProvider_.seed(hash.value());
-	const auto probablyHappened = [&] (double probability){
-		return probabilityProvider_.happened(probability);
-	};
-
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
@@ -160,8 +156,12 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			result.probablyNoProfit.push_back(bars_->time(barNum));
 		};
 
+		const auto happenedFirstOfTwo = [&]{
+			return 1 == probabilityProvider_.whatHappened(2);
+		};
+
 		if (stopCondition && targetCondition) {
-			if (probablyHappened(.5)) {
+			if (happenedFirstOfTwo()) {
 				runStop(true);
 				probablyNoProfit();
 			} else {
@@ -172,7 +172,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		} else if (stopCondition) {
 			if (wasFilled || stopCloseCondition)
 				runStop(false);
-			else if (probablyHappened(.5))
+			else if (happenedFirstOfTwo())
 				runStop(true);
 			else
 				probablyNotStopped();
@@ -180,7 +180,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		} else if (targetCondition) {
 			if (wasFilled || targetCloseCondition)
 				runProfit(false);
-			else if (probablyHappened(.5))
+			else if (happenedFirstOfTwo())
 				runProfit(true);
 			else
 				probablyNoProfit();

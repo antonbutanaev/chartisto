@@ -16,13 +16,13 @@ class IProbabilityProvider {
 public:
 	virtual ~IProbabilityProvider() = default;
 	virtual void seed(unsigned) = 0;
-	virtual bool happened(double probability) = 0;
+	virtual unsigned whatHappened(unsigned numChances) = 0;
 };
 
 class ProbabilityProvider : public IProbabilityProvider {
 public:
 	void seed(unsigned) override;
-	bool happened(double probability) override;
+	unsigned whatHappened(unsigned numChances) override;
 public:
 	std::mt19937 rand_;
 	std::uniform_real_distribution<double> dist_{0, 1};

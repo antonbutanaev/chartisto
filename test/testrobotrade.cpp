@@ -407,11 +407,11 @@ TEST(TestRobotrade, TraderStopSell) {
 TEST(TestRobotrade, EntryAnalyzer) {
 	class ProbabilityProvider : public IProbabilityProvider {
 	public:
-		ProbabilityProvider(double rand) : rand_(rand) {}
+		ProbabilityProvider(unsigned whatHappened) : whatHappened_(whatHappened) {}
 		void seed(unsigned) override {}
-		bool happened(double probability) override {return rand_ < probability;}
+		unsigned whatHappened(unsigned) override {return whatHappened_;}
 	private:
-		double rand_;
+		unsigned whatHappened_;
 	};
 
 	{
@@ -484,7 +484,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		stringstream ss(quotes);
 
 		const auto bars = parse(ss);
-		ProbabilityProvider probabilityProvider(.25);
+		ProbabilityProvider probabilityProvider(1);
 		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
@@ -507,7 +507,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		stringstream ss(quotes);
 
 		const auto bars = parse(ss);
-		ProbabilityProvider probabilityProvider(.75);
+		ProbabilityProvider probabilityProvider(2);
 		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
 		const auto result = entryAnalyzer.analyze(
 			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
