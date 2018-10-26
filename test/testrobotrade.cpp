@@ -692,4 +692,51 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_EQ(result.profit->time, sys_days{2018_y/feb/9});
 		EXPECT_FALSE(result.runAway);
 	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,12,10,11,1\n"
+			"X,D,20180209,000000,10,25,5,5,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(1);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
+		);
+		ASSERT_TRUE(result.filled);
+		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
+		EXPECT_FALSE(result.stopped);
+		ASSERT_TRUE(result.profit);
+		EXPECT_FALSE(result.profit->probable);
+		EXPECT_EQ(result.profit->time, sys_days{2018_y/feb/9});
+		EXPECT_FALSE(result.runAway);
+	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,12,10,11,1\n"
+			"X,D,20180209,000000,11,20,11,16,1000\n"
+			"X,D,20180210,000000,16,20,8,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(1);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 11,9,100, 0,1
+		);
+		ASSERT_TRUE(result.filled);
+		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
+		ASSERT_TRUE(result.stopped);
+		EXPECT_FALSE(result.stopped->probable);
+		EXPECT_TRUE(result.stopped->lossless);
+		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/10});
+		ASSERT_FALSE(result.profit);
+		EXPECT_FALSE(result.runAway);
+	}
+
 }
