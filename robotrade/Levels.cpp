@@ -213,7 +213,6 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 		level.lengthRate = 100. * level.length() / maxLength;
 	}
 
-
 	const auto byPrice = [&](const auto &a, const auto &b) {
 		return a.level > b.level;
 	};

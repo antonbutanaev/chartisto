@@ -55,7 +55,10 @@ struct Level {
 	double lengthRate = 0;
 
 	size_t length() const {return to - from + 1;}
-	double bodyCross() const {return 1. * numBodyCrosses / (numTailTouches + numBodyTouches);}
+	double bodyCross() const {
+		const auto numTouches = numTailTouches + numBodyTouches;
+		return numTouches == 0? 0. : 1. * numBodyCrosses / numTouches;
+	}
 };
 
 class Levels {
