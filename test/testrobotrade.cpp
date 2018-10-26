@@ -521,5 +521,4 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_TRUE(result.filled);
 		EXPECT_FALSE(result.runAway);
 	}
-
 }
