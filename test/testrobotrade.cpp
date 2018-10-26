@@ -409,7 +409,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 	public:
 		ProbabilityProvider(double rand) : rand_(rand) {}
 		void seed(unsigned) override {}
-		bool happened(double probability) override {return probability < rand_;}
+		bool happened(double probability) override {return rand_ < probability;}
 	private:
 		double rand_;
 	};
@@ -425,39 +425,101 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		ProbabilityProvider probabilityProvider(1);
 		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
 
-		{
-			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy, 26,22,50, 0,1
-			);
-			EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
-			EXPECT_NEAR(result.stopEnterPrice, 26, PriceEpsilon);
-			EXPECT_NEAR(result.stopPrice, 22, PriceEpsilon);
-			EXPECT_NEAR(result.targetPrice, 50, PriceEpsilon);
-			EXPECT_FALSE(result.filled);
-			EXPECT_FALSE(result.stopped);
-			EXPECT_FALSE(result.profit);
-			EXPECT_FALSE(result.runAway);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 26,22,50, 0,1
+		);
+		EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
+		EXPECT_NEAR(result.stopEnterPrice, 26, PriceEpsilon);
+		EXPECT_NEAR(result.stopPrice, 22, PriceEpsilon);
+		EXPECT_NEAR(result.targetPrice, 50, PriceEpsilon);
+		EXPECT_FALSE(result.filled);
+		EXPECT_FALSE(result.stopped);
+		EXPECT_FALSE(result.profit);
+		EXPECT_FALSE(result.runAway);
 
-		}
-		{
-			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy, 24,4,100, 0,1
-			);
-			EXPECT_FALSE(result.stopped);
-			EXPECT_FALSE(result.profit);
-			EXPECT_FALSE(result.runAway);
-			ASSERT_TRUE(result.filled);
-			EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
-		}
-		{
-			const auto result = entryAnalyzer.analyze(
-				EntryAnalyzer::Direction::Buy, 30,29,100, 0,1
-			);
-			EXPECT_FALSE(result.stopped);
-			EXPECT_FALSE(result.profit);
-			EXPECT_FALSE(result.filled);
-			ASSERT_TRUE(result.runAway);
-			EXPECT_NEAR(result.runAway->price, 28, PriceEpsilon);
-		}
 	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,25,5,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(1);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 24,4,100, 0,1
+		);
+		EXPECT_FALSE(result.stopped);
+		EXPECT_FALSE(result.profit);
+		EXPECT_FALSE(result.runAway);
+		ASSERT_TRUE(result.filled);
+		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
+	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,25,5,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(1);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 30,27,100, 0,1
+		);
+		EXPECT_FALSE(result.stopped);
+		EXPECT_FALSE(result.profit);
+		EXPECT_FALSE(result.filled);
+		ASSERT_TRUE(result.runAway);
+		EXPECT_NEAR(result.runAway->price, 24, PriceEpsilon);
+	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,25,5,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(.25);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
+		);
+		ASSERT_TRUE(result.stopped);
+		EXPECT_TRUE(result.stopped->probable);
+		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
+		EXPECT_FALSE(result.profit);
+		ASSERT_EQ(result.probablyNoProfit.size(), 1u);
+		EXPECT_EQ(result.probablyNoProfit[0], sys_days{2018_y/feb/8});
+		EXPECT_TRUE(result.filled);
+		EXPECT_FALSE(result.runAway);
+	}
+	{
+		string quotes =
+			"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+			"X,D,20180207,000000,1,1,1,1,1\n"
+			"X,D,20180208,000000,10,25,5,20,1000\n";
+		stringstream ss(quotes);
+
+		const auto bars = parse(ss);
+		ProbabilityProvider probabilityProvider(.75);
+		EntryAnalyzer entryAnalyzer(bars, probabilityProvider, cout);
+		const auto result = entryAnalyzer.analyze(
+			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
+		);
+		EXPECT_FALSE(result.stopped);
+		ASSERT_EQ(result.probablyNotStopped.size(), 1u);
+		EXPECT_EQ(result.probablyNotStopped[0], sys_days{2018_y/feb/8});
+		ASSERT_TRUE(result.profit);
+		EXPECT_TRUE(result.profit->probable);
+		EXPECT_EQ(result.profit->time, sys_days{2018_y/feb/8});
+		EXPECT_TRUE(result.filled);
+		EXPECT_FALSE(result.runAway);
+	}
+
 }
