@@ -63,7 +63,7 @@ struct Level {
 
 class Levels {
 public:
-	Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile);
+	Levels(const std::string &config, unsigned daysToAnalyze, const std::string &resultFile);
 
 	struct ProcessResult {
 		std::string title;

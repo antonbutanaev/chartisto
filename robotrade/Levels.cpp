@@ -320,7 +320,7 @@ vector<Level> Levels::findLevels(data::PBars bars, size_t from, size_t to) {
 	return levels;
 }
 
-Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &resultFile)
+Levels::Levels(const std::string &config, unsigned daysToAnalyze, const std::string &resultFile)
 :
 	daysToAnalyze_(daysToAnalyze),
 	result_(resultFile)
