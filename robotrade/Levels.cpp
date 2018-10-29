@@ -335,10 +335,12 @@ Levels::Levels(const std::string &config, int daysToAnalyze, const std::string &
 
 Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	ProbabilityProvider probabilityProvider;
+	const auto params = getLevelsParams(bars, 0,0);
 	EntryAnalyzerParams entryAnalyzerParams;
+	entryAnalyzerParams.losslessStopK = params.losslessStopK;
+	entryAnalyzerParams.runAwayFromStopK = params.losslessStopK;
 	EntryAnalyzer entryAnalyzer(entryAnalyzerParams, bars, probabilityProvider, result_);
 	vector<EntryAnalyzer::Result> results;
-	const auto params = getLevelsParams(bars, 0,0);
 	result_ << "Using params:" << endl << params;
 	result_ << "Using seed: " << seed << endl;
 

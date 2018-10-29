@@ -13,17 +13,17 @@ struct FindLevelsParams {
 	static constexpr double NoStep = std::numeric_limits<double>::max();
 
 	double priceRangeK = 0.1;
-	double precisionK = 0.001;
+	double precisionK = 0.0025;
 	double roundPrecisionK = 0.0001;
-	double sameLevelK = 0.01;
+	double sameLevelK = 0.025;
 	double step = NoStep;
 	size_t numStepsForRound = 100;
 	double tailTouchWeight = 1;
 	double bodyTouchWeight = 1;
 	double crossWeight = -1;
-	double roundWeight = .1;
+	double roundWeight = 0.1;
 	double avgDeviationWeight = -1;
-	double maxCrossRate = 0.4;
+	double maxCrossRate = 0.3;
 	size_t minExtremumAgeBars = 20;
 	size_t minTouches = 5;
 	size_t numBarsForLevel = 200;
