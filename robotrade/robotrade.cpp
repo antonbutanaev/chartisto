@@ -55,18 +55,24 @@ void updateQuotes(const string &quoteUpdatesFile, const vector<string> &quoteFil
 		if (!ofs)
 			throw runtime_error("could not open " + quoteUpdatesFile);
 
+		ofs.precision(10);
 		auto lastBarNum = quotes.bars->num() - 1;
 		if (updateBars->time(barNum) > quotes.bars->time(lastBarNum)) {
 			++added;
-			const auto day = chrono::time_point_cast<date::days>(updateBars->time(barNum));
+			const auto time = updateBars->time(barNum);
+			const auto day = chrono::time_point_cast<date::days>(time);
 			const auto ymd = year_month_day(day);
+			const auto tod = date::make_time(time - day);
 			ofs
 				<< updateBars->title(barNum) << ","
 				<< "D,"
-				<< setw(4) << setfill('0') << static_cast<int>(ymd.year())
-				<< setw(2) << setfill('0') << static_cast<unsigned>(ymd.month())
-				<< setw(2) << setfill('0') << static_cast<unsigned>(ymd.day()) << ","
-				<< "000000,"
+				<< setfill('0')
+				<< setw(4) << static_cast<int>(ymd.year())
+				<< setw(2) << static_cast<unsigned>(ymd.month())
+				<< setw(2) << static_cast<unsigned>(ymd.day()) << ","
+				<< setw(2) << tod.hours().count()
+				<< setw(2) << tod.minutes().count()
+				<< "00,"
 				<< updateBars->open(barNum) << ","
 				<< updateBars->high(barNum) << ","
 				<< updateBars->low(barNum) << ","

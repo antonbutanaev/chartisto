@@ -13,7 +13,9 @@
 using namespace std;
 using namespace date;
 
-void splitQuotes(const string &quotesFile) {
+void splitQuotes(const string &quotesFile, string suffix) {
+	if (!suffix.empty())
+		suffix = '_' + suffix;
 	cout << "Parsing...\n";
 	util::Stream<ifstream> ifs(quotesFile.c_str());
 	const auto multiBars = robotrade::parse(ifs);
@@ -24,20 +26,25 @@ void splitQuotes(const string &quotesFile) {
 		if (it == outFiles.end()) {
 			it = outFiles.emplace(
 				multiBars->title(barNum),
-				util::Stream<ofstream>(multiBars->title(barNum) + ".txt")
+				util::Stream<ofstream>(multiBars->title(barNum) + suffix + ".txt")
 			).first;
 		}
 		ofstream &ofs = it->second;
 		ofs.precision(10);
-		const auto day = chrono::time_point_cast<date::days>(multiBars->time(barNum));
+		const auto time = multiBars->time(barNum);
+		const auto day = chrono::time_point_cast<date::days>(time);
 		const auto ymd = year_month_day(day);
+		const auto tod = date::make_time(time - day);
 		ofs
 			<< multiBars->title(barNum) << ","
 			<< "D,"
-			<< setw(4) << setfill('0') << static_cast<int>(ymd.year())
-			<< setw(2) << setfill('0') << static_cast<unsigned>(ymd.month())
-			<< setw(2) << setfill('0') << static_cast<unsigned>(ymd.day()) << ","
-			<< "000000,"
+			<< setfill('0')
+			<< setw(4) << static_cast<int>(ymd.year())
+			<< setw(2) << static_cast<unsigned>(ymd.month())
+			<< setw(2) << static_cast<unsigned>(ymd.day()) << ","
+			<< setw(2) << tod.hours().count()
+			<< setw(2) << tod.minutes().count()
+			<< "00,"
 			<< multiBars->open(barNum) << ","
 			<< multiBars->high(barNum) << ","
 			<< multiBars->low(barNum) << ","
@@ -50,6 +57,7 @@ void splitQuotes(const string &quotesFile) {
 int main(int ac, char *av[]) try {
 	const char
 		*argHelp = "help",
+		*argSuffix = "suffix",
 		*argQuotes = "quotes",
 		*argSplitQuotes = "split-quotes",
 		*argLog = "log";
@@ -62,6 +70,7 @@ int main(int ac, char *av[]) try {
 	description.add_options()
 		(argHelp, "produce help message")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
+		(argSuffix, po::value<string>(), "add suffix to split files")
 		(argSplitQuotes, po::value<string>(), "split one multiticker quote file into separate files")
 		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
 
@@ -88,7 +97,7 @@ int main(int ac, char *av[]) try {
 	}
 
 	if (vm.count(argSplitQuotes)) {
-		splitQuotes(vm[argSplitQuotes].as<string>());
+		splitQuotes(vm[argSplitQuotes].as<string>(), vm[argSuffix].as<string>());
 	}
 
 	return 0;
