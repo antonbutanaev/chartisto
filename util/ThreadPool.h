@@ -40,7 +40,15 @@ public:
 		auto promise = std::make_shared<std::promise<decltype(f())>>();
 		auto future = promise->get_future();
 		std::unique_lock l(mutex_);
-		tasks_.push_back([promise, f] {promise->set_value(f());});
+		tasks_.push_back([promise, f] {
+			try {
+				promise->set_value(f());
+			} catch (...) {
+				try {
+					promise->set_exception(std::current_exception());
+				} catch(...) {}
+			}
+		});
 		l.unlock();
 		condVar_.notify_one();
 		return future;
