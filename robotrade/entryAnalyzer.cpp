@@ -1,5 +1,5 @@
 #include <util/fnv.h>
-#include <robotrade/EntryAnalyzer.h>
+#include <robotrade/entryAnalyzer.h>
 
 using namespace chart;
 using namespace std;

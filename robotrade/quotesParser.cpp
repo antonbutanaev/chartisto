@@ -2,7 +2,7 @@
 #include <vector>
 #include <date/date.h>
 #include <chart/data.h>
-#include <robotrade/quotesparser.h>
+#include <robotrade/quotesParser.h>
 
 using namespace std;
 using namespace std::chrono;

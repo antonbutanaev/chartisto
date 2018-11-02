@@ -1,13 +1,13 @@
 #include <sstream>
 #include <gtest/gtest.h>
-#include <robotrade/quotesparser.h>
-#include <robotrade/triplescreen.h>
+#include <robotrade/quotesParser.h>
+#include <robotrade/tripleScreen.h>
 #include <robotrade/trader.h>
 #include <chart/indicators.h>
 #include <chart/reduce.h>
 #include <date/date.h>
 #include <fmt/format.h>
-#include <robotrade/EntryAnalyzer.h>
+#include <robotrade/entryAnalyzer.h>
 
 using namespace std;
 using namespace date;

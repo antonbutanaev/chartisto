@@ -4,19 +4,19 @@ pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 pkg_check_modules(LOG4CPLUS REQUIRED log4cplus)
 
 add_executable(robotrade
-    robotrade.cpp
+	robotrade.cpp
 )
 
 add_executable(quotetool
-    QuoteTool.cpp
+	quoteTool.cpp
 )
 
 add_library(robotradeutils
-	triplescreen.cpp
-    quotesparser.cpp
-    trader.cpp
-    Levels.cpp
-    EntryAnalyzer.cpp
+	tripleScreen.cpp
+	quotesParser.cpp
+	trader.cpp
+	levels.cpp
+	entryAnalyzer.cpp
 )
 
 target_link_libraries(robotradeutils

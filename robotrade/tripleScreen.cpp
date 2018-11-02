@@ -1,6 +1,6 @@
 #include <iostream>
 #include <log4cplus/loggingmacros.h>
-#include <robotrade/triplescreen.h>
+#include <robotrade/tripleScreen.h>
 #include <chart/reduce.h>
 #include <chart/indicators.h>
 #include <fmt/format.h>
@@ -136,8 +136,6 @@ TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria crite
 TripleScreen::~TripleScreen() {}
 
 void TripleScreen::run() {i_->run();}
-
-#include <robotrade/triplescreen.h>
 
 using chart::indicators::macd;
 using robotrade::TripleScreen;

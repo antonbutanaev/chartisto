@@ -10,11 +10,11 @@
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
 
-#include <robotrade/quotesparser.h>
-#include <util/ThreadPool.h>
+#include <robotrade/quotesParser.h>
+#include <util/threadPool.h>
 
-#include "Levels.h"
-#include "triplescreen.h"
+#include <robotrade/levels.h>
+#include <robotrade/tripleScreen.h>
 
 using namespace robotrade;
 using namespace date;

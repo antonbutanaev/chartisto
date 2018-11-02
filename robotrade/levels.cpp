@@ -6,8 +6,8 @@
 #include <cmath>
 #include <boost/io/ios_state.hpp>
 #include <json/json.h>
-#include <robotrade/Levels.h>
-#include <robotrade/EntryAnalyzer.h>
+#include <robotrade/levels.h>
+#include <robotrade/entryAnalyzer.h>
 #include <chart/indicators.h>
 
 using namespace std;
