@@ -19,8 +19,8 @@ public:
 					condVar_.wait(l, [&]{return stopped_ || !tasks_.empty();});
 					if (stopped_)
 						break;
-					auto task = std::move(tasks_.back());
-					tasks_.pop_back();
+					auto task = std::move(tasks_.front());
+					tasks_.pop_front();
 					l.unlock();
 					task();
 				}

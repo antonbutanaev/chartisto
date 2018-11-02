@@ -48,7 +48,7 @@ void processLevels(
 				const auto slash = resultFile.find_last_of('/');
 				if (slash != string::npos)
 					resultFile = resultFile.substr(slash + 1);
-				resultFile +=  + ".result";
+				resultFile += ".result";
 
 				return Result{
 					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs), seed),
