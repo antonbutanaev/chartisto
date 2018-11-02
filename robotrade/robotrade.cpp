@@ -11,6 +11,7 @@
 #include <log4cplus/loggingmacros.h>
 
 #include <robotrade/quotesparser.h>
+#include <util/ThreadPool.h>
 
 #include "Levels.h"
 #include "triplescreen.h"
@@ -21,52 +22,43 @@ using namespace chart;
 using namespace std;
 
 void processLevels(
-	const string &configJson, int daysToAnalyze, const vector<string> &quoteFiles,
+	const string &configJson, unsigned daysToAnalyze, const vector<string> &quoteFiles,
 	bool printSummary, bool printResultFiles, unsigned seed
 ) {
-	atomic<unsigned> fileNum = 0;
-
-	mutex resultsMutex;
 	struct Result {
 		Levels::ProcessResult result;
 		std::string resultFile;
 	};
+
+	util::ThreadPool threadPool;
+
+	vector<future<Result>> resultFutures;
+	resultFutures.reserve(quoteFiles.size());
+
 	vector<Result> results;
+	results.reserve(quoteFiles.size());
 
-	const auto runLevels = [&]{
-		try {
-			for (;;) {
-				unsigned localFileNum = fileNum++;
-				if (localFileNum >= quoteFiles.size())
-					break;
-				ifstream ifs(quoteFiles[localFileNum].c_str());
+	for (const auto &quoteFile: quoteFiles)
+		resultFutures.push_back(threadPool.exec([&, quoteFile]{
+				ifstream ifs(quoteFile.c_str());
 				if (!ifs)
-					throw runtime_error("Could not open file: " + quoteFiles[localFileNum]);
+					throw runtime_error("Could not open file: " + quoteFile);
 
-				auto resultFile = quoteFiles[localFileNum];
+				auto resultFile = quoteFile;
 				const auto slash = resultFile.find_last_of('/');
 				if (slash != string::npos)
 					resultFile = resultFile.substr(slash + 1);
 				resultFile +=  + ".result";
 
-				const auto result =
-					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs), seed);
+				return Result{
+					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs), seed),
+					quoteFile
+				};
+			}
+		));
 
-				lock_guard l(resultsMutex);
-				results.push_back({result, resultFile});
-			};
-		} catch (const exception &x) {
-			cerr << "Levels: exception: " << x.what() << endl;
-		}
-	};
-
-	vector<thread> threads;
-	const auto nThreads = std::thread::hardware_concurrency();
-	for (unsigned threadNum = 1; threadNum < nThreads; ++threadNum)
-		threads.push_back(thread(runLevels));
-	runLevels();
-	for (auto &thread: threads)
-		thread.join();
+	for (auto &resultFuture: resultFutures)
+		results.push_back(resultFuture.get());
 
 	if (printSummary) {
 		sort(
@@ -129,7 +121,7 @@ int main(int ac, char *av[]) try {
 		(argHelp, "produce help message")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
-		(argLevelsDays, po::value<int>()->default_value(0), "Days to analyze, 0 means all")
+		(argLevelsDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
 		(argLevelsSummary, "Print levels summary")
 		(argLevelsResults, "Print levels result files")
@@ -160,7 +152,7 @@ int main(int ac, char *av[]) try {
 		if (vm.count(argLevelsJson)) {
 			processLevels(
 				vm[argLevelsJson].as<string>(),
-				vm[argLevelsDays].as<int>(),
+				vm[argLevelsDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm.count(argLevelsSummary) > 0,
 				vm.count(argLevelsResults) > 0,
