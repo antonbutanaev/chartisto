@@ -3,3 +3,5 @@ add_library(chart
 	indicators.cpp
 	reduce.cpp
 )
+
+target_link_libraries(chart Threads::Threads)

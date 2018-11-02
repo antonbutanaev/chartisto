@@ -23,14 +23,18 @@ void splitQuotes(const string &quotesFile, string suffix) {
 	cout << "Parsed\n";
 	map<string, util::Stream<ofstream>> outFiles;
 	for (size_t barNum = 0; barNum < multiBars->num(); ++barNum) {
+		bool insertHeader = false;
 		auto it = outFiles.find(multiBars->title(barNum));
 		if (it == outFiles.end()) {
 			it = outFiles.emplace(
 				multiBars->title(barNum),
 				util::Stream<ofstream>(multiBars->title(barNum) + suffix + ".txt")
 			).first;
+			insertHeader = true;
 		}
 		ofstream &ofs = it->second;
+		if (insertHeader)
+			ofs << "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>,<OPENINT>" << endl;
 		ofs.precision(10);
 		const auto time = multiBars->time(barNum);
 		const auto day = chrono::time_point_cast<date::days>(time);

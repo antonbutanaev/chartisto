@@ -26,6 +26,7 @@ target_link_libraries(robotradeutils
 	${JSONCPP_LIBRARIES}
 	${LOG4CPLUS_LIBRARIES}
 	boost_program_options
+	Threads::Threads
 )
 
 target_link_libraries(robotrade robotradeutils)
