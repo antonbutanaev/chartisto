@@ -36,11 +36,11 @@ public:
 			thread.join();
 	}
 
-	template<class Func> auto exec(Func f) -> std::future<decltype(f())> {
+	template<class Func> auto exec(Func &&f) -> std::future<decltype(f())> {
 		auto promise = std::make_shared<std::promise<decltype(f())>>();
 		auto future = promise->get_future();
 		std::unique_lock l(mutex_);
-		tasks_.push_back([promise, f] {
+		tasks_.push_back([promise = std::move(promise), f = std::forward<Func>(f)] {
 			try {
 				promise->set_value(f());
 			} catch (...) {
