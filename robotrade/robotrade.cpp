@@ -15,6 +15,7 @@
 
 #include <robotrade/levels.h>
 #include <robotrade/tripleScreen.h>
+#include <robotrade/EMACross.h>
 
 using namespace robotrade;
 using namespace date;
@@ -103,6 +104,7 @@ int main(int ac, char *av[]) try {
 		*argLevelsDays = "levels-days",
 		*argLevelsSummary = "levels-summary",
 		*argLevelsResults = "levels-results",
+		*argEMACross = "ema-cross",
 		*argSeed = "seed",
 		*argLog = "log";
 
@@ -113,8 +115,9 @@ int main(int ac, char *av[]) try {
 	po::options_description description("Allowed options");
 	description.add_options()
 		(argHelp, "produce help message")
+		(argEMACross, "EMA cross")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
-		(argLevelsJson, po::value<string>()->default_value("levels.json"), "levels .json file")
+		(argLevelsJson, po::value<string>(), "levels .json file")
 		(argLevelsDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
 		(argLevelsSummary, "Print levels summary")
@@ -154,6 +157,8 @@ int main(int ac, char *av[]) try {
 				vm.count(argLevelsResults) > 0,
 				vm[argSeed].as<unsigned>()
 			);
+		} if (vm.count(argEMACross)) {
+			EMACross().process(util::funcIterator(vm[argQuotes].as<vector<string>>()));
 		} else
 			throw runtime_error("What to do with quotes?");
 	}

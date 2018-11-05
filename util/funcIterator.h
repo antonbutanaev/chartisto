@@ -4,6 +4,8 @@
 
 namespace util {
 
+template<class Item> using FuncItreator = std::function<Item*()>;
+
 template <class Func, class OnItem> void iterateFunc(Func func, const OnItem &onItem) {
 	for (;;) {
 		auto item = func();
