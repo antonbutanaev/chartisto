@@ -11,7 +11,7 @@
 #include <log4cplus/loggingmacros.h>
 
 #include <robotrade/quotesParser.h>
-#include <util/threadPool.h>
+#include <util/async.h>
 
 #include <robotrade/levels.h>
 #include <robotrade/tripleScreen.h>
@@ -30,7 +30,7 @@ void processLevels(
 		std::string resultFile;
 	};
 
-	util::ThreadPool threadPool;
+	util::Async async;
 
 	vector<future<Result>> resultFutures;
 	resultFutures.reserve(quoteFiles.size());
@@ -39,7 +39,7 @@ void processLevels(
 	results.reserve(quoteFiles.size());
 
 	for (const auto &quoteFile: quoteFiles)
-		resultFutures.push_back(threadPool.exec([&, quoteFile]{
+		resultFutures.push_back(async.exec([&, quoteFile]{
 				ifstream ifs(quoteFile.c_str());
 				if (!ifs)
 					throw runtime_error("Could not open file: " + quoteFile);

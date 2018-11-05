@@ -8,9 +8,9 @@
 
 namespace util {
 
-class ThreadPool {
+class Async {
 public:
-	ThreadPool() {
+	Async() {
 		const auto nThreads = std::thread::hardware_concurrency();
 		for (size_t i = 0; i < nThreads; ++i)
 			threads_.push_back(std::thread([&]{
@@ -27,7 +27,7 @@ public:
 			}));
 	}
 
-	~ThreadPool() {
+	~Async() {
 		std::unique_lock l(mutex_);
 		stopped_ = true;
 		l.unlock();
