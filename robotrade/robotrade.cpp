@@ -138,7 +138,9 @@ int main(int ac, char *av[]) try {
 	LOG4CPLUS_DEBUG(logger, "start");
 
 	if (vm.count(argHelp)) {
-		cout << description << endl;
+		cout
+			<< "Hardware concurrency: " << thread::hardware_concurrency() << endl
+			<< description << endl;
 		return 1;
 	}
 
