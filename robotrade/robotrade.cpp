@@ -32,14 +32,10 @@ void processLevels(
 
 	util::Async async;
 
-	vector<future<Result>> resultFutures;
-	resultFutures.reserve(quoteFiles.size());
-
-	vector<Result> results;
-	results.reserve(quoteFiles.size());
-
-	for (const auto &quoteFile: quoteFiles)
-		resultFutures.push_back(async.exec([&, quoteFile]{
+	auto results = async.execTacks(
+		util::funcIterator(quoteFiles),
+		[&](const string &quoteFile) {
+			return [&, quoteFile] {
 				ifstream ifs(quoteFile.c_str());
 				if (!ifs)
 					throw runtime_error("Could not open file: " + quoteFile);
@@ -54,11 +50,9 @@ void processLevels(
 					Levels(configJson, daysToAnalyze, resultFile).process(robotrade::parse(ifs), seed),
 					quoteFile
 				};
-			}
-		));
-
-	for (auto &resultFuture: resultFutures)
-		results.push_back(resultFuture.get());
+			};
+		}
+	);
 
 	if (printSummary) {
 		sort(

@@ -5,6 +5,7 @@
 #include <future>
 #include <deque>
 #include <vector>
+#include <util/funcIterator.h>
 
 namespace util {
 
@@ -36,7 +37,7 @@ public:
 			thread.join();
 	}
 
-	template<class Func> auto exec(Func &&f) -> std::future<decltype(f())> {
+	template<class Func> auto exec(Func &&f) {
 		auto promise = std::make_shared<std::promise<decltype(f())>>();
 		auto future = promise->get_future();
 		std::unique_lock l(mutex_);
@@ -52,6 +53,20 @@ public:
 		l.unlock();
 		condVar_.notify_one();
 		return future;
+	}
+
+	template<class FuncIterator, class CreateTask>
+	auto execTacks(FuncIterator funcIterator, CreateTask createTask) {
+		using Result = decltype(createTask(*funcIterator())());
+		std::vector<std::future<Result>> futures;
+		iterateFunc(funcIterator, [&] (const auto &params) {
+			futures.push_back(exec(createTask(params)));
+		});
+		std::vector<Result> results;
+		results.reserve(futures.size());
+		for (auto &future: futures)
+			results.push_back(future.get());
+		return results;
 	}
 
 private:
