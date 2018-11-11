@@ -9,16 +9,21 @@ namespace robotrade {
 class EMACross {
 public:
 	EMACross();
-	void process(util::FuncItreator<const std::string> quoteFiles);
+	void process(const std::vector<std::string> &quoteFiles);
 private:
-	struct Result {
-		std::string title;
-		size_t numQuotes;
+	struct TaskParams {
+		size_t ema;
+		chart::data::PBars bars;
+		size_t barsFrom;
+		size_t barsTo;
 	};
-	Result process(chart::data::PBars bars);
+	struct TaskResult {
+		std::string log;
+	};
+
+	TaskResult runTask(const TaskParams&);
 
 	util::Async async_;
-
 };
 
 }

@@ -56,7 +56,7 @@ public:
 	}
 
 	template<class FuncIterator, class CreateTask>
-	auto execTacks(FuncIterator funcIterator, CreateTask createTask) {
+	auto execTasks(FuncIterator funcIterator, CreateTask createTask) {
 		using Result = decltype(createTask(*funcIterator())());
 		std::vector<std::future<Result>> futures;
 		iterateFunc(funcIterator, [&] (const auto &params) {

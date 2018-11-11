@@ -33,7 +33,7 @@ void processLevels(
 
 	util::Async async;
 
-	auto results = async.execTacks(
+	auto results = async.execTasks(
 		util::funcIterator(quoteFiles),
 		[&](const string &quoteFile) {
 			return [&, quoteFile] {
@@ -158,7 +158,7 @@ int main(int ac, char *av[]) try {
 				vm[argSeed].as<unsigned>()
 			);
 		} if (vm.count(argEMACross)) {
-			EMACross().process(util::funcIterator(vm[argQuotes].as<vector<string>>()));
+			EMACross().process(vm[argQuotes].as<vector<string>>());
 		} else
 			throw runtime_error("What to do with quotes?");
 	}
