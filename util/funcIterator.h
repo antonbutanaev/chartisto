@@ -1,6 +1,8 @@
 #pragma once
 
 #include <optional>
+#include <functional>
+#include <memory>
 
 namespace util {
 
@@ -38,6 +40,32 @@ template<class Container, class ItemTransform> auto funcIteratorTransform(Contai
 	return [it = container.begin(), end = container.end(), itemTransform = std::move(itemTransform)] () mutable {
 		std::optional<decltype(itemTransform(*it))> result;
 		return it == end? result : result = itemTransform(*it++);
+	};
+}
+
+template <class Func1, class Func2> auto funcPairIterator(Func1 func1, Func2 func2) {
+	auto func1Ptr = std::make_shared<decltype(func1)>(func1);
+	auto v1 = (*func1Ptr)();
+	auto v2 = func2();
+	return [func1Ptr, func1Save = func1, func2, v1, v2, first = true] () mutable {
+		std::optional<std::pair<decltype(*v1), decltype(*v2)>> ret;
+		if (first) {
+			first = false;
+			if (v1 && v2)
+				ret = {*v1, *v2};
+		} else {
+			v1 = (*func1Ptr)();
+			if (v1)
+				ret = {*v1, *v2};
+			else {
+				func1Ptr = std::make_shared<decltype(func1)>(func1Save);
+				v1 = (*func1Ptr)();
+				v2 = func2();
+				if (v1 && v2)
+					ret = {*v1, *v2};
+			}
+		}
+		return ret;
 	};
 }
 
