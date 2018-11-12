@@ -3,6 +3,7 @@
 #include <optional>
 #include <functional>
 #include <memory>
+#include <type_traits>
 
 namespace util {
 
@@ -48,7 +49,10 @@ template <class Func1, class Func2> auto funcPairIterator(Func1 func1, Func2 fun
 	auto v1 = (*func1Ptr)();
 	auto v2 = func2();
 	return [func1Ptr, func1Save = func1, func2, v1, v2, first = true] () mutable {
-		std::optional<std::pair<decltype(*v1), decltype(*v2)>> ret;
+		std::optional<std::pair<
+			std::remove_reference_t<decltype(*v1)>,
+			std::remove_reference_t<decltype(*v2)>
+		>> ret;
 		if (first) {
 			first = false;
 			if (v1 && v2)

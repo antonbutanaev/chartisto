@@ -52,27 +52,14 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 
 	cout << "Parsed " << bars.size() << endl;
 
-	auto ema = emaFrom;
-	auto barsFrom = ema;
-	auto barsTo = barsFrom + 2*ema;
-	auto barsIt = bars.begin();
-
-	auto paramsIter = [&] {
-		optional<TaskParams> ret;
-		if (barsTo < barsIt->bars->num())
-			ret = {barsIt->emas[ema], barsIt->bars, barsFrom++, barsTo++};
-		else if (++ema <= emaTo)
-			ret = {barsIt->emas[ema], barsIt->bars, barsFrom = ema, barsTo = barsFrom + 2*ema};
-		else if (++barsIt != bars.end()) {
-			ret = {barsIt->emas[ema = emaFrom], barsIt->bars, barsFrom = ema, barsTo = barsFrom + 2*ema};
-		}
-		return ret;
-	};
-
 	const auto results = async_.execTasks(
-		paramsIter,
-		[&] (const TaskParams &params) {
-			return [&, params] {return runTask(params);};
+		funcPairIterator(funcIterator(bars), funcRangeIterator(emaFrom, emaTo + 1)),
+		[&] (const auto &params) {
+			return [&, params] () {
+				return runTask({
+					params.second, params.first.emas.at(params.second), params.first.bars
+				});
+			};
 		}
 	);
 
@@ -82,24 +69,29 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 }
 
 EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
-	bool noCross = true;
-	for (auto barNum = params.barsFrom; barNum != params.barsTo; ++barNum)
-		if (
-			params.bars->low(barNum) <= params.ema->close(barNum) &&
-			params.bars->high(barNum) >= params.ema->close(barNum)
-		) {
-			noCross = false;
-			break;
-		}
-
 	ostringstream os;
-	os
-		<< "ema " << params.ema
-		<< " bars " << params.bars->title(0)
-		<< " from " << params.bars->time(params.barsFrom)
-		<< " to " << params.bars->time(params.barsTo - 1)
-		<< " noCross " << noCross
-		;
+	for (
+		auto barsFrom = params.emaPeriod, barsTo = barsFrom + 2 * params.emaPeriod;
+		barsTo < params.bars->num();
+		++barsFrom, ++barsTo
+	 ) {
+		bool noCross = true;
+		for (auto barNum = barsFrom; barNum != barsTo; ++barNum)
+			if (
+				params.bars->low(barNum) <= params.ema->close(barNum) &&
+				params.bars->high(barNum) >= params.ema->close(barNum)
+			) {
+				noCross = false;
+				break;
+			}
+
+		os
+			<< "ema " << params.emaPeriod
+			<< " bars " << params.bars->title(0)
+			<< " from " << params.bars->time(barsFrom)
+			<< " to " << params.bars->time(barsTo - 1)
+			<< " noCross " << noCross << endl;
+	}
 	return {os.str()};
 }
 

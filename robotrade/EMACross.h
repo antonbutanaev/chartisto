@@ -12,10 +12,9 @@ public:
 	void process(const std::vector<std::string> &quoteFiles);
 private:
 	struct TaskParams {
+		size_t emaPeriod;
 		chart::data::PPoints ema;
 		chart::data::PBars bars;
-		size_t barsFrom;
-		size_t barsTo;
 	};
 	struct TaskResult {
 		std::string log;
