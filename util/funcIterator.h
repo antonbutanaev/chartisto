@@ -48,11 +48,15 @@ template <class Func1, class Func2> auto funcPairIterator(Func1 func1, Func2 fun
 	auto func1Ptr = std::make_shared<decltype(func1)>(func1);
 	auto v1 = (*func1Ptr)();
 	auto v2 = func2();
-	return [func1Ptr, func1Save = func1, func2, v1, v2, first = true] () mutable {
-		std::optional<std::pair<
-			std::remove_reference_t<decltype(*v1)>,
-			std::remove_reference_t<decltype(*v2)>
-		>> ret;
+	return [
+		func1Ptr = std::move(func1Ptr),
+		func1Save = std::move(func1),
+		func2 = std::move(func2),
+		v1 = std::move(v1),
+		v2 = std::move(v2),
+		first = true
+	] () mutable {
+		std::optional<std::pair<decltype(*v1),decltype(*v2)>> ret;
 		if (first) {
 			first = false;
 			if (v1 && v2)
