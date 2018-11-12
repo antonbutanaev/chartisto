@@ -97,5 +97,26 @@ TEST(TestFuncIterator, Pair) {
 		};
 		EXPECT_EQ(v, v1);
 	}
+	{
+		vector<pair<int, pair<int, int>>> v;
+		iterateFunc(
+			funcPairIterator(
+				funcRangeIterator(1,3),
+				funcPairIterator(funcRangeIterator(1,3), funcRangeIterator(1,3))
+			),
+			[&](auto n){v.push_back(n);}
+		);
+		decltype(v) v1 = {
+			{1,{1,1}},
+			{2,{1,1}},
+			{1,{2,1}},
+			{2,{2,1}},
+			{1,{1,2}},
+			{2,{1,2}},
+			{1,{2,2}},
+			{2,{2,2}},
+		};
+		EXPECT_EQ(v, v1);
+	}
 }
 

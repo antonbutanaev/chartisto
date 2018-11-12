@@ -53,12 +53,15 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	cout << "Parsed " << bars.size() << endl;
 
 	const auto results = async_.execTasks(
-		funcPairIterator(funcIterator(bars), funcRangeIterator(emaFrom, emaTo + 1)),
-		[&] (const auto &params) {
+		funcPairIterator(
+			funcRangeIterator(emaFrom, emaTo + 1),
+			funcRangeIterator(bars.begin(), bars.end())
+		),
+		[&] (const auto &it) {
 			return [&,
-				emaPeriod = params.second,
-				ema = params.first.emas.at(params.second),
-				bars = params.first.bars
+				emaPeriod = it.first,
+				ema = it.second->emas.at(it.first),
+				bars = it.second->bars
 			] {
 				return runTask({emaPeriod, ema, bars});
 			};
