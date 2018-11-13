@@ -19,9 +19,11 @@ template <class Func, class OnItem> void iterateFunc(Func func, const OnItem &on
 }
 
 template<class Value> auto funcRangeIterator(Value begin, Value end) {
-	return [i = begin, end] () mutable {
+	return [i = std::move(begin), end = std::move(end)] () mutable {
 		std::optional<decltype(i)> result;
-		return i == end? result : result = i++;
+		if (i != end)
+			result = i++;
+		return result;
 	};
 }
 
@@ -40,40 +42,43 @@ template<class Container, class ItemPartAddr> auto funcIterator(Container &conta
 template<class Container, class ItemTransform> auto funcIteratorTransform(Container &container, ItemTransform itemTransform) {
 	return [it = container.begin(), end = container.end(), itemTransform = std::move(itemTransform)] () mutable {
 		std::optional<decltype(itemTransform(*it))> result;
-		return it == end? result : result = itemTransform(*it++);
+		if (it != end)
+			result = itemTransform(*it++);
+		return result;
 	};
 }
 
 template <class Func1, class Func2> auto funcPairIterator(Func1 func1, Func2 func2) {
-	auto func1Ptr = std::make_shared<decltype(func1)>(func1);
-	auto v1 = (*func1Ptr)();
-	auto v2 = func2();
+	auto func1Ptr = std::make_shared<Func1>(func1);
 	return [
+		value1 = (*func1Ptr)(),
+		value2 = func2(),
 		func1Ptr = std::move(func1Ptr),
-		func1Save = std::move(func1),
+		func1 = std::move(func1),
 		func2 = std::move(func2),
-		v1 = std::move(v1),
-		v2 = std::move(v2),
 		first = true
 	] () mutable {
-		std::optional<std::pair<decltype(*v1),decltype(*v2)>> ret;
+		std::optional<std::pair<
+			std::remove_reference_t<decltype(*value1)>,
+			std::remove_reference_t<decltype(*value2)>
+		>> result;
 		if (first) {
 			first = false;
-			if (v1 && v2)
-				ret = {*v1, *v2};
+			if (value1 && value2)
+				result = {*value1, *value2};
 		} else {
-			v1 = (*func1Ptr)();
-			if (v1)
-				ret = {*v1, *v2};
+			value1 = (*func1Ptr)();
+			if (value1)
+				result = {*value1, *value2};
 			else {
-				func1Ptr = std::make_shared<decltype(func1)>(func1Save);
-				v1 = (*func1Ptr)();
-				v2 = func2();
-				if (v1 && v2)
-					ret = {*v1, *v2};
+				func1Ptr = std::make_shared<Func1>(func1);
+				value1 = (*func1Ptr)();
+				value2 = func2();
+				if (value1 && value2)
+					result = {*value1, *value2};
 			}
 		}
-		return ret;
+		return result;
 	};
 }
 
