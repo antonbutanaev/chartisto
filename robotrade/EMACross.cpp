@@ -5,6 +5,7 @@
 #include <robotrade/EMACross.h>
 #include <robotrade/quotesParser.h>
 #include <chart/indicators.h>
+#include <util/stream.h>
 
 using namespace std;
 using namespace util;
@@ -19,7 +20,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	if (quoteFiles.empty())
 		return;
 
-	struct Bars {
+	struct Parsed {
 		data::PBars bars;
 		unordered_map<size_t, data::PPoints> emas;
 	};
@@ -27,35 +28,33 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	const size_t emaFrom = 10;
 	const size_t emaTo = 100;
 
-	auto bars = async_.execTasks(
+	auto parsed = async_.execTasks(
 		funcIterator(quoteFiles),
 		[&] (const string &quoteFile) {
 			return [&, quoteFile] {
-				ifstream ifs(quoteFile.c_str());
-				if (!ifs)
-					throw runtime_error("Could not open file: " + quoteFile);
-				Bars bars;
-				bars.bars = robotrade::parse(ifs);
-				bars.emas.reserve(emaTo - emaFrom + 1);
+				Stream<ifstream> ifs(quoteFile.c_str());
+				Parsed parsed;
+				parsed.bars = robotrade::parse(ifs);
+				parsed.emas.reserve(emaTo - emaFrom + 1);
 				for (auto period = emaFrom; period <= emaTo; ++period)
-					bars.emas.insert({
+					parsed.emas.insert({
 						period,
 						indicators::ema(
-							data::createPoints(bars.bars, [&](size_t barNum){return bars.bars->close(barNum);}),
+							data::createPoints(parsed.bars, [&](size_t barNum){return parsed.bars->close(barNum);}),
 							period
 						)
 					});
-				return bars;
+				return parsed;
 			};
 		}
 	);
 
-	cout << "Parsed " << bars.size() << endl;
+	cout << "Parsed " << parsed.size() << endl;
 
 	const auto results = async_.execTasks(
 		funcPairIterator(
 			funcRangeIterator(emaFrom, emaTo + 1),
-			funcRangeIterator(bars.begin(), bars.end())
+			funcRangeIterator(parsed.begin(), parsed.end())
 		),
 		[&] (const auto &it) {
 			return [&,
