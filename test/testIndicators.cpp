@@ -137,3 +137,23 @@ TEST(TestIndicators, ForceIndex) {
 	ASSERT_EQ(forceIndex2->close(1), 2);
 	ASSERT_EQ(forceIndex2->close(2), 6*k + 2*(1-k));
 }
+
+TEST(TestIndicators, ATR) {
+	string quotes =
+		"<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>\n"
+		"VTBR,D,20180208,100000,1,10,1,2,1\n"
+		"VTBR,D,20180209,100000,10,20,10,15,2\n"
+		"VTBR,D,20180212,100000,14,1,14,1,3\n"
+		;
+	stringstream ss(quotes);
+
+	const auto bars = robotrade::parse(ss);
+	ASSERT_EQ(bars->num(), 3);
+
+	const auto atr = indicators::atr(bars, 1);
+	ASSERT_EQ(atr->num(), 3);
+	EXPECT_NEAR(atr->close(0), 9, PriceEpsilon);
+	EXPECT_NEAR(atr->close(1), 18, PriceEpsilon);
+	EXPECT_NEAR(atr->close(2), 14, PriceEpsilon);
+
+}

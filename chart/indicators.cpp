@@ -59,6 +59,28 @@ data::PPoints forceIndex(data::PBars bars, size_t period) {
     return ema(move(forceIndex), period);
 }
 
+data::PPoints atr(data::PBars bars, size_t period) {
+	if (bars->num() == 0)
+		return data::createPoints(bars, [](size_t) {return NoPrice;});
+
+	vector<Price> rawAtr;
+	rawAtr.reserve(bars->num());
+	rawAtr.push_back(bars->high(0) - bars->low(0));
+	for (size_t barNum = 1; barNum < bars->num(); ++barNum) {
+		auto diff = bars->high(barNum) - bars->low(barNum);
+		const auto prevClose = bars->close(barNum - 1);
+		diff = max(diff, fabs(bars->high(barNum) - prevClose));
+		diff = max(diff, fabs(bars->low(barNum) - prevClose));
+		rawAtr.push_back(diff);
+	}
+	return ema(
+		data::createPoints(
+			bars, [&](size_t barNum){return rawAtr[barNum];}
+		),
+		period
+	);
+}
+
 shared_ptr<Macd> macd(data::PPoints points, size_t fastPeriod, size_t slowPeriod, size_t signalPeriod) {
     auto result = make_shared<Macd>();
     result->fastEma = ema(points, fastPeriod);

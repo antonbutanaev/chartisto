@@ -8,6 +8,7 @@ namespace indicators {
 
 data::PPoints ema(data::PPoints, size_t period);
 data::PPoints forceIndex(data::PBars, size_t period);
+data::PPoints atr(data::PBars, size_t period);
 
 struct Macd {
     data::PPoints slowEma, fastEma, macd, signal, histogram;
