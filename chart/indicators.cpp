@@ -13,20 +13,25 @@ public:
 	EMA(
 		data::PPoints &&points,
 		size_t period
-	) : points_(move(points)) {
+	) : points_(move(points))
+	{
 		title_ = points_->title(0) + " EMA " + to_string(period);
 		ema_.reserve(num());
-		size_t i = 0;
-		for(; points_->close(i) == NoPrice; ++i)
+		size_t barNum = 0;
+		for(; points_->close(barNum) == NoPrice; ++barNum)
 			ema_.push_back(NoPrice);
 
-		ema_.push_back(points_->close(i++));
+		ema_.push_back(points_->close(barNum++));
+		auto prevClose = ema_.back();
 
 		const auto k = 2. / (period + 1);
-		for (; i < num(); ++i) {
-			if (points_->close(i) == NoPrice)
-				continue;
-			ema_.push_back(k * points_->close(i) + (1 - k) * ema_[i - 1]);
+		for (; barNum < num(); ++barNum) {
+			auto close = points_->close(barNum);
+			if (close == NoPrice)
+				close = prevClose;
+
+			ema_.push_back(k * close + (1 - k) * ema_.back());
+			prevClose = close;
 		}
 	}
 
@@ -44,19 +49,20 @@ private:
 };
 
 data::PPoints ema(data::PPoints points, size_t period) {
-	data::PPoints result = make_shared<EMA>(move(points), period);
-	return result;
+	return make_shared<EMA>(move(points), period);
 }
 
 data::PPoints forceIndex(data::PBars bars, size_t period) {
-    auto forceIndex = data::createPoints(
-        bars,
-        [bars] (size_t n) {
-            return n == 0 ?
-                NoPrice : (bars->close(n) - bars->close(n - 1)) * bars->volume(n);
-        }
+    return ema(
+		data::createPoints(
+			bars,
+			[bars] (size_t barNum) {
+				return barNum == 0 ?
+					NoPrice : (bars->close(barNum) - bars->close(barNum - 1)) * bars->volume(barNum);
+			}
+		),
+		period
     );
-    return ema(move(forceIndex), period);
 }
 
 data::PPoints atr(data::PBars bars, size_t period) {
