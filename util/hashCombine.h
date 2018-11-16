@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdexcept>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -20,17 +21,19 @@ class HashCombine {
 public:
 	template<class T> HashCombine &operator<<(const T &value) {
 		const auto hash = Hasher<T>{}(value);
-		if (first_) {
-			first_ = false;
+		if (!hash_)
 			hash_ = hash;
-		} else
-			hash_ ^= hash + 0x9e3779b9 + (hash_ << 6) + (hash_ >> 2);
+		else
+			*hash_ ^= hash + 0x9e3779b9 + (*hash_ << 6) + (*hash_ >> 2);
 		return *this;
 	}
-	unsigned hash() const {return hash_;}
+	unsigned hash() const {
+		if (!hash_)
+			throw std::runtime_error("hash not combined");
+		return *hash_;
+	}
 private:
-	unsigned hash_{0};
-	bool first_{true};
+	std::optional<unsigned> hash_;
 };
 
 template<class K, class V>
