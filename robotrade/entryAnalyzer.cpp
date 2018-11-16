@@ -88,7 +88,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 
 	util::HashCombine h;
 	h << hash<string>()(bars_->title(0)) << orderBarNum << seed;
-	probabilityProvider_.seed(h.value());
+	probabilityProvider_.seed(h.hash());
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
