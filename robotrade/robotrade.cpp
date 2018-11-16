@@ -12,6 +12,7 @@
 
 #include <robotrade/quotesParser.h>
 #include <util/async.h>
+#include <util/hashes.h>
 
 #include <robotrade/levels.h>
 #include <robotrade/tripleScreen.h>

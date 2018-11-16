@@ -6,6 +6,7 @@
 #include <robotrade/quotesParser.h>
 #include <chart/indicators.h>
 #include <util/stream.h>
+#include <util/hashes.h>
 
 using namespace std;
 using namespace util;
@@ -22,7 +23,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 
 	struct Parsed {
 		data::PBars bars;
-		unordered_map<size_t, data::PPoints> emas;
+		umap<size_t, data::PPoints> emas;
 	};
 
 	const size_t emaFrom = 10;
