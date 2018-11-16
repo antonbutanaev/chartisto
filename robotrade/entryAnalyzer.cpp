@@ -1,4 +1,5 @@
 #include <robotrade/entryAnalyzer.h>
+#include <util/hashCombine.h>
 
 using namespace chart;
 using namespace std;
@@ -85,9 +86,9 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	const auto buy = direction == Direction::Buy;
 	const auto sell = direction == Direction::Sell;
 
-	probabilityProvider_.seed(
-		hash<string>()(bars_->title(0)) ^ orderBarNum ^ seed
-	);
+	util::HashCombine h;
+	h << hash<string>()(bars_->title(0)) << orderBarNum << seed;
+	probabilityProvider_.seed(h.value());
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
