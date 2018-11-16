@@ -8,12 +8,18 @@ namespace util {
 class HashCombine {
 public:
 	template<class T> HashCombine &operator<<(const T &value) {
-		h_ ^= std::hash<T>{}(value) + 0x9e3779b9 + (h_ << 6) + (h_ >> 2);
+		const auto hash = std::hash<T>{}(value);
+		if (first_) {
+			first_ = false;
+			hash_ = hash;
+		} else
+			hash_ ^= hash + 0x9e3779b9 + (hash_ << 6) + (hash_ >> 2);
 		return *this;
 	}
-	unsigned hash() const {return h_;}
+	unsigned hash() const {return hash_;}
 private:
-	unsigned h_ = 0;
+	unsigned hash_{0};
+	bool first_{true};
 };
 
 template<class T> class Hasher {
