@@ -5,10 +5,21 @@
 
 namespace util {
 
+template<class T> class Hasher {
+private:
+	template<class U>
+	unsigned hash(const U &value, decltype(std::hash<U>{}({}))) const {return std::hash<U>{}(value);}
+
+	template<class U>
+	unsigned hash(const U &value, decltype(U{}.hash())) const {return value.hash();}
+public:
+	unsigned operator()(const T &value) const {return hash(value, 0);}
+};
+
 class HashCombine {
 public:
 	template<class T> HashCombine &operator<<(const T &value) {
-		const auto hash = std::hash<T>{}(value);
+		const auto hash = Hasher<T>{}(value);
 		if (first_) {
 			first_ = false;
 			hash_ = hash;
@@ -20,17 +31,6 @@ public:
 private:
 	unsigned hash_{0};
 	bool first_{true};
-};
-
-template<class T> class Hasher {
-private:
-	template<class U>
-	unsigned hash(const U &value, decltype(std::hash<U>{}({}))) const {return std::hash<U>{}(value);}
-
-	template<class U>
-	unsigned hash(const U &value, decltype(U{}.hash())) const {return value.hash();}
-public:
-	unsigned operator()(const T &value) const {return hash(value, 0);}
 };
 
 template<class K, class V>
