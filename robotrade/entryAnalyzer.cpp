@@ -1,4 +1,4 @@
-#include <util/fnv.h>
+#include <util/hash.h>
 #include <robotrade/entryAnalyzer.h>
 
 using namespace chart;
@@ -86,7 +86,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	const auto buy = direction == Direction::Buy;
 	const auto sell = direction == Direction::Sell;
 
-	util::FNVHash hash;
+	util::hash::FNV1a hash;
 	hash << bars_->title(0) << orderBarNum << seed;
 	probabilityProvider_.seed(hash);
 	Result result;

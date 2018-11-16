@@ -1,6 +1,10 @@
+#include <iostream>
+#include <iomanip>
 #include <memory>
+#include <algorithm>
 #include <gtest/gtest.h>
 #include <util/funcIterator.h>
+#include <util/hash.h>
 
 using namespace std;
 using namespace util;
@@ -158,3 +162,31 @@ TEST(TestFuncIterator, Pair) {
 	}
 }
 
+TEST(TestHash, FNV1a) {
+	const unsigned offset = 1000000;
+	const unsigned numItems = 130000;
+	const unsigned windowSize = 131071; // 2^17-1 prime
+
+	map<unsigned, unsigned> collisions;
+	for (unsigned i = offset; i < numItems + offset; ++i) {
+		util::hash::FNV1a h;
+		h << i;
+		const auto windowOffset = h % windowSize;
+		collisions[windowOffset] += 1;
+	}
+
+	map<unsigned, unsigned> collisionsStat;
+	for (const auto &it: collisions)
+		collisionsStat[it.second] += 1;
+
+	double avgBucketSize = 0;
+	size_t numUniqueOffsets = 0;
+	for (const auto &it: collisionsStat) {
+		avgBucketSize += it.first * it.second;
+		numUniqueOffsets += it.second;
+		cout << it.first << ' ' << it.second << endl;
+	}
+	avgBucketSize /= numUniqueOffsets;
+	cout << avgBucketSize << endl;
+	EXPECT_NEAR(avgBucketSize, 1.43, .01);
+}
