@@ -1,8 +1,10 @@
 #pragma once
 
+#include <vector>
 #include <util/async.h>
 #include <util/funcIterator.h>
 #include <chart/data.h>
+#include <robotrade/entryAnalyzer.h>
 
 namespace robotrade {
 
@@ -18,6 +20,7 @@ private:
 		chart::data::PBars bars;
 	};
 	struct TaskResult {
+		std::vector<EntryAnalyzer::Result> results;
 		std::string log;
 	};
 

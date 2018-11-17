@@ -83,29 +83,85 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 
 EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 	ostringstream os;
+	ProbabilityProvider probabilityProvider;
+	EntryAnalyzer entryAnalyzer({}, params.bars, probabilityProvider, os);
+	EMACross::TaskResult result;
 	for (
 		auto barsFrom = params.emaPeriod, barsTo = barsFrom + 2 * params.emaPeriod;
-		barsTo < params.bars->num();
+		barsTo <= params.bars->num();
 		++barsFrom, ++barsTo
 	 ) {
-		bool noCross = true;
-		for (auto barNum = barsFrom; barNum != barsTo; ++barNum)
-			if (
+		os
+			<< "\nfrom " << params.bars->time(barsFrom)
+			<< " to " << params.bars->time(barsTo - 1);
+
+		const auto barCrossesEMA = [&](size_t barNum) {
+			return
 				params.bars->low(barNum) <= params.ema->close(barNum) &&
-				params.bars->high(barNum) >= params.ema->close(barNum)
-			) {
-				noCross = false;
+				params.bars->high(barNum) >= params.ema->close(barNum);
+		};
+
+		const auto lastBarNum = barsTo - 1;
+		if (!barCrossesEMA(lastBarNum)) {
+			os << " no last cross";
+			continue;
+		}
+
+		size_t numBarsBelow = 0;
+		size_t numBarsAbove = 0;
+		for (auto barNum = barsFrom; barNum != lastBarNum; ++barNum) {
+			if (params.bars->low(barNum) > params.ema->close(barNum))
+				++numBarsAbove;
+			else if (params.bars->high(barNum) < params.ema->close(barNum))
+				++numBarsBelow;
+
+			if (numBarsAbove && numBarsBelow)
 				break;
+		}
+
+		if (numBarsAbove && numBarsBelow) {
+			os << " middle cross";
+			continue;
+		}
+
+		// последняя свечка пересекает ema, другие нет
+
+		if (numBarsAbove) {
+			// пересечение сверху
+			const auto stop = params.bars->low(lastBarNum);
+			const auto enter = params.ema->close(lastBarNum);
+			const auto move = (enter - stop) * 3;
+			if (move > 2 * params.atr->close(lastBarNum)) {
+				os << " target too far up";
+				continue;
 			}
 
-		os
-			<< "period " << params.emaPeriod
-			<< " bars " << params.bars->title(0)
-			<< " from " << params.bars->time(barsFrom)
-			<< " to " << params.bars->time(barsTo - 1)
-			<< " noCross " << noCross << endl;
+			os << " BUY ";
+			result.results.push_back(entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Buy,
+				enter, stop, enter + move, lastBarNum, 0
+			));
+			os << result.results.back();
+		} else {
+			// пересечение сверху
+			const auto stop = params.bars->high(lastBarNum);
+			const auto enter = params.ema->close(lastBarNum);
+			const auto move = (stop - enter) * 3;
+			if (move > 2 * params.atr->close(lastBarNum)) {
+				os << " target too far low";
+				continue;
+			}
+
+			os << " SELL ";
+			result.results.push_back(entryAnalyzer.analyze(
+				EntryAnalyzer::Direction::Sell,
+				enter, stop, enter - move, lastBarNum, 0
+			));
+			os << result.results.back();
+		}
 	}
-	return {os.str()};
+	result.log = os.str();
+	return result;
 }
 
 }
