@@ -14,6 +14,7 @@ private:
 	struct TaskParams {
 		size_t emaPeriod;
 		chart::data::PPoints ema;
+		chart::data::PPoints atr;
 		chart::data::PBars bars;
 	};
 	struct TaskResult {

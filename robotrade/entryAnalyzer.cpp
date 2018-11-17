@@ -86,7 +86,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	const auto buy = direction == Direction::Buy;
 	const auto sell = direction == Direction::Sell;
 
-	probabilityProvider_.seed(util::hashCombine(bars_->title(0), orderBarNum, seed));
+	probabilityProvider_.seed(util::makeHash(bars_->title(0), orderBarNum, seed));
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <util/funcIterator.h>
+#include <util/hashes.h>
 
 using namespace std;
 using namespace util;
@@ -159,4 +160,20 @@ TEST(TestFuncIterator, Pair) {
 		};
 		EXPECT_EQ(v, v1);
 	}
+}
+
+TEST(TestHash, MakeHash) {
+	string a(20, 'A');
+	string b(20, 'B');
+	string c(20, 'C');
+
+	Hasher<string> hasher;
+
+	auto seed = hasher(a);
+	hashCombine(seed, b);
+	hashCombine(seed, c);
+
+	const auto seed2 = makeHash(c,b,a);
+
+	EXPECT_EQ(seed, seed2);
 }

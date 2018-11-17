@@ -24,6 +24,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	struct Parsed {
 		data::PBars bars;
 		umap<size_t, data::PPoints> emas;
+		umap<size_t, data::PPoints> atrs;
 	};
 
 	const size_t emaFrom = 10;
@@ -37,7 +38,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 				Parsed parsed;
 				parsed.bars = robotrade::parse(ifs);
 				parsed.emas.reserve(emaTo - emaFrom + 1);
-				for (auto period = emaFrom; period <= emaTo; ++period)
+				for (auto period = emaFrom; period <= emaTo; ++period) {
 					parsed.emas.insert({
 						period,
 						indicators::ema(
@@ -45,6 +46,12 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 							period
 						)
 					});
+					parsed.atrs.insert({
+						period,
+						indicators::atr(parsed.bars, period)
+					});
+
+				}
 				return parsed;
 			};
 		}
@@ -61,9 +68,10 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 			return [&,
 				emaPeriod = it.first,
 				ema = it.second->emas.at(it.first),
+				atr = it.second->atrs.at(it.first),
 				bars = it.second->bars
 			] {
-				return runTask({emaPeriod, ema, bars});
+				return runTask({emaPeriod, ema, atr, bars});
 			};
 		}
 	);
@@ -91,7 +99,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 			}
 
 		os
-			<< "ema " << params.emaPeriod
+			<< "period " << params.emaPeriod
 			<< " bars " << params.bars->title(0)
 			<< " from " << params.bars->time(barsFrom)
 			<< " to " << params.bars->time(barsTo - 1)
