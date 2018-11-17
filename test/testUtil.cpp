@@ -166,14 +166,18 @@ TEST(TestHash, MakeHash) {
 	string a(10, 'A');
 	string b(20, 'B');
 	string c(30, 'C');
+	int d = 40;
+	char e = 'e';
 
 	Hasher<string> hasher;
 
 	auto seed = hasher(a);
 	hashCombine(seed, b);
 	hashCombine(seed, c);
+	hashCombine(seed, d);
+	hashCombine(seed, e);
 
-	const auto seed2 = makeHash(c,b,a);
+	const auto seed2 = makeHash(e, d, c, b ,a);
 
 	EXPECT_EQ(seed, seed2);
 }
