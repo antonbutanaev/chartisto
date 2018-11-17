@@ -163,9 +163,9 @@ TEST(TestFuncIterator, Pair) {
 }
 
 TEST(TestHash, MakeHash) {
-	string a(20, 'A');
+	string a(10, 'A');
 	string b(20, 'B');
-	string c(20, 'C');
+	string c(30, 'C');
 
 	Hasher<string> hasher;
 
@@ -177,3 +177,51 @@ TEST(TestHash, MakeHash) {
 
 	EXPECT_EQ(seed, seed2);
 }
+
+struct El {
+	string s1, s2;
+	bool operator==(const El &other) const {
+		++numEq;
+		return s1 == other.s1 && s2 == other.s2;
+	}
+
+	auto hash() const {
+		++numHash;
+		return makeHash(s1, s2);
+	}
+
+	static int numEq;
+	static int numHash;
+};
+
+int El::numEq;
+int El::numHash;
+
+TEST(TestHash, StringHash) {
+	uset<El> s;
+	vector<El> v;
+	const size_t num = 100000;
+	for (size_t i = 0; i < num; ++i) {
+		El el{"A" + to_string(i*2), "B" + to_string(10000000 + i*i)};
+		v.push_back(el);
+		s.insert(move(el));
+	}
+
+	cout << El::numEq << ' ' << El::numHash << endl;
+	EXPECT_EQ(El::numEq, 0);
+	EXPECT_EQ(El::numHash, num);
+
+	El::numEq = 0;
+	El::numHash = 0;
+
+	size_t numFound = 0;
+	for (const auto &el: v)
+		if (s.find(el) != s.end())
+			++numFound;
+
+	cout << numFound << ' ' << El::numEq << ' ' << El::numHash << endl;
+
+	EXPECT_EQ(numFound, num);
+	EXPECT_EQ(El::numEq, num);
+	EXPECT_EQ(El::numHash, num);
+};
