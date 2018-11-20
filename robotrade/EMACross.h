@@ -20,6 +20,7 @@ private:
 		chart::data::PBars bars;
 	};
 	struct TaskResult {
+		std::string title;
 		std::vector<EntryAnalyzer::Result> results;
 		std::string log;
 	};

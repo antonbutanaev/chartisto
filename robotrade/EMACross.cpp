@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
@@ -76,9 +77,41 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 		}
 	);
 
+	if ((0)) {
 	cout << "Results:" << endl;
 	for (const auto &result: results)
 		cout << result.log << endl;
+	}
+
+	struct S {
+		size_t numProfits = 0;
+		size_t numLosses = 0;
+		auto finRes() const {return -static_cast<double>(numLosses) + 3*numProfits;}
+	};
+	util::umap<string, S> summary;
+	for (const auto &result: results) {
+		auto &summ = summary[result.title];
+		for (const auto &x: result.results)
+			if (x.profit)
+				++summ.numProfits;
+			else if (x.stopped && !x.stopped->lossless)
+				++summ.numLosses;
+	}
+
+	std::vector<decltype (summary.begin())> byFinRes;
+	byFinRes.reserve(summary.size());
+	for (auto it = summary.begin(); it != summary.end(); ++it)
+		byFinRes.push_back(it);
+	sort(byFinRes.begin(), byFinRes.end(), [](const auto &l, const auto &r){return l->second.finRes() > r->second.finRes();});
+
+	cout << "title\t\tlosses\tprofits\tfinRes\n";
+	for (const auto &x: byFinRes) {
+		cout
+			<< setw(15) << left << x->first << "\t"
+			<< x->second.numLosses << "\t"
+			<< x->second.numProfits << "\t"
+			<< x->second.finRes() << endl;
+	}
 }
 
 EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
@@ -86,6 +119,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 	ProbabilityProvider probabilityProvider;
 	EntryAnalyzer entryAnalyzer({}, params.bars, probabilityProvider, os);
 	EMACross::TaskResult result;
+	result.title = params.bars->title(0);
 	for (
 		auto barsFrom = params.emaPeriod, barsTo = barsFrom + 2 * params.emaPeriod;
 		barsTo <= params.bars->num();
