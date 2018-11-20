@@ -77,11 +77,9 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 		}
 	);
 
-	if ((0)) {
 	cout << "Results:" << endl;
 	for (const auto &result: results)
 		cout << result.log << endl;
-	}
 
 	struct S {
 		size_t numProfits = 0;
@@ -120,6 +118,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 	EntryAnalyzer entryAnalyzer({}, params.bars, probabilityProvider, os);
 	EMACross::TaskResult result;
 	result.title = params.bars->title(0);
+	os << result.title << endl;
 	for (
 		auto barsFrom = params.emaPeriod, barsTo = barsFrom + 2 * params.emaPeriod;
 		barsTo <= params.bars->num();
@@ -146,7 +145,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 		for (auto barNum = barsFrom; barNum != lastBarNum; ++barNum) {
 			if (params.bars->low(barNum) > params.ema->close(barNum))
 				++numBarsAbove;
-			else if (params.bars->high(barNum) < params.ema->close(barNum))
+			if (params.bars->high(barNum) < params.ema->close(barNum))
 				++numBarsBelow;
 
 			if (numBarsAbove && numBarsBelow)
@@ -166,11 +165,11 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 			const auto enter = params.ema->close(lastBarNum);
 			const auto move = (enter - stop) * 3;
 			if (move > 2 * params.atr->close(lastBarNum)) {
-				os << " target too far up";
+				os << " target too far down";
 				continue;
 			}
 
-			os << " BUY ";
+			os << " BUY " << params.emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
 				enter, stop, enter + move, lastBarNum, 0
@@ -186,7 +185,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 				continue;
 			}
 
-			os << " SELL ";
+			os << " SELL " << params.emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
 				enter, stop, enter - move, lastBarNum, 0
