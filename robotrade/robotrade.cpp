@@ -159,7 +159,7 @@ int main(int ac, char *av[]) try {
 				vm[argSeed].as<unsigned>()
 			);
 		} if (vm.count(argEMACross)) {
-			EMACross().process(vm[argQuotes].as<vector<string>>());
+			EMACross().process(vm[argQuotes].as<vector<string>>(), vm[argSeed].as<unsigned>());
 		} else
 			throw runtime_error("What to do with quotes?");
 	}

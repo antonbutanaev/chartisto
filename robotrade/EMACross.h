@@ -12,7 +12,7 @@ namespace robotrade {
 class EMACross {
 public:
 	EMACross();
-	void process(const std::vector<std::string> &quoteFiles);
+	void process(const std::vector<std::string> &quoteFiles, unsigned seed);
 private:
 	struct Parsed {
 		chart::data::PBars bars;
@@ -30,7 +30,7 @@ private:
 		std::string log;
 	};
 
-	TaskResult runTask(const TaskParams&);
+	TaskResult runTask(const TaskParams&, unsigned seed);
 
 	util::Async async_;
 };

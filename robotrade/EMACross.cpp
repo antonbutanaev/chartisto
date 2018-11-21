@@ -21,7 +21,7 @@ const size_t emaTo = 100;
 EMACross::EMACross() {
 }
 
-void EMACross::process(const std::vector<std::string> &quoteFiles) {
+void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed) {
 	if (quoteFiles.empty())
 		return;
 
@@ -64,7 +64,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 		funcIterator(taskParams),
 		[&] (const auto &it) {
 			return [&, parsed = it.parsed, barNum = it.barNum] {
-				return runTask({barNum, parsed});
+				return runTask({barNum, parsed}, seed);
 			};
 		}
 	);
@@ -73,22 +73,22 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	for (const auto &result: results)
 		cout << result.log << endl;
 
-	struct S {
+	struct Summary {
 		size_t numProfits = 0;
 		size_t numLosses = 0;
 		auto finRes() const {return -static_cast<double>(numLosses) + 3*numProfits;}
 	};
-	util::umap<string, S> summary;
+	util::umap<string, Summary> summary;
 	for (const auto &result: results) {
 		auto &summ = summary[result.title];
-		for (const auto &x: result.results)
-			if (x.profit)
+		for (const auto &resultIt: result.results)
+			if (resultIt.profit)
 				++summ.numProfits;
-			else if (x.stopped && !x.stopped->lossless)
+			else if (resultIt.stopped && !resultIt.stopped->lossless)
 				++summ.numLosses;
 	}
 
-	std::vector<decltype (summary.begin())> byFinRes;
+	std::vector<decltype(summary.begin())> byFinRes;
 	byFinRes.reserve(summary.size());
 	for (auto it = summary.begin(); it != summary.end(); ++it)
 		byFinRes.push_back(it);
@@ -122,7 +122,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 
 }
 
-EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
+EMACross::TaskResult EMACross::runTask(const TaskParams &params, unsigned seed) {
 	ostringstream os;
 	ProbabilityProvider probabilityProvider;
 	EntryAnalyzer entryAnalyzer({}, params.parsed.bars, probabilityProvider, os);
@@ -130,10 +130,12 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 	result.title = params.parsed.bars->title(0);
 	os << result.title << endl;
 	for (auto emaPeriod = emaTo; emaPeriod >= emaFrom; --emaPeriod) {
+		const auto barFrom = params.barNum - emaPeriod * 2;
+		const auto lastBarNum = params.barNum - 1;
 		os
 			<< "\nema " << emaPeriod
-			<< " from " << params.parsed.bars->time(params.barNum - emaPeriod * 2)
-			<< " to " << params.parsed.bars->time(params.barNum - 1);
+			<< " from " << params.parsed.bars->time(barFrom)
+			<< " to " << params.parsed.bars->time(lastBarNum);
 
 		const auto barCrossesEMA = [&](size_t barNum) {
 			return
@@ -141,7 +143,6 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 				params.parsed.bars->high(barNum) >= params.parsed.emas.at(emaPeriod)->close(barNum);
 		};
 
-		const auto lastBarNum = params.barNum - 1;
 		if (!barCrossesEMA(lastBarNum)) {
 			os << " no last cross";
 			continue;
@@ -149,7 +150,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 
 		size_t numBarsBelow = 0;
 		size_t numBarsAbove = 0;
-		for (auto barNum = lastBarNum; barNum >= params.barNum - emaPeriod * 2; --barNum) {
+		for (auto barNum = lastBarNum; barNum >= barFrom; --barNum) {
 			if (params.parsed.bars->low(barNum) > params.parsed.emas.at(emaPeriod)->close(barNum))
 				++numBarsAbove;
 			if (params.parsed.bars->high(barNum) < params.parsed.emas.at(emaPeriod)->close(barNum))
@@ -179,7 +180,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 			os << " BUY " << emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
-				enter, stop, enter + move, lastBarNum, 0
+				enter, stop, enter + move, lastBarNum, seed
 			));
 			os << result.results.back();
 			break;
@@ -196,7 +197,7 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 			os << " SELL " << emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
-				enter, stop, enter - move, lastBarNum, 0
+				enter, stop, enter - move, lastBarNum, seed
 			));
 			os << result.results.back();
 			break;
