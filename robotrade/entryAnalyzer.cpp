@@ -1,5 +1,5 @@
 #include <robotrade/entryAnalyzer.h>
-#include <util/hashes.h>
+#include <util/hasher.h>
 
 using namespace chart;
 using namespace std;

@@ -7,13 +7,16 @@
 #include <robotrade/quotesParser.h>
 #include <chart/indicators.h>
 #include <util/stream.h>
-#include <util/hashes.h>
+#include <util/hasher.h>
 
 using namespace std;
 using namespace util;
 using namespace chart;
 
 namespace robotrade {
+
+const size_t emaFrom = 10;
+const size_t emaTo = 100;
 
 EMACross::EMACross() {
 }
@@ -22,16 +25,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 	if (quoteFiles.empty())
 		return;
 
-	struct Parsed {
-		data::PBars bars;
-		umap<size_t, data::PPoints> emas;
-		umap<size_t, data::PPoints> atrs;
-	};
-
-	const size_t emaFrom = 10;
-	const size_t emaTo = 100;
-
-	auto parsed = async_.execTasks(
+	auto parseds = async_.execTasks(
 		funcIterator(quoteFiles),
 		[&] (const string &quoteFile) {
 			return [&, quoteFile] {
@@ -39,6 +33,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 				Parsed parsed;
 				parsed.bars = robotrade::parse(ifs);
 				parsed.emas.reserve(emaTo - emaFrom + 1);
+				parsed.atrs.reserve(emaTo - emaFrom + 1);
 				for (auto period = emaFrom; period <= emaTo; ++period) {
 					parsed.emas.insert({
 						period,
@@ -58,21 +53,18 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 		}
 	);
 
-	cout << "Parsed " << parsed.size() << endl;
+	cout << "Parsed " << parseds.size() << endl;
+
+	vector<TaskParams> taskParams;
+	for (const auto &parsed: parseds)
+		for (size_t barNum = 2*emaTo; barNum < parsed.bars->num(); ++barNum)
+			taskParams.push_back({barNum, parsed});
 
 	const auto results = async_.execTasks(
-		funcPairIterator(
-			funcRangeIterator(emaFrom, emaTo + 1),
-			funcRangeIterator(parsed.begin(), parsed.end())
-		),
+		funcIterator(taskParams),
 		[&] (const auto &it) {
-			return [&,
-				emaPeriod = it.first,
-				ema = it.second->emas.at(it.first),
-				atr = it.second->atrs.at(it.first),
-				bars = it.second->bars
-			] {
-				return runTask({emaPeriod, ema, atr, bars});
+			return [&, parsed = it.parsed, barNum = it.barNum] {
+				return runTask({barNum, parsed});
 			};
 		}
 	);
@@ -115,26 +107,23 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 	ostringstream os;
 	ProbabilityProvider probabilityProvider;
-	EntryAnalyzer entryAnalyzer({}, params.bars, probabilityProvider, os);
+	EntryAnalyzer entryAnalyzer({}, params.parsed.bars, probabilityProvider, os);
 	EMACross::TaskResult result;
-	result.title = params.bars->title(0);
+	result.title = params.parsed.bars->title(0);
 	os << result.title << endl;
-	for (
-		auto barsFrom = params.emaPeriod, barsTo = barsFrom + 2 * params.emaPeriod;
-		barsTo <= params.bars->num();
-		++barsFrom, ++barsTo
-	 ) {
+	for (auto emaPeriod = emaTo; emaPeriod >= emaFrom; --emaPeriod) {
 		os
-			<< "\nfrom " << params.bars->time(barsFrom)
-			<< " to " << params.bars->time(barsTo - 1);
+			<< "\nema " << emaPeriod
+			<< " from " << params.parsed.bars->time(params.barNum - emaPeriod * 2)
+			<< " to " << params.parsed.bars->time(params.barNum - 1);
 
 		const auto barCrossesEMA = [&](size_t barNum) {
 			return
-				params.bars->low(barNum) <= params.ema->close(barNum) &&
-				params.bars->high(barNum) >= params.ema->close(barNum);
+				params.parsed.bars->low(barNum) <= params.parsed.emas.at(emaPeriod)->close(barNum) &&
+				params.parsed.bars->high(barNum) >= params.parsed.emas.at(emaPeriod)->close(barNum);
 		};
 
-		const auto lastBarNum = barsTo - 1;
+		const auto lastBarNum = params.barNum - 1;
 		if (!barCrossesEMA(lastBarNum)) {
 			os << " no last cross";
 			continue;
@@ -142,10 +131,10 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 
 		size_t numBarsBelow = 0;
 		size_t numBarsAbove = 0;
-		for (auto barNum = barsFrom; barNum != lastBarNum; ++barNum) {
-			if (params.bars->low(barNum) > params.ema->close(barNum))
+		for (auto barNum = lastBarNum; barNum >= params.barNum - emaPeriod * 2; --barNum) {
+			if (params.parsed.bars->low(barNum) > params.parsed.emas.at(emaPeriod)->close(barNum))
 				++numBarsAbove;
-			if (params.bars->high(barNum) < params.ema->close(barNum))
+			if (params.parsed.bars->high(barNum) < params.parsed.emas.at(emaPeriod)->close(barNum))
 				++numBarsBelow;
 
 			if (numBarsAbove && numBarsBelow)
@@ -161,36 +150,38 @@ EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
 
 		if (numBarsAbove) {
 			// пересечение сверху
-			const auto stop = params.bars->low(lastBarNum);
-			const auto enter = params.ema->close(lastBarNum);
+			const auto stop = params.parsed.bars->low(lastBarNum);
+			const auto enter = params.parsed.emas.at(emaPeriod)->close(lastBarNum);
 			const auto move = (enter - stop) * 3;
-			if (move > 2 * params.atr->close(lastBarNum)) {
+			if (move > 2 * params.parsed.atrs.at(emaPeriod)->close(lastBarNum)) {
 				os << " target too far down";
 				continue;
 			}
 
-			os << " BUY " << params.emaPeriod << ' ' << result.title << " ";
+			os << " BUY " << emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
 				enter, stop, enter + move, lastBarNum, 0
 			));
 			os << result.results.back();
+			break;
 		} else {
 			// пересечение сверху
-			const auto stop = params.bars->high(lastBarNum);
-			const auto enter = params.ema->close(lastBarNum);
+			const auto stop = params.parsed.bars->high(lastBarNum);
+			const auto enter = params.parsed.emas.at(emaPeriod)->close(lastBarNum);
 			const auto move = (stop - enter) * 3;
-			if (move > 2 * params.atr->close(lastBarNum)) {
+			if (move > 2 * params.parsed.atrs.at(emaPeriod)->close(lastBarNum)) {
 				os << " target too far low";
 				continue;
 			}
 
-			os << " SELL " << params.emaPeriod << ' ' << result.title << " ";
+			os << " SELL " << emaPeriod << ' ' << result.title << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
 				enter, stop, enter - move, lastBarNum, 0
 			));
 			os << result.results.back();
+			break;
 		}
 	}
 	result.log = os.str();

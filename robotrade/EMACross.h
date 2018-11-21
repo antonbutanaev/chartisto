@@ -5,6 +5,7 @@
 #include <util/funcIterator.h>
 #include <chart/data.h>
 #include <robotrade/entryAnalyzer.h>
+#include <util/hasher.h>
 
 namespace robotrade {
 
@@ -13,11 +14,15 @@ public:
 	EMACross();
 	void process(const std::vector<std::string> &quoteFiles);
 private:
-	struct TaskParams {
-		size_t emaPeriod;
-		chart::data::PPoints ema;
-		chart::data::PPoints atr;
+	struct Parsed {
 		chart::data::PBars bars;
+		util::umap<size_t, chart::data::PPoints> emas;
+		util::umap<size_t, chart::data::PPoints> atrs;
+	};
+
+	struct TaskParams {
+		size_t barNum;
+		const Parsed &parsed;
 	};
 	struct TaskResult {
 		std::string title;

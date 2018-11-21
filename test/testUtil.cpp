@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <gtest/gtest.h>
 #include <util/funcIterator.h>
-#include <util/hashes.h>
+#include <util/hasher.h>
 
 using namespace std;
 using namespace util;
