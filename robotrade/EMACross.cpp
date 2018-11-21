@@ -94,14 +94,32 @@ void EMACross::process(const std::vector<std::string> &quoteFiles) {
 		byFinRes.push_back(it);
 	sort(byFinRes.begin(), byFinRes.end(), [](const auto &l, const auto &r){return l->second.finRes() > r->second.finRes();});
 
-	cout << "title\t\tlosses\tprofits\tfinRes\n";
+	cout << "#\ttitle\t\tprofits\tlosses\tfinRes\n";
+	size_t num = 0;
+	size_t numProfits = 0;
+	size_t numLosses = 0;
+	double finResult = 0;
 	for (const auto &x: byFinRes) {
 		cout
+			<< ++num << "\t"
 			<< setw(15) << left << x->first << "\t"
-			<< x->second.numLosses << "\t"
 			<< x->second.numProfits << "\t"
+			<< x->second.numLosses << "\t"
 			<< x->second.finRes() << endl;
+
+		numProfits += x->second.numProfits;
+		numLosses += x->second.numLosses;
+		finResult += x->second.finRes();
 	}
+	cout
+		<< endl
+		<< '\t'
+		<< setw(15) << left << "Total" << '\t'
+		<< numProfits << '\t'
+		<< numLosses << '\t'
+		<< finResult
+		<< endl;
+
 }
 
 EMACross::TaskResult EMACross::runTask(const TaskParams &params) {
