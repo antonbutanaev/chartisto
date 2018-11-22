@@ -14,15 +14,15 @@ public:
 	EMACross();
 	void process(const std::vector<std::string> &quoteFiles, unsigned seed);
 private:
-	struct Parsed {
+	struct PriceInfo {
 		chart::data::PBars bars;
 		util::umap<size_t, chart::data::PPoints> emas;
 		util::umap<size_t, chart::data::PPoints> atrs;
 	};
 
-	struct TaskParams {
+	struct TaskParam {
 		size_t barNum;
-		const Parsed &parsed;
+		const PriceInfo &priceInfo;
 	};
 	struct TaskResult {
 		std::string title;
@@ -30,7 +30,7 @@ private:
 		std::string log;
 	};
 
-	TaskResult runTask(const TaskParams&, unsigned seed);
+	TaskResult runTask(const TaskParam&, unsigned seed);
 
 	util::Async async_;
 };
