@@ -339,7 +339,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 	EntryAnalyzerParams entryAnalyzerParams;
 	entryAnalyzerParams.losslessStopK = params.losslessStopK;
 	entryAnalyzerParams.runAwayFromStopK = params.losslessStopK;
-	EntryAnalyzer entryAnalyzer(entryAnalyzerParams, bars, probabilityProvider, result_);
+	EntryAnalyzer entryAnalyzer(entryAnalyzerParams, bars, probabilityProvider, result_, seed);
 	vector<EntryAnalyzer::Result> results;
 	result_ << "Using params:" << endl << params;
 	result_ << "Using seed: " << seed << endl;
@@ -408,8 +408,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 								enterStop,
 								stop,
 								target,
-								lastBarNum,
-								seed
+								lastBarNum
 							)
 						);
 						result_ << " " << results.back() << endl;
@@ -436,8 +435,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 								enterStop,
 								stop,
 								target,
-								lastBarNum,
-								seed
+								lastBarNum
 							)
 						);
 						result_ << " " << results.back() << endl;

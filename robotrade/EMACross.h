@@ -11,6 +11,12 @@ namespace robotrade {
 
 class EMACross {
 public:
+	struct Config {
+		double windowSizeK = 2.;
+		double profitPerStopK = 3.;
+		double maxMovePerAtrK = 2.;
+	};
+
 	EMACross();
 	void process(const std::vector<std::string> &quoteFiles, unsigned seed);
 private:
@@ -30,7 +36,7 @@ private:
 		std::string log;
 	};
 
-	TaskResult runTask(const TaskParam&, unsigned seed);
+	TaskResult runTask(const TaskParam&, unsigned seed, const Config&);
 
 	util::Async async_;
 };

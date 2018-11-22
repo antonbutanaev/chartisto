@@ -33,7 +33,9 @@ public:
 	EntryAnalyzer(
 		const EntryAnalyzerParams &params,
 		chart::data::PBars bars,
-		IProbabilityProvider&, std::ostream&
+		IProbabilityProvider&,
+		std::ostream&,
+		unsigned seed
 	);
 
 	struct Result {
@@ -78,8 +80,7 @@ public:
 		chart::Price stopEnterPrice,
 		chart::Price stopPrice,
 		chart::Price targetPrice,
-		size_t orderBarNum,
-		unsigned seed
+		size_t orderBarNum
 	);
 
 private:
@@ -87,6 +88,7 @@ private:
 	chart::data::PBars bars_;
 	IProbabilityProvider &probabilityProvider_;
 	std::ostream &result_;
+	unsigned seed_;
 };
 
 }

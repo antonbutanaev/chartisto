@@ -18,16 +18,11 @@ namespace robotrade {
 const size_t emaFrom = 10;
 const size_t emaTo = 100;
 
-struct EMACrossConfig {
-	double windowSizeK = 2.;
-	double profitPerStopK = 3.;
-};
-
 EMACross::EMACross() {
 }
 
 void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed) {
-	EMACrossConfig config;
+	Config config;
 	if (quoteFiles.empty())
 		return;
 
@@ -72,7 +67,7 @@ void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed
 		funcIterator(taskParams),
 		[&] (const auto &taskParam) {
 			return [&, taskParam] {
-				return runTask(taskParam, seed);
+				return runTask(taskParam, seed, config);
 			};
 		}
 	);
@@ -134,28 +129,31 @@ void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed
 
 }
 
-EMACross::TaskResult EMACross::runTask(const TaskParam &params, unsigned seed) {
+EMACross::TaskResult EMACross::runTask(
+	const TaskParam &param, unsigned seed, const Config &config
+) {
 	ostringstream os;
 	ProbabilityProvider probabilityProvider;
-	EntryAnalyzer entryAnalyzer({}, params.priceInfo.bars, probabilityProvider, os);
+	EntryAnalyzer entryAnalyzer({}, param.priceInfo.bars, probabilityProvider, os, seed);
 	EMACross::TaskResult result;
-	result.title = params.priceInfo.bars->title(0);
+	result.title = param.priceInfo.bars->title(0);
 	os << result.title << endl;
-	for (auto emaPeriod = emaTo; emaPeriod >= emaFrom; --emaPeriod) {
-		const auto barFrom = params.barNum - emaPeriod * 2;
-		const auto lastBarNum = params.barNum - 1;
+	const auto &bars = param.priceInfo.bars;
+	for (auto period = emaTo; period >= emaFrom; os << endl, --period) {
+		const auto &ema = param.priceInfo.emas.at(period);
+		const auto &atr = param.priceInfo.atrs.at(period);
+
+		const auto barFrom = param.barNum - static_cast<size_t>(period * config.windowSizeK);
+		const auto lastBarNum = param.barNum - 1;
 		os
-			<< "\nema " << emaPeriod
-			<< " from " << params.priceInfo.bars->time(barFrom)
-			<< " to " << params.priceInfo.bars->time(lastBarNum);
+			<< "ema " << period
+			<< " from " << param.priceInfo.bars->time(barFrom)
+			<< " to " << param.priceInfo.bars->time(lastBarNum);
 
-		const auto barCrossesEMA = [&](size_t barNum) {
-			return
-				params.priceInfo.bars->low(barNum) <= params.priceInfo.emas.at(emaPeriod)->close(barNum) &&
-				params.priceInfo.bars->high(barNum) >= params.priceInfo.emas.at(emaPeriod)->close(barNum);
-		};
-
-		if (!barCrossesEMA(lastBarNum)) {
+		const auto lastCross =
+			bars->low(lastBarNum) <= ema->close(lastBarNum) &&
+			bars->high(lastBarNum) >= ema->close(lastBarNum);
+		if (!lastCross) {
 			os << " no last cross";
 			continue;
 		}
@@ -163,9 +161,9 @@ EMACross::TaskResult EMACross::runTask(const TaskParam &params, unsigned seed) {
 		size_t numBarsBelow = 0;
 		size_t numBarsAbove = 0;
 		for (auto barNum = lastBarNum; barNum >= barFrom; --barNum) {
-			if (params.priceInfo.bars->low(barNum) > params.priceInfo.emas.at(emaPeriod)->close(barNum))
+			if (bars->low(barNum) > ema->close(barNum))
 				++numBarsAbove;
-			if (params.priceInfo.bars->high(barNum) < params.priceInfo.emas.at(emaPeriod)->close(barNum))
+			if (bars->high(barNum) < ema->close(barNum))
 				++numBarsBelow;
 
 			if (numBarsAbove && numBarsBelow)
@@ -173,43 +171,39 @@ EMACross::TaskResult EMACross::runTask(const TaskParam &params, unsigned seed) {
 		}
 
 		if (numBarsAbove && numBarsBelow) {
-			os << " middle cross";
+			os << " bars above and below ema";
 			continue;
 		}
 
-		// последняя свечка пересекает ema, другие нет
-
 		if (numBarsAbove) {
-			// пересечение сверху
-			const auto stop = params.priceInfo.bars->low(lastBarNum);
-			const auto enter = params.priceInfo.emas.at(emaPeriod)->close(lastBarNum);
-			const auto move = (enter - stop) * 3;
-			if (move > 2 * params.priceInfo.atrs.at(emaPeriod)->close(lastBarNum)) {
-				os << " target too far down";
+			const auto stop = bars->low(lastBarNum);
+			const auto enter = ema->close(lastBarNum);
+			const auto move = (enter - stop) * config.profitPerStopK;
+			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
+				os << " target too far up";
 				continue;
 			}
 
-			os << " BUY " << emaPeriod << ' ' << result.title << " ";
+			os << endl << "BUY " << period << ' ' << result.title << ' ';
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
-				enter, stop, enter + move, lastBarNum, seed
+				enter, stop, enter + move, lastBarNum
 			));
 			os << result.results.back();
 			break;
 		} else {
-			// пересечение сверху
-			const auto stop = params.priceInfo.bars->high(lastBarNum);
-			const auto enter = params.priceInfo.emas.at(emaPeriod)->close(lastBarNum);
-			const auto move = (stop - enter) * 3;
-			if (move > 2 * params.priceInfo.atrs.at(emaPeriod)->close(lastBarNum)) {
-				os << " target too far low";
+			const auto stop = bars->high(lastBarNum);
+			const auto enter = ema->close(lastBarNum);
+			const auto move = (stop - enter) * config.profitPerStopK;
+			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
+				os << " target too far down";
 				continue;
 			}
 
-			os << " SELL " << emaPeriod << ' ' << result.title << " ";
+			os << endl << "SELL " << period << ' ' << result.title << ' ';
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
-				enter, stop, enter - move, lastBarNum, seed
+				enter, stop, enter - move, lastBarNum
 			));
 			os << result.results.back();
 			break;

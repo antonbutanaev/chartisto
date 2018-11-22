@@ -65,13 +65,14 @@ EntryAnalyzer::EntryAnalyzer(
 	const EntryAnalyzerParams &params,
 	chart::data::PBars bars,
 	IProbabilityProvider &probabilityProvider,
-	std::ostream &result
-)
-	:
+	std::ostream &result,
+	unsigned seed
+):
 	params_(params),
 	bars_(bars),
 	probabilityProvider_(probabilityProvider),
-	result_(result)
+	result_(result),
+	seed_(seed)
 {
 }
 
@@ -80,13 +81,12 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Price stopEnterPrice,
 	Price stopPrice,
 	Price targetPrice,
-	size_t orderBarNum,
-	unsigned seed
+	size_t orderBarNum
 ) {
 	const auto buy = direction == Direction::Buy;
 	const auto sell = direction == Direction::Sell;
 
-	probabilityProvider_.seed(util::makeHash(bars_->title(0), orderBarNum, seed));
+	probabilityProvider_.seed(util::makeHash(bars_->title(0), orderBarNum, seed_));
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
