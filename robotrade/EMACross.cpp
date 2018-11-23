@@ -18,10 +18,13 @@ namespace robotrade {
 const size_t emaFrom = 10;
 const size_t emaTo = 100;
 
-EMACross::EMACross() {
+EMACross::EMACross(unsigned verbose) : verbose_(verbose)  {
 }
 
-void EMACross::process(unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed) {
+void EMACross::process(
+	bool printSummary, bool printOrders,
+	unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
+) {
 	Config config;
 	if (quoteFiles.empty())
 		return;
@@ -58,8 +61,8 @@ void EMACross::process(unsigned daysToAnalyze, const std::vector<std::string> &q
 	for (const auto &priceInfo: priceInfos) {
 		auto startFrom = static_cast<size_t>(config.windowSizeK * emaTo);
 		if (daysToAnalyze != 0)
-			startFrom = max(startFrom, priceInfo.bars->num() - daysToAnalyze);
-		for (size_t barNum = startFrom; barNum < priceInfo.bars->num(); ++barNum)
+			startFrom = max(startFrom, priceInfo.bars->num() - daysToAnalyze + 1);
+		for (size_t barNum = startFrom; barNum <= priceInfo.bars->num(); ++barNum)
 			taskParams.push_back({barNum, priceInfo});
 	}
 
@@ -72,61 +75,73 @@ void EMACross::process(unsigned daysToAnalyze, const std::vector<std::string> &q
 		}
 	);
 
-	cout << "Log:" << endl;
-	for (const auto &result: results)
-		cout << result.log << endl;
+	if (verbose_ >= Log) {
+		cout << "Log:" << endl;
+		for (const auto &result: results)
+			cout << result.log << endl;
+	}
 
-	struct Summary {
+	if (printOrders) {
+		for (const auto &result: results) {
+			if (!result.results.empty())
+				cout << result.title << endl;
+			for (const auto &resultIt: result.results)
+				cout << resultIt << endl;
+		}
+	}
+
+	if (printSummary) {
+		struct Summary {
+			size_t numProfits = 0;
+			size_t numLosses = 0;
+		};
+
+		const auto finRes = [&] (const Summary &summary)  {
+			return -static_cast<double>(summary.numLosses) + config.profitPerStopK * summary.numProfits;
+		};
+
+		util::umap<string, Summary> summary;
+		for (const auto &result: results) {
+			auto &summ = summary[result.title];
+			for (const auto &resultIt: result.results)
+				if (resultIt.profit)
+					++summ.numProfits;
+				else if (resultIt.stopped && !resultIt.stopped->lossless)
+					++summ.numLosses;
+		}
+
+		std::vector<decltype(summary.begin())> byFinRes;
+		byFinRes.reserve(summary.size());
+		for (auto it = summary.begin(); it != summary.end(); ++it)
+			byFinRes.push_back(it);
+		sort(byFinRes.begin(), byFinRes.end(), [&](const auto &l, const auto &r){return finRes(l->second) > finRes(r->second);});
+
+		cout << "#\ttitle\t\tprofits\tlosses\tfinRes\n";
+		size_t num = 0;
 		size_t numProfits = 0;
 		size_t numLosses = 0;
-	};
+		double finResult = 0;
+		for (const auto &x: byFinRes) {
+			cout
+				<< ++num << "\t"
+				<< setw(15) << left << x->first << "\t"
+				<< x->second.numProfits << "\t"
+				<< x->second.numLosses << "\t"
+				<< finRes(x->second) << endl;
 
-	const auto finRes = [&] (const Summary &summary)  {
-		return -static_cast<double>(summary.numLosses) + config.profitPerStopK * summary.numProfits;
-	};
-
-	util::umap<string, Summary> summary;
-	for (const auto &result: results) {
-		auto &summ = summary[result.title];
-		for (const auto &resultIt: result.results)
-			if (resultIt.profit)
-				++summ.numProfits;
-			else if (resultIt.stopped && !resultIt.stopped->lossless)
-				++summ.numLosses;
-	}
-
-	std::vector<decltype(summary.begin())> byFinRes;
-	byFinRes.reserve(summary.size());
-	for (auto it = summary.begin(); it != summary.end(); ++it)
-		byFinRes.push_back(it);
-	sort(byFinRes.begin(), byFinRes.end(), [&](const auto &l, const auto &r){return finRes(l->second) > finRes(r->second);});
-
-	cout << "#\ttitle\t\tprofits\tlosses\tfinRes\n";
-	size_t num = 0;
-	size_t numProfits = 0;
-	size_t numLosses = 0;
-	double finResult = 0;
-	for (const auto &x: byFinRes) {
+			numProfits += x->second.numProfits;
+			numLosses += x->second.numLosses;
+			finResult += finRes(x->second);
+		}
 		cout
-			<< ++num << "\t"
-			<< setw(15) << left << x->first << "\t"
-			<< x->second.numProfits << "\t"
-			<< x->second.numLosses << "\t"
-			<< finRes(x->second) << endl;
-
-		numProfits += x->second.numProfits;
-		numLosses += x->second.numLosses;
-		finResult += finRes(x->second);
+			<< endl
+			<< '\t'
+			<< setw(15) << left << "Total" << '\t'
+			<< numProfits << '\t'
+			<< numLosses << '\t'
+			<< finResult
+			<< endl;
 	}
-	cout
-		<< endl
-		<< '\t'
-		<< setw(15) << left << "Total" << '\t'
-		<< numProfits << '\t'
-		<< numLosses << '\t'
-		<< finResult
-		<< endl;
-
 }
 
 EMACross::TaskResult EMACross::runTask(

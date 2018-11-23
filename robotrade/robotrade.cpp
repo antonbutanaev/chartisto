@@ -101,13 +101,14 @@ int main(int ac, char *av[]) try {
 	const char
 		*argHelp = "help",
 		*argQuotes = "quotes",
-		*argLevelsJson = "levels",
 		*argDays = "days",
-		*argLevelsSummary = "levels-summary",
-		*argLevelsResults = "levels-results",
-		*argEMACross = "ema-cross",
+		*argSummary = "summary",
+		*argOrders = "orders",
+		*argVerbose = "verbose",
 		*argSeed = "seed",
-		*argLog = "log";
+		*argLog = "log",
+		*argLevelsJson = "levels",
+		*argEMACross = "ema-cross";
 
 	namespace po = boost::program_options;
 
@@ -119,10 +120,11 @@ int main(int ac, char *av[]) try {
 		(argEMACross, "EMA cross")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
+		(argVerbose, po::value<unsigned>()->default_value(0), "Verbose")
 		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
-		(argLevelsSummary, "Print levels summary")
-		(argLevelsResults, "Print levels result files")
+		(argSummary, "Print summary")
+		(argOrders, "Print orders")
 		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
 
 	po::variables_map vm;
@@ -154,12 +156,14 @@ int main(int ac, char *av[]) try {
 				vm[argLevelsJson].as<string>(),
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
-				vm.count(argLevelsSummary) > 0,
-				vm.count(argLevelsResults) > 0,
+				vm.count(argSummary) > 0,
+				vm.count(argOrders) > 0,
 				vm[argSeed].as<unsigned>()
 			);
 		} if (vm.count(argEMACross)) {
-			EMACross().process(
+			EMACross(vm[argVerbose].as<unsigned>()).process(
+				vm.count(argSummary) > 0,
+				vm.count(argOrders) > 0,
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm[argSeed].as<unsigned>()

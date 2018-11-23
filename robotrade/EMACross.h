@@ -17,8 +17,11 @@ public:
 		double maxMovePerAtrK = 2.;
 	};
 
-	EMACross();
-	void process(unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed);
+	EMACross(unsigned verbose);
+	void process(
+		bool printSummary, bool printOrders,
+		unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
+	);
 private:
 	struct PriceInfo {
 		chart::data::PBars bars;
@@ -39,6 +42,8 @@ private:
 	TaskResult runTask(const TaskParam&, unsigned seed, const Config&);
 
 	util::Async async_;
+	enum Verbose{Log = 1};
+	unsigned verbose_;
 };
 
 }
