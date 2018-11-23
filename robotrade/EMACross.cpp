@@ -6,6 +6,7 @@
 #include <robotrade/EMACross.h>
 #include <robotrade/quotesParser.h>
 #include <chart/indicators.h>
+#include <chart/stepFind.h>
 #include <util/stream.h>
 #include <util/hasher.h>
 
@@ -160,6 +161,7 @@ EMACross::TaskResult EMACross::runTask(
 
 		const auto barFrom = param.barNum - static_cast<size_t>(period * config.windowSizeK);
 		const auto lastBarNum = param.barNum - 1;
+		const auto step = stepFind(bars, barFrom, param.barNum);
 		os
 			<< "ema " << period
 			<< " from " << param.priceInfo.bars->time(barFrom)
@@ -192,14 +194,21 @@ EMACross::TaskResult EMACross::runTask(
 
 		if (numBarsAbove) {
 			const auto stop = bars->low(lastBarNum);
-			const auto enter = ema->close(lastBarNum);
+			auto enter = ema->close(lastBarNum);
+			enter = ceil(enter / step) * step;
 			const auto move = (enter - stop) * config.profitPerStopK;
 			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far up";
 				continue;
 			}
 
-			os << endl << "BUY " << period << ' ' << result.title << ' ';
+			os
+				<< endl
+				<< "BUY "
+				<< result.title
+				<< " step " << setprecision(10) << step
+				<< " period " << period
+				<< " ema " << ema->close(lastBarNum) << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
 				enter, stop, enter + move, lastBarNum
@@ -208,14 +217,22 @@ EMACross::TaskResult EMACross::runTask(
 			break;
 		} else {
 			const auto stop = bars->high(lastBarNum);
-			const auto enter = ema->close(lastBarNum);
+			auto enter = ema->close(lastBarNum);
+			enter = floor(enter / step) * step;
+
 			const auto move = (stop - enter) * config.profitPerStopK;
 			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far down";
 				continue;
 			}
 
-			os << endl << "SELL " << period << ' ' << result.title << ' ';
+			os
+				<< endl
+				<< "SELL "
+				<< result.title
+				<< " step " << setprecision(10) << step
+				<< " period " << period
+				<< " ema " << ema->close(lastBarNum) << " ";
 			result.results.push_back(entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
 				enter, stop, enter - move, lastBarNum
