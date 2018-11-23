@@ -102,7 +102,7 @@ int main(int ac, char *av[]) try {
 		*argHelp = "help",
 		*argQuotes = "quotes",
 		*argLevelsJson = "levels",
-		*argLevelsDays = "levels-days",
+		*argDays = "days",
 		*argLevelsSummary = "levels-summary",
 		*argLevelsResults = "levels-results",
 		*argEMACross = "ema-cross",
@@ -119,7 +119,7 @@ int main(int ac, char *av[]) try {
 		(argEMACross, "EMA cross")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
-		(argLevelsDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
+		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
 		(argLevelsSummary, "Print levels summary")
 		(argLevelsResults, "Print levels result files")
@@ -152,14 +152,18 @@ int main(int ac, char *av[]) try {
 		if (vm.count(argLevelsJson)) {
 			processLevels(
 				vm[argLevelsJson].as<string>(),
-				vm[argLevelsDays].as<unsigned>(),
+				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm.count(argLevelsSummary) > 0,
 				vm.count(argLevelsResults) > 0,
 				vm[argSeed].as<unsigned>()
 			);
 		} if (vm.count(argEMACross)) {
-			EMACross().process(vm[argQuotes].as<vector<string>>(), vm[argSeed].as<unsigned>());
+			EMACross().process(
+				vm[argDays].as<unsigned>(),
+				vm[argQuotes].as<vector<string>>(),
+				vm[argSeed].as<unsigned>()
+			);
 		} else
 			throw runtime_error("What to do with quotes?");
 	}

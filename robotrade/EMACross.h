@@ -18,7 +18,7 @@ public:
 	};
 
 	EMACross();
-	void process(const std::vector<std::string> &quoteFiles, unsigned seed);
+	void process(unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed);
 private:
 	struct PriceInfo {
 		chart::data::PBars bars;

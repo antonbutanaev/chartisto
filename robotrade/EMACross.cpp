@@ -21,7 +21,7 @@ const size_t emaTo = 100;
 EMACross::EMACross() {
 }
 
-void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed) {
+void EMACross::process(unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed) {
 	Config config;
 	if (quoteFiles.empty())
 		return;
@@ -55,13 +55,13 @@ void EMACross::process(const std::vector<std::string> &quoteFiles, unsigned seed
 	);
 
 	vector<TaskParam> taskParams;
-	for (const auto &priceInfo: priceInfos)
-		for (
-			size_t barNum = static_cast<size_t>(config.windowSizeK * emaTo);
-			barNum < priceInfo.bars->num();
-			++barNum
-		)
+	for (const auto &priceInfo: priceInfos) {
+		auto startFrom = static_cast<size_t>(config.windowSizeK * emaTo);
+		if (daysToAnalyze != 0)
+			startFrom = max(startFrom, priceInfo.bars->num() - daysToAnalyze);
+		for (size_t barNum = startFrom; barNum < priceInfo.bars->num(); ++barNum)
 			taskParams.push_back({barNum, priceInfo});
+	}
 
 	const auto results = async_.execTasks(
 		funcIterator(taskParams),
