@@ -193,9 +193,9 @@ EMACross::TaskResult EMACross::runTask(
 		}
 
 		if (numBarsAbove) {
-			const auto stop = bars->low(lastBarNum);
+			const auto stop = bars->low(lastBarNum) - step;
 			auto enter = ema->close(lastBarNum);
-			enter = ceil(enter / step) * step;
+			enter = (1. + ceil(enter / step)) * step;
 			const auto move = (enter - stop) * config.profitPerStopK;
 			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far up";
@@ -216,9 +216,9 @@ EMACross::TaskResult EMACross::runTask(
 			os << result.results.back();
 			break;
 		} else {
-			const auto stop = bars->high(lastBarNum);
+			const auto stop = bars->high(lastBarNum) + step;
 			auto enter = ema->close(lastBarNum);
-			enter = floor(enter / step) * step;
+			enter = (-1. + floor(enter / step)) * step;
 
 			const auto move = (stop - enter) * config.profitPerStopK;
 			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
