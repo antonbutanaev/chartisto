@@ -31,7 +31,7 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 	if (configJson.isMember("emaTo")) config_.emaTo = configJson["emaTo"].asUInt();
 
 	cout
-		<< "EMACross using"
+		<< "EMACross using params:"
 		<< endl << "windowSizeK " << config_.windowSizeK
 		<< endl << "profitPerStopK " << config_.profitPerStopK
 		<< endl << "maxMovePerAtrK " << config_.maxMovePerAtrK
@@ -101,10 +101,13 @@ void EMACross::process(
 
 	if (printOrders) {
 		for (const auto &result: results) {
-			if (!result.results.empty())
+			if (!result.orders.empty())
 				cout << result.title << endl;
-			for (const auto &resultIt: result.results)
-				cout << resultIt << endl;
+			for (const auto &order: result.orders)
+				cout
+					<< "ema " << order.period
+					<< " " << order.result
+					<< endl;
 		}
 	}
 
@@ -121,10 +124,10 @@ void EMACross::process(
 		util::umap<string, Summary> summary;
 		for (const auto &result: results) {
 			auto &summ = summary[result.title];
-			for (const auto &resultIt: result.results)
-				if (resultIt.profit)
+			for (const auto &order: result.orders)
+				if (order.result.profit)
 					++summ.numProfits;
-				else if (resultIt.stopped && !resultIt.stopped->lossless)
+				else if (order.result.stopped && !order.result.stopped->lossless)
 					++summ.numLosses;
 		}
 
@@ -227,11 +230,11 @@ EMACross::TaskResult EMACross::runTask(
 				<< " step " << setprecision(10) << step
 				<< " period " << period
 				<< " ema " << ema->close(lastBarNum) << " ";
-			result.results.push_back(entryAnalyzer.analyze(
+			result.orders.push_back({period, entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Buy,
 				enter, stop, enter + move, lastBarNum
-			));
-			os << result.results.back();
+			)});
+			os << result.orders.back().result;
 			break;
 		} else {
 			const auto stop = bars->high(lastBarNum) + step;
@@ -251,11 +254,11 @@ EMACross::TaskResult EMACross::runTask(
 				<< " step " << setprecision(10) << step
 				<< " period " << period
 				<< " ema " << ema->close(lastBarNum) << " ";
-			result.results.push_back(entryAnalyzer.analyze(
+			result.orders.push_back({period, entryAnalyzer.analyze(
 				EntryAnalyzer::Direction::Sell,
 				enter, stop, enter - move, lastBarNum
-			));
-			os << result.results.back();
+			)});
+			os << result.orders.back().result;
 			break;
 		}
 	}

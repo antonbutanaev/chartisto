@@ -37,7 +37,11 @@ private:
 	};
 	struct TaskResult {
 		std::string title;
-		std::vector<EntryAnalyzer::Result> results;
+		struct Order {
+			size_t period;
+			EntryAnalyzer::Result result;
+		};
+		std::vector<Order> orders;
 		std::string log;
 	};
 
