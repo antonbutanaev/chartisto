@@ -155,13 +155,14 @@ EMACross::TaskResult EMACross::runTask(
 	result.title = param.priceInfo.bars->title(0);
 	os << result.title << endl;
 	const auto &bars = param.priceInfo.bars;
+	const auto findBarFrom = [&](size_t period) {return param.barNum - static_cast<size_t>(period * config.windowSizeK);};
+	const auto step = stepFind(bars, findBarFrom(emaTo), param.barNum);
 	for (auto period = emaTo; period >= emaFrom; os << endl, --period) {
 		const auto &ema = param.priceInfo.emas.at(period);
 		const auto &atr = param.priceInfo.atrs.at(period);
 
-		const auto barFrom = param.barNum - static_cast<size_t>(period * config.windowSizeK);
+		const auto barFrom = findBarFrom(period);
 		const auto lastBarNum = param.barNum - 1;
-		const auto step = stepFind(bars, barFrom, param.barNum);
 		os
 			<< "ema " << period
 			<< " from " << param.priceInfo.bars->time(barFrom)
