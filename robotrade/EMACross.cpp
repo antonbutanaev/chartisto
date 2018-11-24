@@ -84,7 +84,7 @@ void EMACross::process(
 			taskParams.push_back({barNum, priceInfo});
 	}
 
-	const auto results = async_.execTasks(
+	auto results = async_.execTasks(
 		funcIterator(taskParams),
 		[&] (const auto &taskParam) {
 			return [&, taskParam] {
@@ -93,6 +93,10 @@ void EMACross::process(
 		}
 	);
 
+	sort(results.begin(), results.end(), [](const auto &l, const auto &r){
+		return l.title < r.title;
+	});
+
 	if (verbose_ >= Log) {
 		cout << "Log:" << endl;
 		for (const auto &result: results)
@@ -100,9 +104,13 @@ void EMACross::process(
 	}
 
 	if (printOrders) {
+		string prevTitle;
 		for (const auto &result: results) {
-			if (!result.orders.empty())
+			if (result.orders.empty())
+				continue;
+			if (prevTitle.empty() || prevTitle != result.title)
 				cout << result.title << endl;
+			prevTitle = result.title;
 			for (const auto &order: result.orders)
 				cout
 					<< "ema " << order.period
@@ -214,9 +222,9 @@ EMACross::TaskResult EMACross::runTask(
 		}
 
 		if (numBarsAbove) {
-			const auto stop = bars->low(lastBarNum) - step;
+			const auto stop = bars->low(lastBarNum) - 2*step;
 			auto enter = ema->close(lastBarNum);
-			enter = (1. + ceil(enter / step)) * step;
+			enter = (-1. + ceil(enter / step)) * step;
 			const auto move = (enter - stop) * config_.profitPerStopK;
 			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far up";
@@ -237,9 +245,9 @@ EMACross::TaskResult EMACross::runTask(
 			os << result.orders.back().result;
 			break;
 		} else {
-			const auto stop = bars->high(lastBarNum) + step;
+			const auto stop = bars->high(lastBarNum) + 2*step;
 			auto enter = ema->close(lastBarNum);
-			enter = (-1. + floor(enter / step)) * step;
+			enter = (1. + floor(enter / step)) * step;
 
 			const auto move = (stop - enter) * config_.profitPerStopK;
 			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {

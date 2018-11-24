@@ -14,7 +14,9 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " " << result.orderActivated
 		<< " enter " << result.stopEnterPrice
 		<< " target " << result.targetPrice
-		<< " stop " << result.stopPrice << ';';
+		<< " stop " << result.stopPrice
+		<< " run away " << result.runAwayPrice
+		<< ';';
 
 	if (result.runAway)
 		o << " Run away " << result.runAway->time << " " << result.runAway->price << ';';
@@ -92,6 +94,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
+	result.runAwayPrice = stopEnterPrice + (stopPrice - stopEnterPrice) * params_.runAwayFromStopK;
 	result.stopPrice = stopPrice;
 	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);

@@ -43,6 +43,7 @@ public:
 		chart::Price stopEnterPrice;
 		chart::Price stopPrice;
 		chart::Price targetPrice;
+		chart::Price runAwayPrice;
 
 		struct Stopped {
 			chart::Time time;
