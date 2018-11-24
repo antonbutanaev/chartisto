@@ -17,7 +17,7 @@ using namespace chart;
 namespace robotrade {
 
 const size_t emaFrom = 10;
-const size_t emaTo = 100;
+const size_t emaTo = 60;
 
 EMACross::EMACross(unsigned verbose) : verbose_(verbose)  {
 }
