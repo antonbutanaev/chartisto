@@ -15,9 +15,11 @@ public:
 		double windowSizeK = 2.;
 		double profitPerStopK = 3.;
 		double maxMovePerAtrK = 2.;
+		size_t emaFrom = 10;
+		size_t emaTo = 60;
 	};
 
-	EMACross(unsigned verbose);
+	EMACross(const std::string &jsonConfig, unsigned verbose);
 	void process(
 		bool printSummary, bool printOrders,
 		unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
@@ -39,11 +41,12 @@ private:
 		std::string log;
 	};
 
-	TaskResult runTask(const TaskParam&, unsigned seed, const Config&);
+	TaskResult runTask(const TaskParam&, unsigned seed);
 
 	util::Async async_;
 	enum Verbose{Log = 1};
 	unsigned verbose_;
+	Config config_;
 };
 
 }

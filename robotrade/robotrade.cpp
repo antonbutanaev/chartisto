@@ -108,7 +108,7 @@ int main(int ac, char *av[]) try {
 		*argSeed = "seed",
 		*argLog = "log",
 		*argLevelsJson = "levels",
-		*argEMACross = "ema-cross";
+		*argEMACrossJson = "ema-cross";
 
 	namespace po = boost::program_options;
 
@@ -117,9 +117,9 @@ int main(int ac, char *av[]) try {
 	po::options_description description("Allowed options");
 	description.add_options()
 		(argHelp, "produce help message")
-		(argEMACross, "EMA cross")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
+		(argEMACrossJson, po::value<string>(), "EMA cross .json file")
 		(argVerbose, po::value<unsigned>()->default_value(0), "Verbose")
 		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
@@ -160,8 +160,8 @@ int main(int ac, char *av[]) try {
 				vm.count(argOrders) > 0,
 				vm[argSeed].as<unsigned>()
 			);
-		} if (vm.count(argEMACross)) {
-			EMACross(vm[argVerbose].as<unsigned>()).process(
+		} if (vm.count(argEMACrossJson)) {
+			EMACross(vm[argEMACrossJson].as<string>(), vm[argVerbose].as<unsigned>()).process(
 				vm.count(argSummary) > 0,
 				vm.count(argOrders) > 0,
 				vm[argDays].as<unsigned>(),

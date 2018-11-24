@@ -14,6 +14,8 @@ public:
 	}
 
 	operator S&() {return s_;}
+	template<class U> Stream &operator<<(const U &u) {s_ << u; return *this;}
+	template<class U> Stream &operator>>(U &u) {s_ >> u; return *this;}
 private:
 	S s_;
 };

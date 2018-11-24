@@ -1,3 +1,4 @@
+#include <json/json.h>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
@@ -9,6 +10,8 @@
 #include <chart/stepFind.h>
 #include <util/stream.h>
 #include <util/hasher.h>
+#include <util/stream.h>
+
 
 using namespace std;
 using namespace util;
@@ -16,17 +19,31 @@ using namespace chart;
 
 namespace robotrade {
 
-const size_t emaFrom = 10;
-const size_t emaTo = 60;
+EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(verbose) {
+	Stream<ifstream> ifs(jsonConfig);
+	Json::Value configJson;
+	ifs >> configJson;
 
-EMACross::EMACross(unsigned verbose) : verbose_(verbose)  {
+	if (configJson.isMember("windowSizeK")) config_.windowSizeK = configJson["windowSizeK"].asDouble();
+	if (configJson.isMember("profitPerStopK")) config_.profitPerStopK = configJson["profitPerStopK"].asDouble();
+	if (configJson.isMember("maxMovePerAtrK")) config_.maxMovePerAtrK = configJson["maxMovePerAtrK"].asDouble();
+	if (configJson.isMember("emaFrom")) config_.emaFrom = configJson["emaFrom"].asUInt();
+	if (configJson.isMember("emaTo")) config_.emaTo = configJson["emaTo"].asUInt();
+
+	cout
+		<< "EMACross using"
+		<< endl << "windowSizeK " << config_.windowSizeK
+		<< endl << "profitPerStopK " << config_.profitPerStopK
+		<< endl << "maxMovePerAtrK " << config_.maxMovePerAtrK
+		<< endl << "emaFrom " << config_.emaFrom
+		<< endl << "emaTo " << config_.emaTo
+		<< endl;
 }
 
 void EMACross::process(
 	bool printSummary, bool printOrders,
 	unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
 ) {
-	Config config;
 	if (quoteFiles.empty())
 		return;
 
@@ -37,9 +54,9 @@ void EMACross::process(
 				Stream<ifstream> ifs(quoteFile.c_str());
 				PriceInfo priceInfo;
 				priceInfo.bars = robotrade::parse(ifs);
-				priceInfo.emas.reserve(emaTo - emaFrom + 1);
-				priceInfo.atrs.reserve(emaTo - emaFrom + 1);
-				for (auto period = emaFrom; period <= emaTo; ++period) {
+				priceInfo.emas.reserve(config_.emaTo - config_.emaFrom + 1);
+				priceInfo.atrs.reserve(config_.emaTo - config_.emaFrom + 1);
+				for (auto period = config_.emaFrom; period <= config_.emaTo; ++period) {
 					priceInfo.emas.insert({
 						period,
 						indicators::ema(
@@ -60,7 +77,7 @@ void EMACross::process(
 
 	vector<TaskParam> taskParams;
 	for (const auto &priceInfo: priceInfos) {
-		auto startFrom = static_cast<size_t>(config.windowSizeK * emaTo);
+		auto startFrom = static_cast<size_t>(config_.windowSizeK * config_.emaTo);
 		if (daysToAnalyze != 0)
 			startFrom = max(startFrom, priceInfo.bars->num() - daysToAnalyze + 1);
 		for (size_t barNum = startFrom; barNum <= priceInfo.bars->num(); ++barNum)
@@ -71,7 +88,7 @@ void EMACross::process(
 		funcIterator(taskParams),
 		[&] (const auto &taskParam) {
 			return [&, taskParam] {
-				return runTask(taskParam, seed, config);
+				return runTask(taskParam, seed);
 			};
 		}
 	);
@@ -98,7 +115,7 @@ void EMACross::process(
 		};
 
 		const auto finRes = [&] (const Summary &summary)  {
-			return -static_cast<double>(summary.numLosses) + config.profitPerStopK * summary.numProfits;
+			return -static_cast<double>(summary.numLosses) + config_.profitPerStopK * summary.numProfits;
 		};
 
 		util::umap<string, Summary> summary;
@@ -146,7 +163,7 @@ void EMACross::process(
 }
 
 EMACross::TaskResult EMACross::runTask(
-	const TaskParam &param, unsigned seed, const Config &config
+	const TaskParam &param, unsigned seed
 ) {
 	ostringstream os;
 	ProbabilityProvider probabilityProvider;
@@ -155,9 +172,9 @@ EMACross::TaskResult EMACross::runTask(
 	result.title = param.priceInfo.bars->title(0);
 	os << result.title << endl;
 	const auto &bars = param.priceInfo.bars;
-	const auto findBarFrom = [&](size_t period) {return param.barNum - static_cast<size_t>(period * config.windowSizeK);};
-	const auto step = stepFind(bars, findBarFrom(emaTo), param.barNum);
-	for (auto period = emaTo; period >= emaFrom; os << endl, --period) {
+	const auto findBarFrom = [&](size_t period) {return param.barNum - static_cast<size_t>(period * config_.windowSizeK);};
+	const auto step = stepFind(bars, findBarFrom(config_.emaTo), param.barNum);
+	for (auto period = config_.emaTo; period >= config_.emaFrom; os << endl, --period) {
 		const auto &ema = param.priceInfo.emas.at(period);
 		const auto &atr = param.priceInfo.atrs.at(period);
 
@@ -197,8 +214,8 @@ EMACross::TaskResult EMACross::runTask(
 			const auto stop = bars->low(lastBarNum) - step;
 			auto enter = ema->close(lastBarNum);
 			enter = (1. + ceil(enter / step)) * step;
-			const auto move = (enter - stop) * config.profitPerStopK;
-			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
+			const auto move = (enter - stop) * config_.profitPerStopK;
+			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far up";
 				continue;
 			}
@@ -221,8 +238,8 @@ EMACross::TaskResult EMACross::runTask(
 			auto enter = ema->close(lastBarNum);
 			enter = (-1. + floor(enter / step)) * step;
 
-			const auto move = (stop - enter) * config.profitPerStopK;
-			if (move > config.maxMovePerAtrK * atr->close(lastBarNum)) {
+			const auto move = (stop - enter) * config_.profitPerStopK;
+			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far down";
 				continue;
 			}
