@@ -106,7 +106,6 @@ int main(int ac, char *av[]) try {
 		*argOrders = "orders",
 		*argVerbose = "verbose",
 		*argSeed = "seed",
-		*argLog = "log",
 		*argLevelsJson = "levels",
 		*argEMACrossJson = "ema-cross";
 
@@ -124,8 +123,7 @@ int main(int ac, char *av[]) try {
 		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
 		(argSummary, "Print summary")
-		(argOrders, "Print orders")
-		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
+		(argOrders, "Print orders");
 
 	po::variables_map vm;
 	po::store(
@@ -136,12 +134,6 @@ int main(int ac, char *av[]) try {
 		vm
 	);
 	po::notify(vm);
-
-	log4cplus::initialize();
-	log4cplus::PropertyConfigurator::doConfigure(vm["log"].as<string>());
-
-	auto logger = log4cplus::Logger::getInstance("main");
-	LOG4CPLUS_DEBUG(logger, "start");
 
 	if (vm.count(argHelp)) {
 		cout
