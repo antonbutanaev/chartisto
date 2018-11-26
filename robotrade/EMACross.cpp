@@ -187,7 +187,8 @@ void EMACross::process(
 			<< setw(15) << left << "Total" << '\t'
 			<< numProfits << '\t'
 			<< numLosses << '\t'
-			<< finResult
+			<< finResult << '\t'
+			<< 1. * numProfits / numLosses
 			<< endl;
 	}
 }
