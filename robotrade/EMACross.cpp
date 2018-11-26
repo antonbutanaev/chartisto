@@ -19,6 +19,24 @@ using namespace chart;
 
 namespace robotrade {
 
+EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const {
+	Risk result;
+	if (risk.isObject()) {
+		const auto fill = [&](const string &key) {
+			if (risk.isMember(key)) {
+				const auto &value = risk[key];
+				if (value.isMember("maxLoss"))
+					result.maxLoss = value["maxLoss"].asDouble();
+				if (value.isMember("maxPosition"))
+					result.maxPosition = value["maxPosition"].asDouble();
+			}
+		};
+		fill("default");
+		fill(title);
+	}
+	return result;
+}
+
 EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(verbose) {
 	Stream<ifstream> ifs(jsonConfig);
 	Json::Value configJson;
@@ -29,6 +47,8 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 	if (configJson.isMember("maxMovePerAtrK")) config_.maxMovePerAtrK = configJson["maxMovePerAtrK"].asDouble();
 	if (configJson.isMember("emaFrom")) config_.emaFrom = configJson["emaFrom"].asUInt();
 	if (configJson.isMember("emaTo")) config_.emaTo = configJson["emaTo"].asUInt();
+	if (configJson.isMember("usd")) config_.usd = configJson["usd"].asDouble();
+	if (configJson.isMember("risk")) config_.risk = configJson["risk"];
 
 	cout
 		<< "EMACross using params:"
@@ -37,6 +57,7 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 		<< endl << "maxMovePerAtrK " << config_.maxMovePerAtrK
 		<< endl << "emaFrom " << config_.emaFrom
 		<< endl << "emaTo " << config_.emaTo
+		<< endl << "usd " << config_.usd
 		<< endl;
 }
 
@@ -221,10 +242,20 @@ EMACross::TaskResult EMACross::runTask(
 			continue;
 		}
 
+		const auto maxPos = 300000.;
+		const auto maxLoss = 2000.;
+
 		if (numBarsAbove) {
-			const auto stop = bars->low(lastBarNum) - 2*step;
+			auto stop = bars->low(lastBarNum) - 2*step;
 			auto enter = ema->close(lastBarNum);
 			enter = (-1. + ceil(enter / step)) * step;
+
+			auto stop2 = enter * (1 - maxLoss/maxPos);
+			if (stop2 < stop) {
+				os << " move stop from " << stop << " to " << stop2;
+				stop = stop2;
+			}
+
 			const auto move = (enter - stop) * config_.profitPerStopK;
 			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
 				os << " target too far up";
@@ -245,9 +276,15 @@ EMACross::TaskResult EMACross::runTask(
 			os << result.orders.back().result;
 			break;
 		} else {
-			const auto stop = bars->high(lastBarNum) + 2*step;
+			auto stop = bars->high(lastBarNum) + 2*step;
 			auto enter = ema->close(lastBarNum);
 			enter = (1. + floor(enter / step)) * step;
+
+			auto stop2 = enter * (1 + maxLoss/maxPos);
+			if (stop2 > stop) {
+				os << " move stop from " << stop << " to " << stop2;
+				stop = stop2;
+			}
 
 			const auto move = (stop - enter) * config_.profitPerStopK;
 			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {

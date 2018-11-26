@@ -1,5 +1,7 @@
 #pragma once
 
+#include <json/value.h>
+#include <optional>
 #include <vector>
 #include <util/async.h>
 #include <util/funcIterator.h>
@@ -17,6 +19,14 @@ public:
 		double maxMovePerAtrK = 2.;
 		size_t emaFrom = 10;
 		size_t emaTo = 60;
+		chart::Price usd = 67;
+		Json::Value risk;
+
+		struct Risk {
+			chart::Price maxLoss = 2000;
+			chart::Price maxPosition = 200000;
+		};
+		Risk getRisk(const std::string &title) const;
 	};
 
 	EMACross(const std::string &jsonConfig, unsigned verbose);
