@@ -227,10 +227,10 @@ EMACross::TaskResult EMACross::runTask(
 
 		size_t numBarsBelow = 0;
 		size_t numBarsAbove = 0;
-		for (auto barNum = lastBarNum; barNum >= barFrom; --barNum) {
+		for (auto barNum = lastBarNum-1; barNum >= barFrom; --barNum) {
 			if (bars->low(barNum) > ema->close(barNum))
 				++numBarsAbove;
-			if (bars->high(barNum) < ema->close(barNum))
+			else if (bars->high(barNum) < ema->close(barNum))
 				++numBarsBelow;
 
 			if (numBarsAbove && numBarsBelow)
@@ -242,7 +242,7 @@ EMACross::TaskResult EMACross::runTask(
 			continue;
 		}
 
-		const auto maxPos = 300000.;
+		const auto maxPos = 200000.;
 		const auto maxLoss = 2000.;
 
 		if (numBarsAbove) {
