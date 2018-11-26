@@ -423,10 +423,10 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 26,22,50, 0,1
+			EntryAnalyzer::Direction::Buy, 26,22,50, 0
 		);
 		EXPECT_EQ(result.orderActivated, sys_days{2018_y/feb/7});
 		EXPECT_NEAR(result.stopEnterPrice, 26, PriceEpsilon);
@@ -447,9 +447,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 24,4,100, 0,1
+			EntryAnalyzer::Direction::Buy, 24,4,100, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		EXPECT_FALSE(result.profit);
@@ -466,9 +466,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 30,27,100, 0,1
+			EntryAnalyzer::Direction::Buy, 30,27,100, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		EXPECT_FALSE(result.profit);
@@ -485,9 +485,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,1, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,1, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		EXPECT_FALSE(result.profit);
@@ -504,9 +504,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,24, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
@@ -527,9 +527,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
@@ -550,9 +550,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,24, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		ASSERT_EQ(result.probablyNotStopped.size(), 1u);
@@ -572,9 +572,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		ASSERT_EQ(result.probablyNotStopped.size(), 1u);
@@ -594,9 +594,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,26, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
@@ -616,9 +616,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
@@ -638,9 +638,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,26, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		EXPECT_FALSE(result.profit);
@@ -659,9 +659,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		EXPECT_FALSE(result.stopped);
 		EXPECT_FALSE(result.profit);
@@ -680,9 +680,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,26, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
@@ -702,9 +702,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
@@ -725,9 +725,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,6,26, 0,1
+			EntryAnalyzer::Direction::Buy, 11,6,26, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
@@ -749,9 +749,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,5, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
@@ -772,9 +772,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,4,24, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -792,9 +792,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,12,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,12,5, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -812,9 +812,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,4,24, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -832,9 +832,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,12,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,12,5, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -852,9 +852,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,4,24, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -872,9 +872,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,12,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,12,5, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_FALSE(result.stopped);
@@ -893,9 +893,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,4,24, 0,1
+			EntryAnalyzer::Direction::Buy, 11,4,24, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
@@ -915,9 +915,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,12,5, 0,1
+			EntryAnalyzer::Direction::Sell, 9,12,5, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
@@ -938,9 +938,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(1);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Buy, 11,9,100, 0,1
+			EntryAnalyzer::Direction::Buy, 11,9,100, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
@@ -962,9 +962,9 @@ TEST(TestRobotrade, EntryAnalyzer) {
 
 		const auto bars = parse(ss);
 		ProbabilityProvider probabilityProvider(2);
-		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout);
+		EntryAnalyzer entryAnalyzer({}, bars, probabilityProvider, cout, 1);
 		const auto result = entryAnalyzer.analyze(
-			EntryAnalyzer::Direction::Sell, 9,11,1, 0,1
+			EntryAnalyzer::Direction::Sell, 9,11,1, 0
 		);
 		ASSERT_TRUE(result.filled);
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});

@@ -1,5 +1,4 @@
 #include <iostream>
-#include <log4cplus/loggingmacros.h>
 #include <robotrade/tripleScreen.h>
 #include <chart/reduce.h>
 #include <chart/indicators.h>
@@ -20,9 +19,6 @@ struct TripleScreen::Impl {
 	}
 
 	void run() {
-		LOG4CPLUS_DEBUG(logger_, "start triple screen on {} weekly and {} daily bars"_format(
-			weekly_->num(), daily_->num()
-		));
 		if (!weekly_->num() || !daily_->num())
 			return;
 
@@ -119,14 +115,12 @@ struct TripleScreen::Impl {
 				break;
 			}
 		}
-		LOG4CPLUS_DEBUG(logger_, "triple screen found {} trades"_format(tradesFound));
 	}
 
 	data::PBars weekly_;
 	data::PBars daily_;
 	Criteria criteria_;
 	Trader &trader_;
-	log4cplus::Logger logger_ = log4cplus::Logger::getInstance("TripleScreen");
 };
 
 TripleScreen::TripleScreen(data::PBars weekly, data::PBars daily, Criteria criteria, Trader &trader)

@@ -129,8 +129,7 @@ int main(int ac, char *av[]) try {
 		*argSuffix = "suffix",
 		*argQuotes = "quotes",
 		*argUpdateQuotes = "update-quotes",
-		*argSplitQuotes = "split-quotes",
-		*argLog = "log";
+		*argSplitQuotes = "split-quotes";
 
 	namespace po = boost::program_options;
 
@@ -142,8 +141,7 @@ int main(int ac, char *av[]) try {
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argSuffix, po::value<string>(), "add suffix to split files")
-		(argSplitQuotes, po::value<string>(), "split one multiticker quote file into separate files")
-		(argLog, po::value<string>()->default_value("robotrade_log.conf"), "log .conf file");
+		(argSplitQuotes, po::value<string>(), "split one multiticker quote file into separate files");
 
 
 	po::variables_map vm;
@@ -155,12 +153,6 @@ int main(int ac, char *av[]) try {
 		vm
 	);
 	po::notify(vm);
-
-	log4cplus::initialize();
-	log4cplus::PropertyConfigurator::doConfigure(vm["log"].as<string>());
-
-	auto logger = log4cplus::Logger::getInstance("main");
-	LOG4CPLUS_DEBUG(logger, "start");
 
 	if (vm.count(argHelp)) {
 		cout << description << endl;
