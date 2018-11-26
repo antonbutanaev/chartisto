@@ -245,7 +245,6 @@ EMACross::TaskResult EMACross::runTask(
 			continue;
 		}
 
-
 		if (numBarsAbove) {
 			auto stop = bars->low(lastBarNum) - 2 * step;
 			const auto enter = roundUp(ema->close(lastBarNum), step) + step;
