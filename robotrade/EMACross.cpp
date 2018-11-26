@@ -47,7 +47,6 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 	if (configJson.isMember("maxMovePerAtrK")) config_.maxMovePerAtrK = configJson["maxMovePerAtrK"].asDouble();
 	if (configJson.isMember("emaFrom")) config_.emaFrom = configJson["emaFrom"].asUInt();
 	if (configJson.isMember("emaTo")) config_.emaTo = configJson["emaTo"].asUInt();
-	if (configJson.isMember("usd")) config_.usd = configJson["usd"].asDouble();
 	if (configJson.isMember("risk")) config_.risk = configJson["risk"];
 
 	cout
@@ -57,7 +56,6 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 		<< endl << "maxMovePerAtrK " << config_.maxMovePerAtrK
 		<< endl << "emaFrom " << config_.emaFrom
 		<< endl << "emaTo " << config_.emaTo
-		<< endl << "usd " << config_.usd
 		<< endl;
 }
 
@@ -202,8 +200,13 @@ EMACross::TaskResult EMACross::runTask(
 	EntryAnalyzer entryAnalyzer({}, param.priceInfo.bars, probabilityProvider, os, seed);
 	EMACross::TaskResult result;
 	result.title = param.priceInfo.bars->title(0);
-	os << result.title << endl;
 	const auto &bars = param.priceInfo.bars;
+	const auto risk = config_.getRisk(bars->title(0));
+	os
+		<< result.title
+		<< " max position " << risk.maxPosition
+		<< " max loss " << risk.maxLoss
+		<< endl;
 	const auto findBarFrom = [&](size_t period) {return param.barNum - static_cast<size_t>(period * config_.windowSizeK);};
 	const auto step = stepFind(bars, findBarFrom(config_.emaTo), param.barNum);
 	for (auto period = config_.emaTo; period >= config_.emaFrom; os << endl, --period) {
@@ -242,17 +245,14 @@ EMACross::TaskResult EMACross::runTask(
 			continue;
 		}
 
-		const auto maxPos = 200000.;
-		const auto maxLoss = 2000.;
 
 		if (numBarsAbove) {
-			auto stop = bars->low(lastBarNum) - 2*step;
+			auto stop = bars->low(lastBarNum) - 2 * step;
 			auto enter = ema->close(lastBarNum);
 			enter = (-1. + ceil(enter / step)) * step;
-
-			auto stop2 = enter * (1 - maxLoss/maxPos);
+			const auto stop2 = enter * (1 - risk.maxLoss / risk.maxPosition);
 			if (stop2 < stop) {
-				os << " move stop from " << stop << " to " << stop2;
+				os << " move stop from " << stop << " to " << stop2 << " enter " << enter;
 				stop = stop2;
 			}
 
@@ -279,8 +279,11 @@ EMACross::TaskResult EMACross::runTask(
 			auto stop = bars->high(lastBarNum) + 2*step;
 			auto enter = ema->close(lastBarNum);
 			enter = (1. + floor(enter / step)) * step;
-
-			auto stop2 = enter * (1 + maxLoss/maxPos);
+			auto stop2 = enter * (1 + risk.maxLoss / risk.maxPosition);
+			if (stop2 > stop) {
+				os << " move stop from " << stop << " to " << stop2 << " enter " << enter;
+				stop = stop2;
+			}
 			if (stop2 > stop) {
 				os << " move stop from " << stop << " to " << stop2;
 				stop = stop2;
