@@ -1,3 +1,4 @@
+#include <cmath>
 #include <algorithm>
 #include <chart/stepFind.h>
 
@@ -21,5 +22,14 @@ Price stepFind(data::PBars bars, size_t barFrom, size_t barTo) {
 	}
 	return step;
 }
+
+Price roundUp(Price price, Price step) {
+	return ceil(price / step) * step;
+}
+
+Price roundDown(Price price, Price step) {
+	return floor(price / step) * step;
+}
+
 
 }

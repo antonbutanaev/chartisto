@@ -8,6 +8,7 @@
 #include <date/date.h>
 #include <fmt/format.h>
 #include <robotrade/entryAnalyzer.h>
+#include <chart/stepFind.h>
 
 using namespace std;
 using namespace date;
@@ -975,4 +976,13 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		ASSERT_FALSE(result.profit);
 		EXPECT_FALSE(result.runAway);
 	}
+}
+
+TEST(TestRobotrade, RoundUpDown) {
+	EXPECT_NEAR(1.01, roundDown(1.0199, 0.01), PriceEpsilon);
+	EXPECT_NEAR(1.01, roundDown(1.0101, 0.01), PriceEpsilon);
+	EXPECT_NEAR(1.01, roundDown(1.01, 0.01), PriceEpsilon);
+	EXPECT_NEAR(1.02, roundUp(1.0199, 0.01), PriceEpsilon);
+	EXPECT_NEAR(1.02, roundUp(1.0101, 0.01), PriceEpsilon);
+	EXPECT_NEAR(1.02, roundUp(1.02, 0.01), PriceEpsilon);
 }
