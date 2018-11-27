@@ -16,7 +16,7 @@
 
 #include <robotrade/levels.h>
 #include <robotrade/tripleScreen.h>
-#include <robotrade/EMACross.h>
+#include <robotrade/emaCross.h>
 
 using namespace robotrade;
 using namespace date;

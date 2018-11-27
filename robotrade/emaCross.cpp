@@ -4,7 +4,7 @@
 #include <sstream>
 #include <fstream>
 #include <unordered_map>
-#include <robotrade/EMACross.h>
+#include <robotrade/emaCross.h>
 #include <robotrade/quotesParser.h>
 #include <chart/indicators.h>
 #include <chart/stepFind.h>

@@ -16,7 +16,7 @@ add_library(robotradeutils
 	trader.cpp
 	levels.cpp
 	entryAnalyzer.cpp
-	EMACross.cpp
+	emaCross.cpp
 )
 
 target_link_libraries(robotradeutils
