@@ -217,7 +217,8 @@ EMACross::TaskResult EMACross::runTask(
 		const auto barFrom = findBarFrom(period);
 		const auto lastBarNum = param.barNum - 1;
 		os
-			<< "ema " << period
+			<< "ema " << period << ' ' << ema->close(lastBarNum)
+			<< " atr " << atr->close(lastBarNum)
 			<< " from " << param.priceInfo.bars->time(barFrom)
 			<< " to " << param.priceInfo.bars->time(lastBarNum);
 
@@ -256,8 +257,9 @@ EMACross::TaskResult EMACross::runTask(
 			}
 
 			const auto move = (enter - stop) * config_.profitPerStopK;
-			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
-				os << " target too far up";
+			const auto atr2 = config_.maxMovePerAtrK * atr->close(lastBarNum);
+			if (move > atr2) {
+				os << " target too far up, move " << move << " greater than " << atr2;
 				continue;
 			}
 
@@ -288,8 +290,9 @@ EMACross::TaskResult EMACross::runTask(
 			}
 
 			const auto move = (stop - enter) * config_.profitPerStopK;
-			if (move > config_.maxMovePerAtrK * atr->close(lastBarNum)) {
-				os << " target too far down";
+			const auto atr2 = config_.maxMovePerAtrK * atr->close(lastBarNum);
+			if (move > atr2) {
+				os << " target too far down, move " << move << " greater than " << atr2;
 				continue;
 			}
 

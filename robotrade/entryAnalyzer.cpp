@@ -15,7 +15,7 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		<< " enter " << result.stopEnterPrice
 		<< " target " << result.targetPrice
 		<< " stop " << result.stopPrice
-		<< " run away " << result.runAwayPrice
+		<< " run away " << result.runAwayPrice[0] << '-' << result.runAwayPrice[1]
 		<< ';';
 
 	if (result.runAway)
@@ -94,11 +94,12 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	Result result;
 	result.orderActivated = bars_->time(orderBarNum);
 	result.stopEnterPrice = stopEnterPrice;
-	result.runAwayPrice = stopEnterPrice + (stopPrice - stopEnterPrice) * params_.runAwayFromStopK;
 	result.stopPrice = stopPrice;
 	result.targetPrice = targetPrice;
 	const auto stopDelta = fabs(stopEnterPrice - stopPrice);
 	const auto runAwayDelta = params_.runAwayFromStopK * stopDelta;
+	result.runAwayPrice[0] = stopEnterPrice - runAwayDelta;
+	result.runAwayPrice[1] = stopEnterPrice + runAwayDelta;
 	const auto losslessDelta = params_.losslessStopK * stopDelta;
 	bool stopMadeLossless = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
@@ -109,13 +110,17 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		if (!wasFilled && fillCondition)
 			result.filled = {bars_->time(barNum)};
 
-		const auto runAwayCondition =
-			fabs(stopEnterPrice - bars_->close(barNum)) > runAwayDelta;
+		const auto runAwayDown =
+			stopEnterPrice - bars_->close(barNum) > runAwayDelta;
+		const auto runAwayUp =
+			bars_->close(barNum) - stopEnterPrice > runAwayDelta;
+
+		const auto runAwayCondition = runAwayDown || runAwayUp;
 
 		if (!result.filled && runAwayCondition) {
 			result.runAway = {
 				bars_->time(barNum),
-				stopEnterPrice + (buy? -runAwayDelta : runAwayDelta)
+				stopEnterPrice + (runAwayDown? -runAwayDelta : runAwayDelta)
 			};
 			break;
 		}
