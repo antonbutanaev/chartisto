@@ -250,6 +250,10 @@ EMACross::TaskResult EMACross::runTask(
 		}
 
 		if (numBarsAbove) {
+			if (ema->close(lastBarNum - 1) > ema->close(lastBarNum)) {
+				os << " ema down";
+				continue;
+			}
 			auto stop = bars->low(lastBarNum) - 2 * step;
 			const auto enter = roundUp(ema->close(lastBarNum), step) + step;
 			const auto stop2 = roundUp(enter * (1 - risk.maxLoss / risk.maxPosition), step);
@@ -267,7 +271,6 @@ EMACross::TaskResult EMACross::runTask(
 
 			os
 				<< endl
-				<< "BUY "
 				<< result.title
 				<< " step " << step
 				<< " period " << period
@@ -279,6 +282,10 @@ EMACross::TaskResult EMACross::runTask(
 			os << result.orders.back().result;
 			break;
 		} else {
+			if (ema->close(lastBarNum - 1) < ema->close(lastBarNum)) {
+				os << " ema up";
+				continue;
+			}
 			auto stop = bars->high(lastBarNum) + 2 * step;
 			const auto enter = roundDown(ema->close(lastBarNum), step) - step;
 			const auto stop2 = roundDown(enter * (1 + risk.maxLoss / risk.maxPosition), step);
@@ -296,7 +303,6 @@ EMACross::TaskResult EMACross::runTask(
 
 			os
 				<< endl
-				<< "SELL "
 				<< result.title
 				<< " step " << step
 				<< " period " << period
