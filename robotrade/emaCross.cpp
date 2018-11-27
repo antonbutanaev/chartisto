@@ -255,7 +255,7 @@ EMACross::TaskResult EMACross::runTask(
 			const auto enter = roundUp(ema->close(lastBarNum), step) + step;
 			const auto stop2 = roundUp(enter * (1 - risk.maxLoss / risk.maxPosition), step);
 			if (stop2 < stop) {
-				os << " move stop from " << stop << " to " << stop2 << " enter " << enter;
+				os << " move stop down from " << stop << " to " << stop2 << " enter " << enter;
 				stop = stop2;
 			}
 
@@ -284,11 +284,7 @@ EMACross::TaskResult EMACross::runTask(
 			const auto enter = roundDown(ema->close(lastBarNum), step) - step;
 			const auto stop2 = roundDown(enter * (1 + risk.maxLoss / risk.maxPosition), step);
 			if (stop2 > stop) {
-				os << " move stop from " << stop << " to " << stop2 << " enter " << enter;
-				stop = stop2;
-			}
-			if (stop2 > stop) {
-				os << " move stop from " << stop << " to " << stop2;
+				os << " move stop up from " << stop << " to " << stop2 << " enter " << enter;
 				stop = stop2;
 			}
 
