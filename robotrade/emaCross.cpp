@@ -12,7 +12,6 @@
 #include <util/hasher.h>
 #include <util/stream.h>
 
-
 using namespace std;
 using namespace util;
 using namespace chart;
@@ -25,10 +24,10 @@ EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const
 		const auto fill = [&](const string &key) {
 			if (risk.isMember(key)) {
 				const auto &value = risk[key];
-				if (value.isMember("maxLoss"))
-					result.maxLoss = value["maxLoss"].asDouble();
-				if (value.isMember("maxPosition"))
-					result.maxPosition = value["maxPosition"].asDouble();
+#define TPL(f) if (value.isMember(#f)) result.f = value[#f].asDouble();
+				TPL(maxLoss)
+				TPL(maxPosition)
+#undef TPL
 			}
 		};
 		fill("default");
@@ -42,21 +41,24 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 	Json::Value configJson;
 	ifs >> configJson;
 
-	if (configJson.isMember("windowSizeK")) config_.windowSizeK = configJson["windowSizeK"].asDouble();
-	if (configJson.isMember("profitPerStopK")) config_.profitPerStopK = configJson["profitPerStopK"].asDouble();
-	if (configJson.isMember("maxMovePerAtrK")) config_.maxMovePerAtrK = configJson["maxMovePerAtrK"].asDouble();
-	if (configJson.isMember("emaFrom")) config_.emaFrom = configJson["emaFrom"].asUInt();
-	if (configJson.isMember("emaTo")) config_.emaTo = configJson["emaTo"].asUInt();
-	if (configJson.isMember("risk")) config_.risk = configJson["risk"];
-
 	cout
-		<< "EMACross using params:"
-		<< endl << "windowSizeK " << config_.windowSizeK
-		<< endl << "profitPerStopK " << config_.profitPerStopK
-		<< endl << "maxMovePerAtrK " << config_.maxMovePerAtrK
-		<< endl << "emaFrom " << config_.emaFrom
-		<< endl << "emaTo " << config_.emaTo
-		<< endl;
+		<< "EMACross using params:";
+
+#define TPL(f,t) \
+	if (configJson.isMember(#f)) config_.f = configJson[#f].as##t(); \
+	cout << endl << #f " " << config_.f;
+
+	TPL(windowSizeK, Double)
+	TPL(profitPerStopK, Double)
+	TPL(maxMovePerAtrK, Double)
+	TPL(emaFrom, UInt)
+	TPL(emaTo, UInt)
+#undef TPL
+
+	if (configJson.isMember("risk"))
+		config_.risk = configJson["risk"];
+
+	cout << endl;
 }
 
 void EMACross::process(
@@ -145,7 +147,7 @@ void EMACross::process(
 		};
 
 		const auto finRes = [&] (const Summary &summary)  {
-			return -static_cast<double>(summary.numLosses) + config_.profitPerStopK * summary.numProfits;
+			return -1. * summary.numLosses + config_.profitPerStopK * summary.numProfits;
 		};
 
 		util::umap<string, Summary> summary;
@@ -169,17 +171,17 @@ void EMACross::process(
 		size_t numProfits = 0;
 		size_t numLosses = 0;
 		double finResult = 0;
-		for (const auto &x: byFinRes) {
+		for (const auto &result: byFinRes) {
 			cout
 				<< ++num << "\t"
-				<< setw(15) << left << x->first << "\t"
-				<< x->second.numProfits << "\t"
-				<< x->second.numLosses << "\t"
-				<< finRes(x->second) << endl;
+				<< setw(15) << left << result->first << "\t"
+				<< result->second.numProfits << "\t"
+				<< result->second.numLosses << "\t"
+				<< finRes(result->second) << endl;
 
-			numProfits += x->second.numProfits;
-			numLosses += x->second.numLosses;
-			finResult += finRes(x->second);
+			numProfits += result->second.numProfits;
+			numLosses += result->second.numLosses;
+			finResult += finRes(result->second);
 		}
 		const auto rate = numLosses + numProfits? 1. * numProfits / (numLosses+numProfits) : 0;
 		cout
