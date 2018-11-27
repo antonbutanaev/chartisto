@@ -181,6 +181,7 @@ void EMACross::process(
 			numLosses += x->second.numLosses;
 			finResult += finRes(x->second);
 		}
+		const auto rate = numLosses + numProfits? 1. * numProfits / (numLosses+numProfits) : 0;
 		cout
 			<< endl
 			<< '\t'
@@ -188,7 +189,7 @@ void EMACross::process(
 			<< numProfits << '\t'
 			<< numLosses << '\t'
 			<< finResult << '\t'
-			<< 1. * numProfits / numLosses
+			<< rate
 			<< endl;
 	}
 }
@@ -267,7 +268,7 @@ EMACross::TaskResult EMACross::runTask(
 				<< endl
 				<< "BUY "
 				<< result.title
-				<< " step " << setprecision(10) << step
+				<< " step " << step
 				<< " period " << period
 				<< " ema " << ema->close(lastBarNum) << " ";
 			result.orders.push_back({period, entryAnalyzer.analyze(
@@ -300,7 +301,7 @@ EMACross::TaskResult EMACross::runTask(
 				<< endl
 				<< "SELL "
 				<< result.title
-				<< " step " << setprecision(10) << step
+				<< " step " << step
 				<< " period " << period
 				<< " ema " << ema->close(lastBarNum) << " ";
 			result.orders.push_back({period, entryAnalyzer.analyze(
