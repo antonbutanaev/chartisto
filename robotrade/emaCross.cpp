@@ -41,8 +41,7 @@ EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(v
 	Json::Value configJson;
 	ifs >> configJson;
 
-	cout
-		<< "EMACross using params:";
+	cout << "EMACross using params:";
 
 #define TPL(f,t) \
 	if (configJson.isMember(#f)) config_.f = configJson[#f].as##t(); \
