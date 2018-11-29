@@ -145,6 +145,14 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			(buy  && bars_->close(barNum) <= stopPrice) ||
 			(sell && bars_->close(barNum) >= stopPrice);
 
+		const auto enterBetweenOpenAndStop =
+			(buy  && bars_->open(barNum) >= stopEnterPrice) ||
+			(sell && bars_->open(barNum) <= stopEnterPrice);
+
+		const auto enterBetweenOpenAndProfit =
+			(buy  && bars_->open(barNum) <= stopEnterPrice) ||
+			(sell && bars_->open(barNum) >= stopEnterPrice);
+
 		enum Probability{Probable, Certain};
 
 		const auto runStop = [&] (Probability probability) {
@@ -181,7 +189,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 			}
 
 		} else if (stopCondition) {
-			if (wasFilled || stopCloseCondition)
+			if (wasFilled || stopCloseCondition || enterBetweenOpenAndStop)
 				runStop(Certain);
 			else if (happenedFirstOfTwo())
 				runStop(Probable);
@@ -189,7 +197,7 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 				probablyNotStopped();
 
 		} else if (targetCondition) {
-			if (wasFilled || targetCloseCondition)
+			if (wasFilled || targetCloseCondition || enterBetweenOpenAndProfit)
 				runProfit(Certain);
 			else if (happenedFirstOfTwo())
 				runProfit(Probable);
