@@ -47,11 +47,15 @@ public:
 
 		struct Stopped {
 			chart::Time time;
-			bool lossless = false;
 			bool probable = false;
 		};
 		std::optional<Stopped> stopped;
 		std::vector<chart::Time> probablyNotStopped;
+
+		struct Lossless {
+			chart::Time time;
+		};
+		std::optional<Lossless> lossless;
 
 		struct Filled {
 			chart::Time time;

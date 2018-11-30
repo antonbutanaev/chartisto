@@ -38,10 +38,11 @@ ostream &operator<<(ostream &o, const EntryAnalyzer::Result &result) {
 		o << ';';
 	}
 
+	if (result.lossless)
+		o << " Lossless on " << result.lossless->time << ';';
+
 	if (result.stopped) {
 		o << " Stopped " << result.stopped->time;
-		if (result.stopped->lossless)
-			o << " lossless";
 		if (result.stopped->probable)
 			o << " probably";
 		o << ';';
@@ -101,7 +102,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 	result.runAwayPrice[0] = stopEnterPrice - runAwayDelta;
 	result.runAwayPrice[1] = stopEnterPrice + runAwayDelta;
 	const auto losslessDelta = params_.losslessStopK * stopDelta;
-	bool stopMadeLossless = false;
 	for (auto barNum = orderBarNum + 1; barNum < bars_->num(); ++barNum) {
 		const auto fillCondition =
 			bars_->high(barNum) >= stopEnterPrice && bars_->low(barNum) <= stopEnterPrice;
@@ -158,7 +158,6 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		const auto runStop = [&] (Probability probability) {
 			result.stopped = {
 				bars_->time(barNum),
-				fabs(stopPrice - stopEnterPrice) < PriceEpsilon,
 				probability == Probable
 			};
 		};
@@ -208,8 +207,8 @@ EntryAnalyzer::Result EntryAnalyzer::analyze(
 		if (result.stopped || result.profit)
 			break;
 
-		if (!stopMadeLossless && fabs(bars_->close(barNum) - stopEnterPrice) > losslessDelta) {
-			stopMadeLossless = true;
+		if (!result.lossless && fabs(bars_->close(barNum) - stopEnterPrice) > losslessDelta) {
+			result.lossless = {bars_->time(barNum)};
 			stopPrice = stopEnterPrice;
 		}
 	}

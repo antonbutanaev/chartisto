@@ -453,7 +453,7 @@ Levels::ProcessResult Levels::process(data::PBars bars, unsigned seed) {
 		++ret.numOrders;
 		if (result.filled && result.profit)
 			++ret.numProfits;
-		if (result.stopped && !result.stopped->lossless)
+		if (result.stopped && !result.lossless)
 			++ret.numLosses;
 		result_ << result << endl;
 	}

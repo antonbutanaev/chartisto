@@ -511,7 +511,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		ASSERT_EQ(result.probablyNoProfit.size(), 1u);
@@ -534,7 +534,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		ASSERT_EQ(result.probablyNoProfit.size(), 1u);
@@ -601,7 +601,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -623,7 +623,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_TRUE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -687,7 +687,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -709,7 +709,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -734,7 +734,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/9});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -758,7 +758,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/9});
 		EXPECT_FALSE(result.profit);
 		EXPECT_EQ(result.probablyNoProfit.size(), 0u);
@@ -945,7 +945,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_TRUE(result.stopped->lossless);
+		EXPECT_TRUE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/10});
 		ASSERT_FALSE(result.profit);
 		EXPECT_FALSE(result.runAway);
@@ -969,7 +969,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		EXPECT_EQ(result.filled->time, sys_days{2018_y/feb/8});
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_TRUE(result.stopped->lossless);
+		EXPECT_TRUE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/10});
 		ASSERT_FALSE(result.profit);
 		EXPECT_FALSE(result.runAway);
@@ -989,7 +989,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		ASSERT_TRUE(result.probablyNoProfit.empty());
@@ -1011,7 +1011,7 @@ TEST(TestRobotrade, EntryAnalyzer) {
 		);
 		ASSERT_TRUE(result.stopped);
 		EXPECT_FALSE(result.stopped->probable);
-		EXPECT_FALSE(result.stopped->lossless);
+		EXPECT_FALSE(result.lossless);
 		EXPECT_EQ(result.stopped->time, sys_days{2018_y/feb/8});
 		EXPECT_FALSE(result.profit);
 		ASSERT_TRUE(result.probablyNoProfit.empty());

@@ -155,7 +155,7 @@ void EMACross::process(
 			for (const auto &order: result.orders)
 				if (order.result.profit)
 					++summ.numProfits;
-				else if (order.result.stopped && !order.result.stopped->lossless)
+				else if (order.result.stopped && !order.result.lossless)
 					++summ.numLosses;
 		}
 
