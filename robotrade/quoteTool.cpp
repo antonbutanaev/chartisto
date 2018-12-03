@@ -134,7 +134,7 @@ int main(int ac, char *av[]) try {
 		*argTodayQuotes = "today-quotes",
 		*argUpdateQuotes = "update-quotes",
 		*argPrintQuotes = "print-quotes",
-		*argTitleToTickers = "title-to-tickers",
+		*argTitleToTicker = "title-to-ticker",
 		*argSplitQuotes = "split-quotes";
 
 	namespace po = boost::program_options;
@@ -147,7 +147,7 @@ int main(int ac, char *av[]) try {
 		(argPrintQuotes, "print quotes")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argTodayQuotes, po::value<string>(), "dir with today quotes")
-		(argTitleToTickers, po::value<string>(), "title to tickers json")
+		(argTitleToTicker, po::value<string>(), "title to ticker json")
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argSuffix, po::value<string>(), "add suffix to split files")
 		(argSplitQuotes, po::value<string>(), "split one multiticker quote file into separate files");
@@ -177,13 +177,13 @@ int main(int ac, char *av[]) try {
 		updateQuotes(vm[argUpdateQuotes].as<string>(), quotes);
 	} else if (vm.count(argPrintQuotes)) {
 		for (const auto &quotesFile: vm[argQuotes].as<vector<string>>()) {
-			auto jsonStream = util::check<ifstream>(vm[argTitleToTickers].as<string>());
-			Json::Value titleToTickers;
-			jsonStream >> titleToTickers;
+			auto jsonStream = util::check<ifstream>(vm[argTitleToTicker].as<string>());
+			Json::Value titleToTicker;
+			jsonStream >> titleToTicker;
 			const auto bars = robotrade::parseWithToday(
 				quotesFile,
 				vm[argTodayQuotes].as<string>(),
-				titleToTickers
+				titleToTicker
 			);
 			cout << "title\ttime\topen\thigh\tlow\tclose\tvolume" << endl;
 			for (size_t barNum = 0; barNum < bars->num(); ++barNum)

@@ -26,7 +26,7 @@ END
 quotetool \
 	--quotes $dir/quotes \
 	--today-quotes $dir/today \
-	--title-to-tickers $dir/titleToTicker \
+	--title-to-ticker $dir/titleToTicker \
 	--print-quotes \
 >$dir/quotesWithToday
 
