@@ -163,7 +163,7 @@ int main(int ac, char *av[]) try {
 				vm.count(argOrders) > 0,
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
-				vm[argTodayQuotes].as<string>(),
+				vm.count(argTodayQuotes) > 0? vm[argTodayQuotes].as<string>() : string(),
 				vm[argSeed].as<unsigned>()
 			);
 		} else

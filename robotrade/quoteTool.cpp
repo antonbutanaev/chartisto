@@ -180,7 +180,7 @@ int main(int ac, char *av[]) try {
 			auto jsonStream = util::check<ifstream>(vm[argTitleToTickers].as<string>());
 			Json::Value titleToTickers;
 			jsonStream >> titleToTickers;
-			const auto bars = robotrade::parseQuotesWithToday(
+			const auto bars = robotrade::parseWithToday(
 				quotesFile,
 				vm[argTodayQuotes].as<string>(),
 				titleToTickers

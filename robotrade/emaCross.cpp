@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <robotrade/emaCross.h>
 #include <robotrade/quotesParser.h>
+#include <robotrade/todayQuotes.h>
 #include <chart/indicators.h>
 #include <chart/stepFind.h>
 #include <util/stream.h>
@@ -78,11 +79,10 @@ void EMACross::process(
 		funcIterator(quoteFiles),
 		[&] (const string &quoteFile) {
 			return [&, quoteFile] {
-				Stream<ifstream> ifs(quoteFile.c_str());
 				PriceInfo priceInfo;
-				priceInfo.bars = robotrade::parse(ifs, [&](const string &title){
-					return make_unique<ifstream>(todayQuotesDir + '/' + config_.titleToTicker[title].asString());
-				});
+				priceInfo.bars = robotrade::parseWithToday(
+					quoteFile, todayQuotesDir, config_.titleToTicker
+				);
 				priceInfo.emas.reserve(config_.emaTo - config_.emaFrom + 1);
 				priceInfo.atrs.reserve(config_.emaTo - config_.emaFrom + 1);
 				for (auto period = config_.emaFrom; period <= config_.emaTo; ++period) {

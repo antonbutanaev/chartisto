@@ -8,7 +8,6 @@
 namespace robotrade {
 
 using TodayQuote = std::function<std::unique_ptr<std::istream>(const std::string &title)>;
-
 chart::data::PBars parse(std::istream&, const TodayQuote& = {});
 
 }
