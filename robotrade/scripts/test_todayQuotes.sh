@@ -1,0 +1,44 @@
+#!/usr/bin/bash
+
+dir=$(mktemp -d)
+
+trap "rm -r $dir" EXIT
+
+function testQuotesWithToday() {
+
+cat >$dir/quotes <<END
+<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>
+@XY,D,20180207,000000,1,1,1,1,1
+@XY,D,20180208,000000,10,23,5,20,2
+END
+
+cat >$dir/titleToTicker <<END
+{"@XY": "XYZ8"}
+END
+
+mkdir $dir/today
+
+cat >$dir/today/XYZ8 <<END
+<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOL>
+XYZ8,D,20180209,000000,21,24,6,22,3
+END
+
+quotetool \
+	--quotes $dir/quotes \
+	--today-quotes $dir/today \
+	--title-to-tickers $dir/titleToTicker \
+	--print-quotes \
+>$dir/quotesWithToday
+
+cat >$dir/quotesWithTodayOK <<END
+title	time	open	high	low	close	volume
+@XY	2018-02-07	1	1	1	1	1
+@XY	2018-02-08	10	23	5	20	2
+@XY	2018-02-09	21	24	6	22	3
+END
+
+diff -uBb $dir/quotesWithTodayOK $dir/quotesWithToday
+
+}
+
+testQuotesWithToday

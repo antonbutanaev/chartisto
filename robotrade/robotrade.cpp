@@ -101,6 +101,7 @@ int main(int ac, char *av[]) try {
 	const char
 		*argHelp = "help",
 		*argQuotes = "quotes",
+		*argTodayQuotes = "today-quotes",
 		*argDays = "days",
 		*argSummary = "summary",
 		*argOrders = "orders",
@@ -117,6 +118,7 @@ int main(int ac, char *av[]) try {
 	description.add_options()
 		(argHelp, "produce help message")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
+		(argTodayQuotes, po::value<string>(), "dir with today quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
 		(argEMACrossJson, po::value<string>(), "EMA cross .json file")
 		(argVerbose, po::value<unsigned>()->default_value(0), "Verbose")
@@ -153,11 +155,15 @@ int main(int ac, char *av[]) try {
 				vm[argSeed].as<unsigned>()
 			);
 		} if (vm.count(argEMACrossJson)) {
-			EMACross(vm[argEMACrossJson].as<string>(), vm[argVerbose].as<unsigned>()).process(
+			EMACross(
+				vm[argEMACrossJson].as<string>(),
+				vm[argVerbose].as<unsigned>()
+			).process(
 				vm.count(argSummary) > 0,
 				vm.count(argOrders) > 0,
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
+				vm[argTodayQuotes].as<string>(),
 				vm[argSeed].as<unsigned>()
 			);
 		} else

@@ -17,6 +17,7 @@ add_library(robotradeutils
 	levels.cpp
 	entryAnalyzer.cpp
 	emaCross.cpp
+	todayQuotes.cpp
 )
 
 target_link_libraries(robotradeutils

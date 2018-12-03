@@ -20,18 +20,24 @@ public:
 		size_t emaFrom = 10;
 		size_t emaTo = 60;
 		Json::Value risk;
+		Json::Value titleToTicker;
 
 		struct Risk {
 			chart::Price maxLoss = 2000;
 			chart::Price maxPosition = 200000;
 		};
+
+		Config(const std::string &jsonConfig);
 		Risk getRisk(const std::string &title) const;
 	};
 
 	EMACross(const std::string &jsonConfig, unsigned verbose);
 	void process(
 		bool printSummary, bool printOrders,
-		unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
+		unsigned daysToAnalyze,
+		const std::vector<std::string> &quoteFiles,
+		const std::string &todayQuotesDir,
+		unsigned seed
 	);
 private:
 	struct PriceInfo {
@@ -59,7 +65,7 @@ private:
 	util::Async async_;
 	enum Verbose{Log = 1};
 	unsigned verbose_;
-	Config config_;
+	const Config config_;
 };
 
 }

@@ -1,14 +1,17 @@
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <iomanip>
 #include <fstream>
 #include <stdexcept>
+#include <json/json.h>
 #include <boost/program_options.hpp>
 #include <log4cplus/logger.h>
 #include <log4cplus/configurator.h>
 #include <log4cplus/loggingmacros.h>
 #include <util/stream.h>
 #include <robotrade/quotesParser.h>
+#include <robotrade/todayQuotes.h>
 
 using namespace std;
 using namespace date;
@@ -21,7 +24,7 @@ void splitQuotes(const string &quotesFile, string suffix) {
 	util::Stream<ifstream> ifs(quotesFile.c_str());
 	const auto multiBars = robotrade::parse(ifs);
 	cout << "Parsed\n";
-	map<string, util::Stream<ofstream>> outFiles;
+	unordered_map<string, util::Stream<ofstream>> outFiles;
 	for (size_t barNum = 0; barNum < multiBars->num(); ++barNum) {
 		bool insertHeader = false;
 		auto it = outFiles.find(multiBars->title(barNum));
@@ -128,7 +131,10 @@ int main(int ac, char *av[]) try {
 		*argHelp = "help",
 		*argSuffix = "suffix",
 		*argQuotes = "quotes",
+		*argTodayQuotes = "today-quotes",
 		*argUpdateQuotes = "update-quotes",
+		*argPrintQuotes = "print-quotes",
+		*argTitleToTickers = "title-to-tickers",
 		*argSplitQuotes = "split-quotes";
 
 	namespace po = boost::program_options;
@@ -138,7 +144,10 @@ int main(int ac, char *av[]) try {
 	po::options_description description("Allowed options");
 	description.add_options()
 		(argHelp, "produce help message")
+		(argPrintQuotes, "print quotes")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
+		(argTodayQuotes, po::value<string>(), "dir with today quotes")
+		(argTitleToTickers, po::value<string>(), "title to tickers json")
 		(argUpdateQuotes, po::value<string>(), "file with quote updates")
 		(argSuffix, po::value<string>(), "add suffix to split files")
 		(argSplitQuotes, po::value<string>(), "split one multiticker quote file into separate files");
@@ -166,8 +175,28 @@ int main(int ac, char *av[]) try {
 		if (quotes.empty())
 			throw runtime_error("No quotes to update");
 		updateQuotes(vm[argUpdateQuotes].as<string>(), quotes);
+	} else if (vm.count(argPrintQuotes)) {
+		for (const auto &quotesFile: vm[argQuotes].as<vector<string>>()) {
+			auto jsonStream = util::check<ifstream>(vm[argTitleToTickers].as<string>());
+			Json::Value titleToTickers;
+			jsonStream >> titleToTickers;
+			const auto bars = robotrade::parseQuotesWithToday(
+				quotesFile,
+				vm[argTodayQuotes].as<string>(),
+				titleToTickers
+			);
+			cout << "title\ttime\topen\thigh\tlow\tclose\tvolume" << endl;
+			for (size_t barNum = 0; barNum < bars->num(); ++barNum)
+				cout
+					<< bars->title(barNum) << '\t'
+					<< bars->time(barNum) << '\t'
+					<< bars->open(barNum) << '\t'
+					<< bars->high(barNum) << '\t'
+					<< bars->low(barNum) << '\t'
+					<< bars->close(barNum) << '\t'
+					<< bars->volume(barNum) << endl;
+		}
 	}
-
 	return 0;
 } catch (const exception &x) {
 	cerr << "main: exception: " << x.what() << endl;

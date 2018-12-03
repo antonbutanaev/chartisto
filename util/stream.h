@@ -20,4 +20,11 @@ private:
 	S s_;
 };
 
+template<class S, class ...Args> S check(const std::string &fileName, Args &&...args) {
+	S s(fileName.c_str(), std::forward<Args>(args)...);
+	if (!s)
+		throw std::runtime_error("could not open: " + fileName);
+	return s;
+}
+
 }

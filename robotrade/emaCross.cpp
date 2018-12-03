@@ -18,6 +18,30 @@ using namespace chart;
 
 namespace robotrade {
 
+EMACross::Config::Config(const std::string &jsonConfig) {
+	Stream<ifstream> ifs(jsonConfig);
+	Json::Value configJson;
+	ifs >> configJson;
+
+	cout << "EMACross using params:";
+
+#define TPL(f,t) \
+	if (configJson.isMember(#f)) f = configJson[#f].as##t(); \
+	cout << endl << #f " " << f;
+
+	TPL(windowSizeK, Double)
+	TPL(profitPerStopK, Double)
+	TPL(maxMovePerAtrK, Double)
+	TPL(emaFrom, UInt)
+	TPL(emaTo, UInt)
+#undef TPL
+
+	if (configJson.isMember("risk"))
+		risk = configJson["risk"];
+
+	cout << endl;
+}
+
 EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const {
 	Risk result;
 	if (risk.isObject()) {
@@ -36,33 +60,16 @@ EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const
 	return result;
 }
 
-EMACross::EMACross(const std::string &jsonConfig, unsigned verbose) : verbose_(verbose) {
-	Stream<ifstream> ifs(jsonConfig);
-	Json::Value configJson;
-	ifs >> configJson;
-
-	cout << "EMACross using params:";
-
-#define TPL(f,t) \
-	if (configJson.isMember(#f)) config_.f = configJson[#f].as##t(); \
-	cout << endl << #f " " << config_.f;
-
-	TPL(windowSizeK, Double)
-	TPL(profitPerStopK, Double)
-	TPL(maxMovePerAtrK, Double)
-	TPL(emaFrom, UInt)
-	TPL(emaTo, UInt)
-#undef TPL
-
-	if (configJson.isMember("risk"))
-		config_.risk = configJson["risk"];
-
-	cout << endl;
+EMACross::EMACross(const std::string &jsonConfig, unsigned verbose)
+: verbose_(verbose), config_(jsonConfig) {
 }
 
 void EMACross::process(
 	bool printSummary, bool printOrders,
-	unsigned daysToAnalyze, const std::vector<std::string> &quoteFiles, unsigned seed
+	unsigned daysToAnalyze,
+	const std::vector<std::string> &quoteFiles,
+	const std::string &todayQuotesDir,
+	unsigned seed
 ) {
 	if (quoteFiles.empty())
 		return;
@@ -73,7 +80,9 @@ void EMACross::process(
 			return [&, quoteFile] {
 				Stream<ifstream> ifs(quoteFile.c_str());
 				PriceInfo priceInfo;
-				priceInfo.bars = robotrade::parse(ifs);
+				priceInfo.bars = robotrade::parse(ifs, [&](const string &title){
+					return make_unique<ifstream>(todayQuotesDir + '/' + config_.titleToTicker[title].asString());
+				});
 				priceInfo.emas.reserve(config_.emaTo - config_.emaFrom + 1);
 				priceInfo.atrs.reserve(config_.emaTo - config_.emaFrom + 1);
 				for (auto period = config_.emaFrom; period <= config_.emaTo; ++period) {

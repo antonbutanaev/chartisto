@@ -17,7 +17,15 @@ const char *header2 = "<TICKER>,<PER>,<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,
 
 class Bars: public data::Bars {
 public:
-    Bars(std::istream &is) {
+    Bars(std::istream &is, const TodayQuote &todayQuote) {
+		parse(is, {});
+		if (todayQuote && num() != 0) {
+			parse(*todayQuote(title(0)), title(0));
+		}
+    }
+
+private:
+    void parse(std::istream &is, const string &changeTitle) {
         int lineNum = 1;
         const auto error = [&] (const string &message) {
         	throw runtime_error(message + " at line " + to_string(lineNum));
@@ -46,6 +54,9 @@ public:
         	Bar bar;
             if(!getline(is, bar.title, ','))
             	break;
+
+			if (!changeTitle.empty())
+				bar.title = changeTitle;
 
             char per;
             is >> per;
@@ -96,7 +107,6 @@ public:
         }
     }
 
-private:
     std::string title(size_t n) const override {return bars_[n].title;}
     Time time(size_t n) const override {return bars_[n].time;}
     Price open(size_t n) const override {return bars_[n].open;}
@@ -118,8 +128,8 @@ private:
 
 }
 
-data::PBars parse(std::istream &is) {
-    return make_shared<Bars>(is);
+data::PBars parse(istream &is, const TodayQuote &todayQuote) {
+    return make_shared<Bars>(is, todayQuote);
 }
 
 }
