@@ -8,6 +8,12 @@ int main() {
 		if (!cin)
 			return 0;
 		cout << "finRsvCode " << finRsvCode << endl;
+		const auto opCode = finRsvCode & 15;
+		cout << "opCode " << opCode << endl;
+		if (opCode == 8) {
+			cout << "Connection close" << endl;
+			break;
+		}
 
 		auto len = cin.get();
 		if (!cin)
@@ -44,5 +50,10 @@ int main() {
 			cout << char(c ^ mask[i % 4]);
 		}
 		cout << endl;
+
+		if (finRsvCode & 1) {
+			cout << "FIN" << endl;
+			break;
+		}
 	}
 }
