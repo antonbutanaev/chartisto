@@ -31,3 +31,15 @@ target_link_libraries(robotradeutils
 
 target_link_libraries(robotrade robotradeutils)
 target_link_libraries(quotetool robotradeutils)
+
+set(CMAKE_INSTALL_PREFIX /)
+
+install(
+	PROGRAMS scripts/test_todayQuotes.sh
+	DESTINATION bin
+)
+
+install(
+	TARGETS robotrade quotetool
+	DESTINATION bin
+)
