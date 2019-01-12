@@ -108,6 +108,7 @@ int main(int ac, char *av[]) try {
 		*argVerbose = "verbose",
 		*argSeed = "seed",
 		*argLevelsJson = "levels",
+		*argExportStops = "export-stops",
 		*argEMACrossJson = "ema-cross";
 
 	namespace po = boost::program_options;
@@ -121,6 +122,7 @@ int main(int ac, char *av[]) try {
 		(argTodayQuotes, po::value<string>(), "dir with today quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
 		(argEMACrossJson, po::value<string>(), "EMA cross .json file")
+		(argExportStops, po::value<string>(), "Export stops to file")
 		(argVerbose, po::value<unsigned>()->default_value(0), "Verbose")
 		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
@@ -164,7 +166,8 @@ int main(int ac, char *av[]) try {
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm.count(argTodayQuotes) > 0? vm[argTodayQuotes].as<string>() : string(),
-				vm[argSeed].as<unsigned>()
+				vm[argSeed].as<unsigned>(),
+				vm[argExportStops].as<string>()
 			);
 		} else
 			throw runtime_error("What to do with quotes?");

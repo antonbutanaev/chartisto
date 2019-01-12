@@ -1,3 +1,4 @@
+#include <fmt/format.h>
 #include <json/json.h>
 #include <iostream>
 #include <iomanip>
@@ -19,7 +20,7 @@ using namespace chart;
 
 namespace robotrade {
 
-EMACross::Config::Config(const std::string &jsonConfig) {
+EMACross::Config::Config(const string &jsonConfig) {
 	Stream<ifstream> ifs(jsonConfig);
 	Json::Value configJson;
 	ifs >> configJson;
@@ -43,7 +44,7 @@ EMACross::Config::Config(const std::string &jsonConfig) {
 	cout << endl;
 }
 
-EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const {
+EMACross::Config::Risk EMACross::Config::getRisk(const string &title) const {
 	Risk result;
 	if (risk.isObject()) {
 		const auto fill = [&](const string &key) {
@@ -61,16 +62,17 @@ EMACross::Config::Risk EMACross::Config::getRisk(const std::string &title) const
 	return result;
 }
 
-EMACross::EMACross(const std::string &jsonConfig, unsigned verbose)
+EMACross::EMACross(const string &jsonConfig, unsigned verbose)
 : verbose_(verbose), config_(jsonConfig) {
 }
 
 void EMACross::process(
 	bool printSummary, bool printOrders,
 	unsigned daysToAnalyze,
-	const std::vector<std::string> &quoteFiles,
-	const std::string &todayQuotesDir,
-	unsigned seed
+	const vector<string> &quoteFiles,
+	const string &todayQuotesDir,
+	unsigned seed,
+	const string &exportStops
 ) {
 	if (quoteFiles.empty())
 		return;
@@ -168,7 +170,7 @@ void EMACross::process(
 					++summ.numLosses;
 		}
 
-		std::vector<decltype(summary.begin())> byFinRes;
+		vector<decltype(summary.begin())> byFinRes;
 		byFinRes.reserve(summary.size());
 		for (auto it = summary.begin(); it != summary.end(); ++it)
 			byFinRes.push_back(it);
@@ -201,6 +203,46 @@ void EMACross::process(
 			<< finResult << '\t'
 			<< rate
 			<< endl;
+	}
+
+	if (!exportStops.empty()) {
+		ofstream exportStopsFile(exportStops.c_str());
+		exportStopsFile << "{" << endl;
+		for (const auto &result: results) {
+			for (const auto &order: result.orders) {
+				if (order.result.runAway)
+					continue;
+				const auto &stop = order.result;
+				exportStopsFile << "\t{\n";
+
+				const auto day = chrono::time_point_cast<date::days>(stop.orderActivated);
+				const auto ymd = date::year_month_day(day);
+				const auto dateTag =
+					fmt::format(
+						"'{}{:02d}{:02d}'",
+						stop.lossless? 'B':'A',
+						static_cast<unsigned>(ymd.month()),
+						static_cast<unsigned>(ymd.day())
+					);
+
+				exportStopsFile
+					<< "\t\tclass_code='SPBFUT',\n"
+					<< "\t\tsec_code='" << result.title << "',\n"
+					<< "\t\tqty=" << 0 << ",\n"
+					<< "\t\tdateTag=" << dateTag << ",\n"
+					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"
+					<< "\t\tenterPrice=" << 0 << ",\n"
+					<< "\t\tstop=" << stop.stopPrice << ",\n"
+					<< "\t\tstopPrice=" << 0 << ",\n"
+					<< "\t\ttarget=" << stop.targetPrice << ",\n"
+					<< "\t\toffset=" << 0 << ",\n"
+					<< "\t\tspread=" << 0 << ",\n"
+					;
+				exportStopsFile << "\n\t},\n";
+			}
+
+		}
+		exportStopsFile << "}" << endl;
 	}
 }
 

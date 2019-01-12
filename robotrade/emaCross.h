@@ -37,7 +37,8 @@ public:
 		unsigned daysToAnalyze,
 		const std::vector<std::string> &quoteFiles,
 		const std::string &todayQuotesDir,
-		unsigned seed
+		unsigned seed,
+		const std::string &exportStops
 	);
 private:
 	struct PriceInfo {
