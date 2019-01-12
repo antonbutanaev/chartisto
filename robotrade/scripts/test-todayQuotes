@@ -1,7 +1,6 @@
 #!/usr/bin/bash
 
 dir=$(mktemp -d)
-
 trap "rm -r $dir" EXIT
 
 function testQuotesWithToday() {

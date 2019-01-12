@@ -122,7 +122,7 @@ int main(int ac, char *av[]) try {
 		(argTodayQuotes, po::value<string>(), "dir with today quotes")
 		(argLevelsJson, po::value<string>(), "levels .json file")
 		(argEMACrossJson, po::value<string>(), "EMA cross .json file")
-		(argExportStops, po::value<string>(), "Export stops to file")
+		(argExportStops, po::value<string>()->default_value({}), "Export stops to file")
 		(argVerbose, po::value<unsigned>()->default_value(0), "Verbose")
 		(argDays, po::value<unsigned>()->default_value(0), "Days to analyze, 0 means all")
 		(argSeed, po::value<unsigned>()->default_value(0), "Seed for random generator")
