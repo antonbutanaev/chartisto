@@ -34,8 +34,10 @@ target_link_libraries(quotetool robotradeutils)
 
 set(CMAKE_INSTALL_PREFIX /)
 
+file(GLOB SCRIPTS scripts/*)
+
 install(
-	PROGRAMS scripts/test_todayQuotes.sh
+	PROGRAMS ${SCRIPTS}
 	DESTINATION bin
 )
 

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+seed=$1
+emaCrossJson=$2
+shift 2
+
+tmpDir=$(mktemp -d)
+
+for days in `seq 10 10 200`
+do
+	file=$(printf '%03d' $days)
+	printf "Days $file\r"
+	robotrade \
+		--days $days \
+		--summary \
+		--seed $seed \
+		--ema-cross $emaCrossJson \
+		"$@" \
+		>$tmpDir/$file
+done
+printf "        \r"
+cd $tmpDir
+grep Total *
+
+trap "rm -r $tmpDir" EXIT
