@@ -40,6 +40,8 @@ EMACross::Config::Config(const string &jsonConfig) {
 
 	if (configJson.isMember("risk"))
 		risk = configJson["risk"];
+	if (configJson.isMember("titleToTicker"))
+		titleToTicker = configJson["titleToTicker"];
 
 	cout << endl;
 }
@@ -227,7 +229,7 @@ void EMACross::process(
 
 				exportStopsFile
 					<< "\t\tclass_code='SPBFUT',\n"
-					<< "\t\tsec_code='" << result.title << "',\n"
+					<< "\t\tsec_code='" << config_.titleToTicker[result.title].asString() << "',\n"
 					<< "\t\tqty=" << 0 << ",\n"
 					<< "\t\tdateTag=" << dateTag << ",\n"
 					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"
