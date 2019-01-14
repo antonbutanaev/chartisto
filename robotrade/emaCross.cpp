@@ -38,20 +38,18 @@ EMACross::Config::Config(const string &jsonConfig) {
 	TPL(emaTo, UInt)
 #undef TPL
 
-	if (configJson.isMember("risk"))
-		risk = configJson["risk"];
-	if (configJson.isMember("titleToTicker"))
-		titleToTicker = configJson["titleToTicker"];
+	if (configJson.isMember("paper"))
+		paper = configJson["paper"];
 
 	cout << endl;
 }
 
 EMACross::Config::Risk EMACross::Config::getRisk(const string &title) const {
 	Risk result;
-	if (risk.isObject()) {
+	if (paper.isObject()) {
 		const auto fill = [&](const string &key) {
-			if (risk.isMember(key)) {
-				const auto &value = risk[key];
+			if (paper.isMember(key)) {
+				const auto &value = paper[key];
 #define TPL(f) if (value.isMember(#f)) result.f = value[#f].asDouble();
 				TPL(maxLoss)
 				TPL(maxPosition)
@@ -85,7 +83,7 @@ void EMACross::process(
 			return [&, quoteFile] {
 				PriceInfo priceInfo;
 				priceInfo.bars = robotrade::parseWithToday(
-					quoteFile, todayQuotesDir, config_.titleToTicker
+					quoteFile, todayQuotesDir, config_.paper
 				);
 				priceInfo.emas.reserve(config_.emaTo - config_.emaFrom + 1);
 				priceInfo.atrs.reserve(config_.emaTo - config_.emaFrom + 1);
@@ -229,7 +227,7 @@ void EMACross::process(
 
 				exportStopsFile
 					<< "\t\tclass_code='SPBFUT',\n"
-					<< "\t\tsec_code='" << config_.titleToTicker[result.title].asString() << "',\n"
+					<< "\t\tsec_code='" << config_.paper[result.title].asString() << "',\n"
 					<< "\t\tqty=" << 0 << ",\n"
 					<< "\t\tdateTag=" << dateTag << ",\n"
 					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"

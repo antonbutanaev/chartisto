@@ -19,8 +19,7 @@ public:
 		double maxMovePerAtrK = 2.;
 		size_t emaFrom = 10;
 		size_t emaTo = 60;
-		Json::Value risk;
-		Json::Value titleToTicker;
+		Json::Value paper;
 
 		struct Risk {
 			chart::Price maxLoss = 2000;
