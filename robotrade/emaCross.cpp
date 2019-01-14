@@ -1,4 +1,3 @@
-#include <fmt/format.h>
 #include <json/json.h>
 #include <iostream>
 #include <iomanip>
@@ -217,19 +216,16 @@ void EMACross::process(
 
 				const auto day = chrono::time_point_cast<date::days>(stop.orderActivated);
 				const auto ymd = date::year_month_day(day);
-				const auto dateTag =
-					fmt::format(
-						"'{}{:02d}{:02d}'",
-						stop.lossless? 'B':'A',
-						static_cast<unsigned>(ymd.month()),
-						static_cast<unsigned>(ymd.day())
-					);
 
 				exportStopsFile
-					<< "\t\tclass_code='SPBFUT',\n"
-					<< "\t\tsec_code='" << config_.paper[result.title].asString() << "',\n"
+					<< "\t\tclass_code='" << config_.paper[result.title]["class_code"].asString() << "',\n"
+					<< "\t\tsec_code='" << config_.paper[result.title]["sec_code"].asString() << "',\n"
 					<< "\t\tqty=" << 0 << ",\n"
-					<< "\t\tdateTag=" << dateTag << ",\n"
+					<< "\t\tdateTag='"
+						<< (stop.lossless? 'B':'A')
+						<< setfill('0') << setw(2)
+							<< static_cast<unsigned>(ymd.month())
+							<< static_cast<unsigned>(ymd.day()) << "',\n"
 					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"
 					<< "\t\tenterPrice=" << 0 << ",\n"
 					<< "\t\tstop=" << stop.stopPrice << ",\n"
