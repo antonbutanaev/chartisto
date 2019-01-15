@@ -52,6 +52,8 @@ EMACross::Config::Risk EMACross::Config::getRisk(const string &title) const {
 #define TPL(f) if (value.isMember(#f)) result.f = value[#f].asDouble();
 				TPL(maxLoss)
 				TPL(maxPosition)
+				TPL(step)
+				TPL(xUSD)
 #undef TPL
 			}
 		};
@@ -205,6 +207,7 @@ void EMACross::process(
 	}
 
 	if (!exportStops.empty()) {
+		//const auto rateUSD = []{return Price{68};}; // FIXME
 		ofstream exportStopsFile(exportStops.c_str());
 		exportStopsFile << "{" << endl;
 		for (const auto &result: results) {
@@ -212,6 +215,14 @@ void EMACross::process(
 				if (order.result.runAway)
 					continue;
 				const auto &stop = order.result;
+
+				const auto risk = config_.getRisk(result.title);
+				const auto buy = stop.stopEnterPrice < stop.targetPrice;
+				const auto enterPrice =
+					stop.stopEnterPrice + (buy? 1:-1) * config_.enterPriceAllowSteps * risk.step;
+				const auto spread = roundUp(stop.targetPrice * config_.spreadK, risk.step);
+				const auto offset = roundUp(stop.targetPrice * config_.offsetK, risk.step);
+
 				exportStopsFile << "\t{\n";
 
 				const auto day = chrono::time_point_cast<date::days>(stop.orderActivated);
@@ -223,16 +234,15 @@ void EMACross::process(
 					<< "\t\tqty=" << 0 << ",\n"
 					<< "\t\tdateTag='"
 						<< (stop.lossless? 'B':'A')
-						<< setfill('0') << setw(2)
-							<< static_cast<unsigned>(ymd.month())
-							<< static_cast<unsigned>(ymd.day()) << "',\n"
+						<< setfill('0') << setw(2) << static_cast<unsigned>(ymd.month())
+						<< setfill('0') << setw(2) << static_cast<unsigned>(ymd.day()) << "',\n"
 					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"
-					<< "\t\tenterPrice=" << 0 << ",\n"
+					<< "\t\tenterPrice=" << enterPrice << ",\n"
 					<< "\t\tstop=" << stop.stopPrice << ",\n"
 					<< "\t\tstopPrice=" << 0 << ",\n"
 					<< "\t\ttarget=" << stop.targetPrice << ",\n"
-					<< "\t\toffset=" << 0 << ",\n"
-					<< "\t\tspread=" << 0 << ",\n"
+					<< "\t\toffset=" << offset << ",\n"
+					<< "\t\tspread=" << spread << ",\n"
 					;
 				exportStopsFile << "\n\t},\n";
 			}

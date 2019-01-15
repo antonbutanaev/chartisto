@@ -17,13 +17,18 @@ public:
 		double windowSizeK = 2.;
 		double profitPerStopK = 3.;
 		double maxMovePerAtrK = 2.;
+		double enterPriceAllowSteps = 2.;
+		double offsetK = 0.015;
+		double spreadK = 0.01;
 		size_t emaFrom = 10;
 		size_t emaTo = 60;
 		Json::Value paper;
 
 		struct Risk {
-			chart::Price maxLoss = 2000;
-			chart::Price maxPosition = 200000;
+			chart::Price maxLoss = 1000;
+			chart::Price maxPosition = 100000;
+			chart::Price step = 1;
+			std::optional<chart::Price> xUSD;
 		};
 
 		Config(const std::string &jsonConfig);
