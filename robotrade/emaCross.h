@@ -18,8 +18,6 @@ public:
 		double profitPerStopK = 3.;
 		double maxMovePerAtrK = 2.;
 		double enterPriceAllowSteps = 2.;
-		double offsetK = 0.015;
-		double spreadK = 0.01;
 		size_t emaFrom = 10;
 		size_t emaTo = 60;
 		Json::Value paper;
@@ -29,6 +27,9 @@ public:
 			chart::Price maxPosition = 100000;
 			chart::Price step = 1;
 			std::optional<chart::Price> xUSD;
+			double offsetK = 0.015;
+			double spreadK = 0.01;
+			double stopK = 0.02;
 		};
 
 		Config(const std::string &jsonConfig);

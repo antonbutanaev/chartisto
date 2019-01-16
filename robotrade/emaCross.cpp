@@ -207,7 +207,7 @@ void EMACross::process(
 	}
 
 	if (!exportStops.empty()) {
-		//const auto rateUSD = []{return Price{68};}; // FIXME
+		const auto rateUSD = []{return Price{68};}; // FIXME
 		ofstream exportStopsFile(exportStops.c_str());
 		exportStopsFile << "{" << endl;
 		for (const auto &result: results) {
@@ -220,8 +220,17 @@ void EMACross::process(
 				const auto buy = stop.stopEnterPrice < stop.targetPrice;
 				const auto enterPrice =
 					stop.stopEnterPrice + (buy? 1:-1) * config_.enterPriceAllowSteps * risk.step;
-				const auto spread = roundUp(stop.targetPrice * config_.spreadK, risk.step);
-				const auto offset = roundUp(stop.targetPrice * config_.offsetK, risk.step);
+				const auto stopPrice =
+					buy?
+						roundDown(stop.stopPrice * (1 - risk.stopK), risk.step) :
+						roundUp(stop.stopPrice * (1 + risk.stopK), risk.step);
+
+				const auto spread = roundUp(stop.targetPrice * risk.spreadK, risk.step);
+				const auto offset = roundUp(stop.targetPrice * risk.offsetK, risk.step);
+
+				const auto qty = floor(
+					(risk.maxPosition / (risk.xUSD ? *risk.xUSD * rateUSD() : 1.)) / enterPrice
+				);
 
 				exportStopsFile << "\t{\n";
 
@@ -231,7 +240,7 @@ void EMACross::process(
 				exportStopsFile
 					<< "\t\tclass_code='" << config_.paper[result.title]["class_code"].asString() << "',\n"
 					<< "\t\tsec_code='" << config_.paper[result.title]["sec_code"].asString() << "',\n"
-					<< "\t\tqty=" << 0 << ",\n"
+					<< "\t\tqty=" << qty << ",\n"
 					<< "\t\tdateTag='"
 						<< (stop.lossless? 'B':'A')
 						<< setfill('0') << setw(2) << static_cast<unsigned>(ymd.month())
@@ -239,7 +248,7 @@ void EMACross::process(
 					<< "\t\tenter=" << stop.stopEnterPrice << ",\n"
 					<< "\t\tenterPrice=" << enterPrice << ",\n"
 					<< "\t\tstop=" << stop.stopPrice << ",\n"
-					<< "\t\tstopPrice=" << 0 << ",\n"
+					<< "\t\tstopPrice=" << stopPrice << ",\n"
 					<< "\t\ttarget=" << stop.targetPrice << ",\n"
 					<< "\t\toffset=" << offset << ",\n"
 					<< "\t\tspread=" << spread << ",\n"
