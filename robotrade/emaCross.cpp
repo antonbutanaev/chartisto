@@ -217,7 +217,6 @@ void EMACross::process(
 					continue;
 
 				const auto &stop = order.result;
-				cout << stop << endl;
 
 				const auto risk = config_.getRisk(result.title);
 				const auto buy = stop.stopEnterPrice < stop.targetPrice;
@@ -235,9 +234,12 @@ void EMACross::process(
 				const auto qty = floor(risk.maxPosition / k / enterPrice);
 
 				cout
+					<< result.title << endl
+					<< stop << endl
 					<< "qty:      " << qty << endl
 					<< "position: " << qty * stop.stopEnterPrice * k << endl
-					<< "loss:     " << qty * fabs(stop.stopEnterPrice - stop.stopPrice) * k << endl;
+					<< "loss:     " << qty * fabs(stop.stopEnterPrice - stop.stopPrice) * k << endl
+					<< endl;
 
 				exportStopsFile << "\t{\n";
 
