@@ -207,6 +207,7 @@ void EMACross::process(
 	}
 
 	if (!exportStops.empty()) {
+		cout << "Export stops:" << endl;
 		const auto rateUSD = []{return Price{68};}; // FIXME
 		ofstream exportStopsFile(exportStops.c_str());
 		exportStopsFile << "{" << endl;
@@ -214,7 +215,9 @@ void EMACross::process(
 			for (const auto &order: result.orders) {
 				if (order.result.runAway)
 					continue;
+
 				const auto &stop = order.result;
+				cout << stop << endl;
 
 				const auto risk = config_.getRisk(result.title);
 				const auto buy = stop.stopEnterPrice < stop.targetPrice;
@@ -228,9 +231,13 @@ void EMACross::process(
 				const auto spread = roundUp(stop.targetPrice * risk.spreadK, risk.step);
 				const auto offset = roundUp(stop.targetPrice * risk.offsetK, risk.step);
 
-				const auto qty = floor(
-					(risk.maxPosition / (risk.xUSD ? *risk.xUSD * rateUSD() : 1.)) / enterPrice
-				);
+				const auto k = risk.xUSD ? *risk.xUSD * rateUSD() : 1.;
+				const auto qty = floor(risk.maxPosition / k / enterPrice);
+
+				cout
+					<< "qty:      " << qty << endl
+					<< "position: " << qty * stop.stopEnterPrice * k << endl
+					<< "loss:     " << qty * fabs(stop.stopEnterPrice - stop.stopPrice) * k << endl;
 
 				exportStopsFile << "\t{\n";
 
