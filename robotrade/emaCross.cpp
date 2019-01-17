@@ -216,7 +216,7 @@ void EMACross::process(
 		const auto rateUSD = [&]{return usd->close(0);};
 		cout << "Export stops, USD " << rateUSD() << endl;
 		ofstream exportStopsFile(exportStops.c_str());
-		exportStopsFile << "{" << endl;
+		exportStopsFile << "AutoStops = {" << endl;
 		for (const auto &result: results) {
 			for (const auto &order: result.orders) {
 				if (order.result.runAway)
