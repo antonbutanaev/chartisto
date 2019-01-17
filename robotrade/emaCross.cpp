@@ -233,12 +233,22 @@ void EMACross::process(
 				const auto k = risk.xUSD ? *risk.xUSD * rateUSD() : 1.;
 				const auto qty = floor(risk.maxPosition / k / enterPrice);
 
+				const auto priceInfoIt = find_if(
+					priceInfos.begin(), priceInfos.end(),
+					[&](const PriceInfo &priceInfo) {
+						return priceInfo.bars->num() > 0 && priceInfo.bars->title(0) == result.title;
+					}
+				);
+				if (priceInfoIt == priceInfos.end())
+					throw runtime_error("not found price info for " + result.title);
+
 				cout
 					<< result.title << endl
 					<< stop << endl
-					<< "qty:      " << qty << endl
-					<< "position: " << qty * stop.stopEnterPrice * k << endl
-					<< "loss:     " << qty * fabs(stop.stopEnterPrice - stop.stopPrice) * k << endl
+					<< "last quote:" << priceInfoIt->bars->time(priceInfoIt->bars->num() - 1) << endl
+					<< "qty:       " << qty << endl
+					<< "position:  " << qty * stop.stopEnterPrice * k << endl
+					<< "loss:      " << qty * fabs(stop.stopEnterPrice - stop.stopPrice) * k << endl
 					<< endl;
 
 				exportStopsFile << "\t{\n";
