@@ -12,7 +12,7 @@ cat >$dir/quotes <<END
 END
 
 cat >$dir/titleToTicker <<END
-{"@XY": "XYZ8"}
+{"@XY": {"sec_code": "XYZ8"}}
 END
 
 mkdir $dir/today

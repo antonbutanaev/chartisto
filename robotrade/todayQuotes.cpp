@@ -19,7 +19,7 @@ chart::data::PBars parseWithToday(
 		return robotrade::parse(ifs);
 	return robotrade::parse(ifs, [&](const string &title){
 		return make_unique<ifstream>(check<ifstream>(
-			todayQuotesDir + '/' + titleToTickers[title].asString())
+			todayQuotesDir + '/' + titleToTickers[title]["sec_code"].asString())
 		);
 	});
 }
