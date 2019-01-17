@@ -207,8 +207,14 @@ void EMACross::process(
 	}
 
 	if (!exportStops.empty()) {
-		cout << "Export stops:" << endl;
-		const auto rateUSD = []{return Price{68};}; // FIXME
+		const auto usdQuoteFileName = todayQuotesDir + "/USD000000TOD";
+		ifstream usdQuoteFile(usdQuoteFileName);
+		const auto usd = robotrade::parse(usdQuoteFile);
+		if (usd->num() != 1)
+			throw runtime_error("bad USD quote " + usdQuoteFileName);
+
+		const auto rateUSD = [&]{return usd->close(0);};
+		cout << "Export stops, USD " << rateUSD() << endl;
 		ofstream exportStopsFile(exportStops.c_str());
 		exportStopsFile << "{" << endl;
 		for (const auto &result: results) {
@@ -274,7 +280,6 @@ void EMACross::process(
 					;
 				exportStopsFile << "\n\t},\n";
 			}
-
 		}
 		exportStopsFile << "}" << endl;
 	}
