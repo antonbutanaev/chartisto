@@ -72,6 +72,7 @@ void EMACross::process(
 	unsigned daysToAnalyze,
 	const vector<string> &quoteFiles,
 	const string &todayQuotesDir,
+	const string &usdQuoteDir,
 	unsigned seed,
 	const string &exportStops
 ) {
@@ -207,7 +208,7 @@ void EMACross::process(
 	}
 
 	if (!exportStops.empty()) {
-		const auto usdQuoteFileName = todayQuotesDir + "/USD000000TOD";
+		const auto usdQuoteFileName = usdQuoteDir + "/USD000000TOD";
 		ifstream usdQuoteFile(usdQuoteFileName);
 		const auto usd = robotrade::parse(usdQuoteFile);
 		if (usd->num() != 1)

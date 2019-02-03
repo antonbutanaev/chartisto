@@ -42,6 +42,7 @@ public:
 		unsigned daysToAnalyze,
 		const std::vector<std::string> &quoteFiles,
 		const std::string &todayQuotesDir,
+		const std::string &usdQuoteDir,
 		unsigned seed,
 		const std::string &exportStops
 	);

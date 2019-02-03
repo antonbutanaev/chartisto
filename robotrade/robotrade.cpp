@@ -102,6 +102,7 @@ int main(int ac, char *av[]) try {
 		*argHelp = "help",
 		*argQuotes = "quotes",
 		*argTodayQuotes = "today-quotes",
+		*argUSDQuotes = "usd-quotes",
 		*argDays = "days",
 		*argSummary = "summary",
 		*argOrders = "orders",
@@ -120,6 +121,7 @@ int main(int ac, char *av[]) try {
 		(argHelp, "produce help message")
 		(argQuotes, po::value<vector<string>>(), "file with quotes")
 		(argTodayQuotes, po::value<string>(), "dir with today quotes")
+		(argUSDQuotes, po::value<string>(), "dir with USD quote")
 		(argLevelsJson, po::value<string>(), "levels .json file")
 		(argEMACrossJson, po::value<string>(), "EMA cross .json file")
 		(argExportStops, po::value<string>()->default_value({}), "Export stops to file")
@@ -166,6 +168,7 @@ int main(int ac, char *av[]) try {
 				vm[argDays].as<unsigned>(),
 				vm[argQuotes].as<vector<string>>(),
 				vm.count(argTodayQuotes) > 0? vm[argTodayQuotes].as<string>() : string(),
+				vm[argUSDQuotes].as<string>(),
 				vm[argSeed].as<unsigned>(),
 				vm[argExportStops].as<string>()
 			);
