@@ -1,19 +1,9 @@
-//
-// Copyright (c) 2016-2019 Vinnie Falco (vinnie dot falco at gmail dot com)
-//
-// Distributed under the Boost Software License, Version 1.0. (See accompanying
-// file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
-//
-// Official repository: https://github.com/boostorg/beast
-//
-
-//------------------------------------------------------------------------------
-//
-// Example: HTTP SSL client, synchronous
-//
-//------------------------------------------------------------------------------
-
 #include "root_certificate.hpp"
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <sstream>
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/http.hpp>
@@ -23,9 +13,8 @@
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/error.hpp>
 #include <boost/asio/ssl/stream.hpp>
-#include <cstdlib>
-#include <iostream>
-#include <string>
+
+#include <json/json.h>
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
 namespace http = beast::http;   // from <boost/beast/http.hpp>
@@ -103,7 +92,26 @@ int main(int argc, char** argv)
         http::read(stream, buffer, res);
 
         // Write the message to standard out
-        std::cout << res << std::endl;
+
+
+        if (0)
+        	std::cout << res << std::endl;
+
+        if (1) {
+			std::stringstream ss;
+			for (auto seq : res.body().data()) {
+				auto* cbuf = net::buffer_cast<const char*>(seq);
+				ss.write(cbuf, boost::asio::buffer_size(seq));
+			}
+
+        	//std::cout << ss.str() << std::endl;
+        	//return 1;
+
+			Json::Value root;
+			ss >> root;
+			std::cout << root;
+
+        }
 
         // Gracefully close the stream
         beast::error_code ec;

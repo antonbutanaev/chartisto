@@ -3,7 +3,10 @@ project(screener)
 
 find_package(Boost 1.75 COMPONENTS program_options system REQUIRED)
 find_package(OpenSSL)
-add_definitions (-DBOOST_BEAST_USE_OPENSSL=1)
+add_definitions(-DBOOST_BEAST_USE_OPENSSL=1)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
@@ -19,6 +22,7 @@ target_link_libraries(tiingo
 	Threads::Threads
 	OpenSSL::SSL
 	OpenSSL::Crypto
+	${JSONCPP_LIBRARIES}
 )
 
 set_target_properties(tiingo PROPERTIES
