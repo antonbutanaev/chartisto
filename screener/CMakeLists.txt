@@ -14,7 +14,12 @@ find_package(Threads REQUIRED)
 
 SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
-add_executable(tiingo tiingo.cpp)
+add_executable(tiingo
+	Tiingo.cpp
+	TiingoHttp.cpp
+	ProcessTickers.cpp
+)
+
 target_link_libraries(tiingo
 	PRIVATE
 	Boost::program_options
