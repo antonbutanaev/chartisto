@@ -16,8 +16,8 @@ SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive")
 
 add_executable(tiingo
 	Tiingo.cpp
-	TiingoHttp.cpp
-	ProcessTickers.cpp
+	TiingoApi.cpp TiingoApi.h
+	ProcessTickers.cpp ProcessTickers.h
 )
 
 target_link_libraries(tiingo

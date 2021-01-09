@@ -22,7 +22,7 @@ int main(int ac, char** av) try {
 		(argHelp, "Help message")
 		(argQuotesDir, po::value<string>(), "Directory with Tiingo cache")
 		(argTickers, po::value<string>(), "Ticker list file")
-		(argAuthToken, po::value<string>(), "Tiingo auth token")
+		(argAuthToken, po::value<string>(), "Tiingo auth token file")
 		;
 
 	po::variables_map vm;
@@ -43,11 +43,21 @@ int main(int ac, char** av) try {
 
 	ifstream tickers(vm[argTickers].as<string>());
 	if (!tickers) {
-		cerr << "Could not open " << vm[argTickers].as<string>() << endl;
+		cerr << "Could not open tickers file " << vm[argTickers].as<string>() << endl;
 		return 1;
 	}
 
-	processTickers(tickers, vm[argQuotesDir].as<string>());
+	ifstream authToken(vm[argAuthToken].as<string>());
+	if (!tickers) {
+		cerr << "Could not open auth token file " << vm[argAuthToken].as<string>() << endl;
+		return 1;
+	}
+
+	string authTokenStr;
+	authToken >> authTokenStr;
+
+
+	processTickers(tickers, vm[argQuotesDir].as<string>(), authTokenStr);
 } catch (const exception &x) {
 	cerr << "exception "  << x.what() << endl;
 	return 1;

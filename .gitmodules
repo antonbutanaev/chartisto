@@ -1,6 +1,6 @@
 [submodule "date"]
 	path = date
-	url = /home/anton/yadisk/git/date/
+	url = /home/anton/pvt/git/date/
 [submodule "fmt"]
 	path = fmt
-	url = /home/anton/yadisk/git/fmt/
+	url = /home/anton/pvt/git/fmt/

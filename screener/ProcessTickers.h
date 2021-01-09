@@ -5,7 +5,7 @@
 #include <string>
 
 namespace tiingo {
-void processTickers(std::istream &tickers, const std::string &cacheDir);
+void processTickers(std::istream &tickers, const std::string &cacheDir, const std::string &authToken);
 }
 
 #endif

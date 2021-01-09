@@ -6,7 +6,6 @@
 #include <chrono>
 #include <memory>
 #include <utility>
-#include <fmt/ostream.h>
 #include <date/date.h>
 
 namespace chart {

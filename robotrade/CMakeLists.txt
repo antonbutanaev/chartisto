@@ -22,7 +22,7 @@ add_library(robotradeutils
 
 target_link_libraries(robotradeutils
 	chart
-	date_interface
+	date::date
 	fmt
 	${JSONCPP_LIBRARIES}
 	boost_program_options
