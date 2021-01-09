@@ -28,6 +28,7 @@ target_link_libraries(tiingo
 	OpenSSL::SSL
 	OpenSSL::Crypto
 	${JSONCPP_LIBRARIES}
+	date::date
 )
 
 set_target_properties(tiingo PROPERTIES

@@ -34,53 +34,37 @@ struct TiingoApi::Impl {
         ctx.set_verify_mode(boost::asio::ssl::verify_none);
 	}
 
-	~Impl() {
-        beast::error_code ec;
-        tcpStream->shutdown(ec);
-        if(ec == net::error::eof)
-            ec = {};
-        if(ec)
-            cerr << "error shutdown stream: " << ec << endl;
+	~Impl() {}
 
-	}
-
-	Json::Value getData(const string &ticker) {
-
-		stringstream target;
-		string startDate{"2019-1-1"};
-		string endDate{"2020-1-1"};
-		target
-			<< "/tiingo/daily/" << ticker
-			<< "/prices?startDate=" << startDate
-			<< "&endDate=" << endDate
-			<< "&token=" << authToken;
-
-		cerr << "GGGG " << target.str() << endl;
-
+	Json::Value getData(const string &ticker, Date from, Date to) {
 		int version = 10;
 
-        tcpStream.reset(new beast::ssl_stream<beast::tcp_stream>(ioc, ctx));
-        if(! SSL_set_tlsext_host_name(tcpStream->native_handle(), host))
+		stringstream target;
+		target
+			<< "/tiingo/daily/" << ticker
+			<< "/prices?startDate=" << from
+			<< "&endDate=" << to
+			<< "&token=" << authToken;
+
+        beast::ssl_stream<beast::tcp_stream> tcpStream(ioc, ctx);
+        if(!SSL_set_tlsext_host_name(tcpStream.native_handle(), host))
         {
             beast::error_code ec{static_cast<int>(::ERR_get_error()), net::error::get_ssl_category()};
             throw beast::system_error{ec};
         }
 
         auto const results = resolver.resolve(host, port);
-        beast::get_lowest_layer(*tcpStream).connect(results);
-        tcpStream->handshake(ssl::stream_base::client);
-
+        beast::get_lowest_layer(tcpStream).connect(results);
+        tcpStream.handshake(ssl::stream_base::client);
 
         http::request<http::string_body> req{http::verb::get, target.str().c_str(), version};
         req.set(http::field::host, host);
         req.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
 
-        http::write(*tcpStream, req);
+        http::write(tcpStream, req);
         beast::flat_buffer buffer;
         http::response<http::dynamic_body> res;
-        http::read(*tcpStream, buffer, res);
-
-        //cerr << "GGGG " << res << endl;
+        http::read(tcpStream, buffer, res);
 
 		stringstream stream;
 		for (auto seq : res.body().data()) {
@@ -91,6 +75,13 @@ struct TiingoApi::Impl {
 		Json::Value root;
 		stream >> root;
 
+        beast::error_code ec;
+        tcpStream.shutdown(ec);
+        if(ec == net::error::eof)
+            ec = {};
+        if(ec)
+            cerr << "error shutdown stream: " << ec << endl;
+
 		return root;
 	}
 
@@ -100,7 +91,6 @@ struct TiingoApi::Impl {
     net::io_context ioc;
     ssl::context ctx{ssl::context::tlsv12_client};
     tcp::resolver resolver{ioc};
-    unique_ptr<beast::ssl_stream<beast::tcp_stream>> tcpStream;
 };
 
 TiingoApi::TiingoApi(const std::string &authToken) : i_(new Impl("api.tiingo.com", "443", authToken)) {
@@ -109,8 +99,8 @@ TiingoApi::TiingoApi(const std::string &authToken) : i_(new Impl("api.tiingo.com
 TiingoApi::~TiingoApi() {
 }
 
-Json::Value TiingoApi::getData(const string &ticker) {
-	return i_->getData(ticker);
+Json::Value TiingoApi::getData(const string &ticker, Date from, Date to) {
+	return i_->getData(ticker, from, to);
 }
 
 }

@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <json/json.h>
-
+#include "ProcessTickers.h"
 
 namespace tiingo {
 
@@ -12,7 +12,7 @@ public:
 	TiingoApi(const std::string &authToken);
 	~TiingoApi();
 
-	Json::Value getData(const std::string &ticker);
+	Json::Value getData(const std::string &ticker, Date from, Date to);
 
 private:
 	struct Impl;
