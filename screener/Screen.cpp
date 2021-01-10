@@ -26,54 +26,72 @@ using Price = float;
 using Volume = float;
 
 struct Quote {
+	Date date;
 	Price open,close,high,low;
 	Volume volume;
-	Date date;
 };
 
 ostream &operator<<(ostream &o, const Quote &quote) {
 	return o
+		<< quote.date << ' '
 		<< quote.open << ' '
 		<< quote.close << ' '
 		<< quote.high << ' '
 		<< quote.low << ' '
-		<< quote.volume << ' '
-		<< quote.date;
+		<< quote.volume;
 }
 
 using Ticker = string;
 using Quotes = vector<Quote>;
 using Quotess = map<Ticker, Quotes>;
 
-void screen(std::istream &tickers, const string &quotesDir) {
+auto findQuote(const Quotes &quotes, Date date) {
+	return lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
+		return a.date < b.date;
+	});
+}
 
+Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 	Quotess quotess;
 	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
 		cout << *tickerIt << endl;
-
 		auto &quotes = quotess[*tickerIt];
-
 		ifstream quotesJsonFile(quotesDir + '/' + *tickerIt);
 		Json::Value quotesJson;
 		quotesJsonFile >> quotesJson;
 		if (!quotesJson.isArray())
 			throw runtime_error("expect array json for " + *tickerIt);
 		for (const auto &quoteJson: quotesJson) {
-			stringstream dateStr(quoteJson[date].asCString());
 			int yi, mi, di;
 			char dash;
-			dateStr >> yi >> dash >> mi >> dash >> di;
+			stringstream(quoteJson[date].asCString()) >> yi >> dash >> mi >> dash >> di;
 			quotes.push_back({
+				year{yi}/mi/di,
 				quoteJson[adjOpen].asFloat(),
 				quoteJson[adjClose].asFloat(),
 				quoteJson[adjHigh].asFloat(),
 				quoteJson[adjLow].asFloat(),
 				quoteJson[adjVolume].asFloat(),
-				year{yi}/mi/di
 			});
-			cout << *tickerIt << ' ' << quotes.back() << endl;
+			//cout << *tickerIt << ' ' << quotes.back() << endl;
 		}
 	}
+	return quotess;
+}
+
+void analyzeQuotess(const Quotess &quotess) {
+	for(const auto &it: quotess) {
+		const auto it1 = findQuote(it.second, year{2020}/10/1);
+		const auto it2 = findQuote(it.second, year{2020}/2/1);
+		if (it1 != it.second.end() && it2 != it.second.end())
+			cout << it.first << ' ' << *it1 << ' ' << *it2 << endl;
+		break;
+	}
+
+}
+
+void screen(std::istream &tickers, const string &quotesDir) {
+	analyzeQuotess(parseQuotess(tickers, quotesDir));
 }
 
 }
