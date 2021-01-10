@@ -3,7 +3,7 @@
 
 #include <memory>
 #include <json/json.h>
-#include "ProcessTickers.h"
+#include "SyncQuotes.h"
 
 namespace tiingo {
 
