@@ -1,16 +1,19 @@
 #include <fstream>
 #include <sstream>
 #include <iterator>
-#include <vector>
-#include <map>
-#include <date/date.h>
+#include <optional>
+
 #include <json/json.h>
+
 #include "Screen.h"
+
+#include <util/log.h>
+#include "Util.h"
 
 using namespace std;
 using namespace date;
 
-namespace tiingo {
+namespace screener {
 
 #define TPL(a) const auto a = #a
 TPL(adjClose);
@@ -25,31 +28,6 @@ using Date = year_month_day;
 using Price = float;
 using Volume = float;
 
-struct Quote {
-	Date date;
-	Price open,close,high,low;
-	Volume volume;
-};
-
-ostream &operator<<(ostream &o, const Quote &quote) {
-	return o
-		<< quote.date << ' '
-		<< quote.open << ' '
-		<< quote.close << ' '
-		<< quote.high << ' '
-		<< quote.low << ' '
-		<< quote.volume;
-}
-
-using Ticker = string;
-using Quotes = vector<Quote>;
-using Quotess = map<Ticker, Quotes>;
-
-auto findQuote(const Quotes &quotes, Date date) {
-	return lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
-		return a.date < b.date;
-	});
-}
 
 Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 	Quotess quotess;
@@ -64,7 +42,10 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 		for (const auto &quoteJson: quotesJson) {
 			int yi, mi, di;
 			char dash;
-			stringstream(quoteJson[date].asCString()) >> yi >> dash >> mi >> dash >> di;
+			stringstream dateStream(quoteJson[date].asCString());
+			dateStream >> yi >> dash >> mi >> dash >> di;
+			if (!dateStream)
+				throw runtime_error("could not parse date for " + *tickerIt);
 			quotes.push_back({
 				year{yi}/mi/di,
 				quoteJson[adjOpen].asFloat(),
@@ -73,21 +54,40 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 				quoteJson[adjLow].asFloat(),
 				quoteJson[adjVolume].asFloat(),
 			});
-			//cout << *tickerIt << ' ' << quotes.back() << endl;
+			LOGn(*tickerIt << ' ' << quotes.back());
 		}
 	}
 	return quotess;
 }
 
 void analyzeQuotess(const Quotess &quotess) {
+	optional<Date> endDate;
 	for(const auto &it: quotess) {
-		const auto it1 = findQuote(it.second, year{2020}/10/1);
-		const auto it2 = findQuote(it.second, year{2020}/2/1);
-		if (it1 != it.second.end() && it2 != it.second.end())
-			cout << it.first << ' ' << *it1 << ' ' << *it2 << endl;
-		break;
+		const auto tickerEndDate = it.second.back().date;
+		if (!endDate)
+			endDate = tickerEndDate;
+		else if (it.second.back().date != tickerEndDate)
+			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
 	}
 
+	LOG("End date " << *endDate);
+
+	struct Ret13612W {
+		Ticker ticker;
+		float ret13612W;
+	};
+
+	vector<Ret13612W> ret13612Ws;
+	ret13612Ws.reserve(quotess.size());
+	for(const auto &it: quotess) {
+		ret13612Ws.push_back({it.first, calcRet13612W(*endDate, it.second)});
+	}
+
+	sort(ret13612Ws.begin(), ret13612Ws.end(), [](const auto &a, const auto &b) {return a.ret13612W > b.ret13612W;});
+
+	for (const auto &it: ret13612Ws) {
+		LOG(it.ticker << "\t" << it.ret13612W);
+	}
 }
 
 void screen(std::istream &tickers, const string &quotesDir) {

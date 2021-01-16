@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-namespace tiingo {
+namespace screener {
 void screen(std::istream &, const std::string &quotesDir);
 }
 

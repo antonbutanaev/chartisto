@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace tiingo;
+using namespace screener;
 using namespace date;
 
 int main(int ac, char** av) try {
@@ -51,42 +52,42 @@ int main(int ac, char** av) try {
 		vm
 	);
 
-	if (vm.count(argHelp) > 0 || vm.count(argHelp) + vm.count(argSync) + vm.count(argScreen) > 1) {
+	if (vm.count(argHelp) > 0) {
+		cerr << description << endl;
+		return 1;
+	}
+	if (vm.count(argSync) + vm.count(argScreen) > 1) {
 		cerr
-			<< "Hardware concurrency: " << thread::hardware_concurrency() << endl
+			<< "Only one of --" << argSync << " --" << "argScreen " << " can be specified" << endl
 			<< description << endl;
 		return 1;
 	}
 
 	po::notify(vm);
 
-	ifstream tickers(tickersFile);
-	if (!tickers) {
-		cerr << "Could not open tickers file " << vm[argTickers].as<string>() << endl;
-		return 1;
-	}
+	const auto getArg = [&](const char *argName) {
+		if (vm.count(argName) != 1)
+			throw runtime_error(string("missing or duplicate argument --") + argName);
+		return vm[argName];
+	};
+
+	const auto getStream = [](const char *fileName) {
+		ifstream stream(fileName);
+		if (!stream)
+			throw runtime_error(string("cannot open file: ") + fileName);
+		return stream;
+	};
+
+	auto tickers = getStream(tickersFile.c_str());
 
 	if (vm.count(argSync)) {
-		if (vm.count(argAuthToken) != 1)
-		{
-			cerr << "Need --" << argAuthToken << endl;
-			return 1;
-		}
-
-		ifstream authToken(vm[argAuthToken].as<string>());
-		if (!tickers) {
-			cerr << "Could not open auth token file " << vm[argAuthToken].as<string>() << endl;
-			return 1;
-		}
-
-		string authTokenStr;
-		authToken >> authTokenStr;
-
-		syncQuotes(tickers, quotesDir, authTokenStr, from, to);
+		string authToken;
+		getStream(getArg(argAuthToken).as<string>().c_str()) >> authToken;
+		syncQuotes(tickers, quotesDir, authToken, from, to);
 	} else if (vm.count(argScreen))
 		screen(tickers, quotesDir);
 
 } catch (const exception &x) {
-	cerr << "exception "  << x.what() << endl;
+	cerr << "error: "  << x.what() << endl;
 	return 1;
 }
