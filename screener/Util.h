@@ -64,6 +64,18 @@ float calcRet13612W(Date date, const Quotes &quotes) {
 	) / 4;
 }
 
+float calcMaxDD(Date from, Date to, const Quotes &quotes) {
+	const auto qB = findQuote(quotes, from);
+	const auto qE = findQuote(quotes, to);
+	float maxDD = qB->low / qB->high - 1;
+	float lastHigh = qB->high;
+	for (auto q = qB + 1; q != qE; ++q) {
+		lastHigh = max(lastHigh, q->high);
+		maxDD = min(maxDD, q->low/lastHigh - 1);
+	}
+	return maxDD == 0 ? -1e6 : maxDD;
+}
+
 }
 
 #endif

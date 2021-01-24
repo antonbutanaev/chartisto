@@ -33,12 +33,18 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 	Quotess quotess;
 	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
 		cout << *tickerIt << endl;
-		auto &quotes = quotess[*tickerIt];
 		ifstream quotesJsonFile(quotesDir + '/' + *tickerIt);
 		Json::Value quotesJson;
-		quotesJsonFile >> quotesJson;
-		if (!quotesJson.isArray())
-			throw runtime_error("expect array json for " + *tickerIt);
+		try {
+			quotesJsonFile >> quotesJson;
+
+			if (!quotesJson.isArray())
+				throw runtime_error("expect array json for " + *tickerIt);
+		} catch (const exception &x) {
+			LOG("Ticker " << *tickerIt << " error: " << x.what() << " skip");
+			continue;
+		}
+		auto &quotes = quotess[*tickerIt];
 		for (const auto &quoteJson: quotesJson) {
 			int yi, mi, di;
 			char dash;
@@ -57,36 +63,50 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 			LOGn(*tickerIt << ' ' << quotes.back());
 		}
 	}
+	LOG("Total" + quotess.size());
 	return quotess;
 }
 
 void analyzeQuotess(const Quotess &quotess) {
 	optional<Date> endDate;
-	for(const auto &it: quotess) {
-		const auto tickerEndDate = it.second.back().date;
+	for(const auto &[ticker, quotes]: quotess) {
+		const auto tickerEndDate = quotes.back().date;
 		if (!endDate)
 			endDate = tickerEndDate;
-		else if (it.second.back().date != tickerEndDate)
+		else if (quotes.back().date != tickerEndDate)
 			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
 	}
 
+	Date halfYearBack = *endDate - months{6};
+	LOG("Half year back " << halfYearBack);
 	LOG("End date " << *endDate);
 
 	struct Ret13612W {
 		Ticker ticker;
 		float ret13612W;
+		float maxDD;
 	};
 
 	vector<Ret13612W> ret13612Ws;
 	ret13612Ws.reserve(quotess.size());
-	for(const auto &it: quotess) {
-		ret13612Ws.push_back({it.first, calcRet13612W(*endDate, it.second)});
+	for(const auto &[ticker, quotes]: quotess) {
+		const auto ret = calcRet13612W(*endDate, quotes);
+		if (ret < 0)
+			continue;
+		ret13612Ws.push_back({
+			ticker,
+			ret,
+			calcMaxDD(halfYearBack, *endDate, quotes),
+		});
 	}
 
-	sort(ret13612Ws.begin(), ret13612Ws.end(), [](const auto &a, const auto &b) {return a.ret13612W > b.ret13612W;});
+	sort(ret13612Ws.begin(), ret13612Ws.end(), [](const auto &a, const auto &b) {
+		return a.ret13612W/-a.maxDD > b.ret13612W/-b.maxDD;
+	});
 
+	LOG("Ticker\tRet13612W\tMaxDD");
 	for (const auto &it: ret13612Ws) {
-		LOG(it.ticker << "\t" << it.ret13612W);
+		LOG(it.ticker << '\t' << it.ret13612W << '\t' << it.maxDD);
 	}
 }
 

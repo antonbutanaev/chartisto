@@ -12,7 +12,8 @@ set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive -Wno-missing-field-initializers")
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fpermissive -Wno-missing-field-initializers")
+set(CMAKE_CXX_FLAGS_DEBUG  "{CMAKE_CXX_FLAGS_DEBUG} -ggdb") 
 
 add_executable(screener
 	Screener.cpp
