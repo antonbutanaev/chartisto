@@ -2,6 +2,7 @@
 #define SCREENER_UTIL_H_
 
 #include <vector>
+#include <numeric>
 #include <map>
 #include <iostream>
 #include <chrono>
@@ -64,6 +65,24 @@ float calcRet13612W(Date date, const Quotes &quotes) {
 	) / 4;
 }
 
+float calcVol(Date from, Date to, const Quotes &quotes) {
+	const auto qB = findQuote(quotes, from);
+	const auto qE = findQuote(quotes, to);
+	vector<float> changes;
+	for (auto qPrev = qB, q = qB + 1; q < qE; ++q, ++qPrev)
+		changes.push_back(q->close / qPrev->close - 1);
+	if (changes.empty())
+		return 1e-6;
+	const auto meanChange = accumulate(changes.begin(), changes.end(), 0.) / changes.size();
+	const auto variance = accumulate(changes.begin(), changes.end(), 0., [&](auto prev, auto change){
+		const auto deviation = change - meanChange;
+		return prev + deviation * deviation;
+
+	}) / changes.size();
+	return sqrt(variance);
+
+}
+
 float calcMaxDD(Date from, Date to, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, from);
 	const auto qE = findQuote(quotes, to);
@@ -73,7 +92,7 @@ float calcMaxDD(Date from, Date to, const Quotes &quotes) {
 		lastHigh = max(lastHigh, q->high);
 		maxDD = min(maxDD, q->low/lastHigh - 1);
 	}
-	return maxDD == 0 ? -1e6 : maxDD;
+	return maxDD == 0 ? -1e-6 : maxDD;
 }
 
 }

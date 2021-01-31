@@ -97,6 +97,7 @@ void analyzeQuotess(const Quotess &quotess) {
 			ticker,
 			ret,
 			calcMaxDD(halfYearBack, *endDate, quotes),
+			//calcVol(halfYearBack, *endDate, quotes),
 		});
 	}
 
