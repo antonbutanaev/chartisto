@@ -104,9 +104,9 @@ void analyzeQuotess(const Quotess &quotess) {
 		return a.ret13612W/-a.maxDD > b.ret13612W/-b.maxDD;
 	});
 
-	LOG("Ticker\tRet13612W\tMaxDD");
+	LOG("Ticker\tRet13612W\tMaxDD\tR");
 	for (const auto &it: ret13612Ws) {
-		LOG(it.ticker << '\t' << it.ret13612W << '\t' << it.maxDD);
+		LOG(it.ticker << '\t' << it.ret13612W << '\t' << it.maxDD << '\t' << it.ret13612W/it.maxDD);
 	}
 }
 
