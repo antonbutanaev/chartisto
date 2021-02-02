@@ -8,7 +8,7 @@
 namespace tiingo {
 
 using Date = date::year_month_day;
-void syncQuotes(std::istream &tickers, const std::string &cacheDir, const std::string &authToken, Date from, Date to);
+void syncQuotes(std::istream &tickers, const std::string &cacheDir, const std::vector<std::string> &authTokens, Date from, Date to);
 
 }
 

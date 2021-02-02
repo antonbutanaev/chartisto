@@ -91,8 +91,6 @@ void analyzeQuotess(const Quotess &quotess) {
 	ret13612Ws.reserve(quotess.size());
 	for(const auto &[ticker, quotes]: quotess) {
 		const auto ret = calcRet13612W(*endDate, quotes);
-		if (ret < 0)
-			continue;
 		ret13612Ws.push_back({
 			ticker,
 			ret,

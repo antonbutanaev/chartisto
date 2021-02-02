@@ -81,9 +81,10 @@ int main(int ac, char** av) try {
 	auto tickers = getStream(tickersFile.c_str());
 
 	if (vm.count(argSync)) {
-		string authToken;
-		getStream(getArg(argAuthToken).as<string>().c_str()) >> authToken;
-		syncQuotes(tickers, quotesDir, authToken, from, to);
+		vector<string> authTokens;
+		auto stream = getStream(getArg(argAuthToken).as<string>().c_str());
+		copy(istream_iterator<string>(stream), istream_iterator<string>(), back_inserter(authTokens));
+		syncQuotes(tickers, quotesDir, authTokens, from, to);
 	} else if (vm.count(argScreen))
 		screen(tickers, quotesDir);
 
