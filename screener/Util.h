@@ -41,19 +41,17 @@ using Ticker = std::string;
 using Quotes = std::vector<Quote>;
 using Quotess = std::map<Ticker, Quotes>;
 
-auto findQuote(const Quotes &quotes, Date date, bool stepBack = true) {
+auto findQuote(const Quotes &quotes, Date date) {
 	auto it = lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
 		return a.date < b.date;
 	});
 	if (it == quotes.end())
 		ERROR(runtime_error, "Quote for " << date << " not found");
-	if (stepBack && it != quotes.begin())
-		--it;
 	return it;
 }
 
 float calcRet13612W(Date date, const Quotes &quotes) {
-	const auto q0 = findQuote(quotes, date, false);
+	const auto q0 = findQuote(quotes, date);
 	const auto q1 = findQuote(quotes, date - months{1});
 	const auto q3 = findQuote(quotes, date - months{3});
 	const auto q6 = findQuote(quotes, date - months{6});
