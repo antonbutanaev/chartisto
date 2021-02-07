@@ -111,6 +111,26 @@ void analyzeQuotess(const Quotess &quotess) {
 			screenData.relStrength[periodNum] = calcRelStrength(e, quotes);
 		}
 
+	}
+
+	for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum) {
+		vector<int> pos;
+		for (size_t i=0; i < screenDatas.size(); ++i)
+			pos.push_back(i);
+
+		sort(pos.begin(), pos.end(), [&](int a, int b){
+			return screenDatas[a].relStrength[periodNum] < screenDatas[b].relStrength[periodNum];
+		});
+
+		float relStrength = 1;
+		float step = 99. / screenDatas.size();
+		for (size_t i=0; i < screenDatas.size(); ++i, relStrength += step)
+			screenDatas[pos[i]].relStrength[periodNum] = relStrength;
+	}
+
+	float maxSpeed = 1e-6;
+	float maxAcceleration = 1e-6;
+	for (auto &screenData: screenDatas) {
 		screenData.acceleration = 0;
 		for (auto periodNum = NumPeriods - 1, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
 			screenData.acceleration += (screenData.relStrength[periodNum - 1] - screenData.relStrength[periodNum]) * fibo[fiboN];
@@ -118,6 +138,9 @@ void analyzeQuotess(const Quotess &quotess) {
 		screenData.speed = 0;
 		for (auto periodNum = NumPeriods, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
 			screenData.speed += screenData.relStrength[periodNum - 1] * fibo[fiboN];
+
+		maxAcceleration = max(maxAcceleration, screenData.acceleration);
+		maxSpeed = max(maxSpeed, screenData.speed);
 	}
 
 	for (const auto &screenData: screenDatas) {
@@ -128,7 +151,7 @@ void analyzeQuotess(const Quotess &quotess) {
 		cout
 			<< screenData.acceleration << '\t'
 			<< screenData.speed << '\t'
-			<< screenData.acceleration * GoldRatioLo + screenData.speed * GoldRatioHi
+			<< screenData.acceleration/maxAcceleration * GoldRatioLo + screenData.speed/maxSpeed * GoldRatioHi
 			<< endl;
 	}
 }
