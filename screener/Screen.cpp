@@ -9,6 +9,7 @@
 
 #include <util/log.h>
 #include "Util.h"
+#include "DateDaysOps.h"
 
 using namespace std;
 using namespace date;
@@ -81,31 +82,54 @@ void analyzeQuotess(const Quotess &quotess) {
 	LOG("Half year back " << halfYearBack);
 	LOG("End date " << *endDate);
 
-	struct Ret13612W {
-		Ticker ticker;
-		float ret13612W;
-		float maxDD;
+	using RelStrength = array<float, NumPeriods>;
+	struct ScreenData {
+		string ticker;
+		RelStrength relStrength;
+		float acceleration;
+		float speed;
+		float combined;
 	};
 
-	vector<Ret13612W> ret13612Ws;
-	ret13612Ws.reserve(quotess.size());
+	vector<ScreenData> screenDatas;
+	screenDatas.reserve(quotess.size());
+
+	array<size_t, NumPeriods> fibo;
+	fibo[0] = 1;
+	fibo[1] = 1;
+	for (size_t n = 2; n < NumPeriods; ++n)
+		fibo[n] = fibo[n - 1] + fibo[n - 2];
+
 	for(const auto &[ticker, quotes]: quotess) {
-		const auto ret = calcRet13612W(*endDate, quotes);
-		ret13612Ws.push_back({
-			ticker,
-			ret,
-			calcMaxDD(halfYearBack, *endDate, quotes),
-			//calcVol(halfYearBack, *endDate, quotes),
-		});
+		screenDatas.push_back({});
+		auto &screenData = screenDatas.back();
+		screenData.ticker = ticker;
+		Date e = *endDate;
+		Date b = e - years{1};
+		for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum, b -= days{Period}, e -= days{Period})
+		{
+			screenData.relStrength[periodNum] = calcRelStrength(b, e, quotes);
+		}
+
+		screenData.acceleration = 0;
+		for (auto periodNum = NumPeriods - 1, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
+			screenData.acceleration += (screenData.relStrength[periodNum - 1] - screenData.relStrength[periodNum]) * fibo[fiboN];
+
+		screenData.speed = 0;
+		for (auto periodNum = NumPeriods, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
+			screenData.speed += screenData.relStrength[periodNum - 1] * fibo[fiboN];
 	}
 
-	sort(ret13612Ws.begin(), ret13612Ws.end(), [](const auto &a, const auto &b) {
-		return a.ret13612W/-a.maxDD > b.ret13612W/-b.maxDD;
-	});
-
-	LOG("Ticker\tRet13612W\tMaxDD\tR");
-	for (const auto &it: ret13612Ws) {
-		LOG(it.ticker << '\t' << it.ret13612W << '\t' << it.maxDD << '\t' << it.ret13612W/it.maxDD);
+	for (const auto &screenData: screenDatas) {
+		cout
+			<< screenData.ticker << '\t';
+		for (const auto &rs: screenData.relStrength)
+			cout << rs << '\t';
+		cout
+			<< screenData.acceleration << '\t'
+			<< screenData.speed << '\t'
+			<< screenData.acceleration * GoldRatioLo + screenData.speed * GoldRatioHi
+			<< endl;
 	}
 }
 

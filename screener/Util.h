@@ -88,6 +88,10 @@ float calcVol(Date from, Date to, const Quotes &quotes) {
 
 }
 
+float calcRelStrength(Date from, Date to, const Quotes &quotes) {
+	return {};
+}
+
 float calcMaxDD(Date from, Date to, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, from);
 	const auto qE = findQuote(quotes, to);

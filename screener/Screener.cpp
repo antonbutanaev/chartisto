@@ -6,6 +6,7 @@
 
 #include <boost/program_options.hpp>
 #include <date/date.h>
+#include "DateDaysOps.h"
 #include "SyncQuotes.h"
 #include "Screen.h"
 
@@ -25,7 +26,7 @@ int main(int ac, char** av) try {
 		*argQuotesDir = "quotes-dir";
 
 	Date to = floor<days>(chrono::system_clock::now());
-	Date from = to - years{2};
+	Date from = to - years{1} - days{Period * NumPeriods + 1};
 
 	stringstream fromStr;
 	fromStr << from;

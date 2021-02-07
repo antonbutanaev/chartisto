@@ -5,6 +5,12 @@
 #include <string>
 
 namespace screener {
+
+constexpr auto Period = 7;
+constexpr auto NumPeriods = 7;
+constexpr auto GoldRatioLo = .38;
+constexpr auto GoldRatioHi = .62;
+
 void screen(std::istream &, const std::string &quotesDir);
 }
 
