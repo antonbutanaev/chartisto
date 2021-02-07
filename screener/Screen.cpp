@@ -108,7 +108,7 @@ void analyzeQuotess(const Quotess &quotess) {
 		Date b = e - years{1};
 		for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum, b -= days{Period}, e -= days{Period})
 		{
-			screenData.relStrength[periodNum] = calcRelStrength(b, e, quotes);
+			screenData.relStrength[periodNum] = calcRelStrength(e, quotes);
 		}
 
 		screenData.acceleration = 0;
