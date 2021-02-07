@@ -33,7 +33,7 @@ using Volume = float;
 Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 	Quotess quotess;
 	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
-		cout << *tickerIt << endl;
+		LOG(*tickerIt);
 		ifstream quotesJsonFile(quotesDir + '/' + *tickerIt);
 		Json::Value quotesJson;
 		try {
@@ -64,7 +64,7 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 			LOGn(*tickerIt << ' ' << quotes.back());
 		}
 	}
-	LOG("Total" + quotess.size());
+	LOGn("Total" + quotess.size());
 	return quotess;
 }
 
@@ -78,8 +78,6 @@ void analyzeQuotess(const Quotess &quotess) {
 			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
 	}
 
-	Date halfYearBack = *endDate - months{6};
-	LOG("Half year back " << halfYearBack);
 	LOG("End date " << *endDate);
 
 	using RelStrength = array<float, NumPeriods>;
@@ -105,31 +103,26 @@ void analyzeQuotess(const Quotess &quotess) {
 		auto &screenData = screenDatas.back();
 		screenData.ticker = ticker;
 		Date e = *endDate;
-		Date b = e - years{1};
-		for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum, b -= days{Period}, e -= days{Period})
-		{
+		for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum, e -= days{Period})
 			screenData.relStrength[periodNum] = calcRelStrength(e, quotes);
-		}
-
 	}
 
 	for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum) {
 		vector<int> pos;
-		for (size_t i=0; i < screenDatas.size(); ++i)
-			pos.push_back(i);
-
+		int genVal = 0;
+		generate_n(back_inserter(pos), screenDatas.size(), [&]{return genVal++;});
 		sort(pos.begin(), pos.end(), [&](int a, int b){
 			return screenDatas[a].relStrength[periodNum] < screenDatas[b].relStrength[periodNum];
 		});
 
-		float relStrength = 1;
-		float step = 99. / screenDatas.size();
-		for (size_t i=0; i < screenDatas.size(); ++i, relStrength += step)
+		auto relStrength = 1.;
+		const auto step = 99. / screenDatas.size();
+		for (size_t i = 0; i < screenDatas.size(); ++i, relStrength += step)
 			screenDatas[pos[i]].relStrength[periodNum] = relStrength;
 	}
 
-	float maxSpeed = 1e-6;
-	float maxAcceleration = 1e-6;
+	float maxSpeed = epsilon;
+	float maxAcceleration = epsilon;
 	for (auto &screenData: screenDatas) {
 		screenData.acceleration = 0;
 		for (auto periodNum = NumPeriods - 1, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
@@ -143,6 +136,11 @@ void analyzeQuotess(const Quotess &quotess) {
 		maxSpeed = max(maxSpeed, screenData.speed);
 	}
 
+	for (auto &screenData: screenDatas) {
+		screenData.combined =
+			screenData.acceleration / maxAcceleration * GoldRatioLo + screenData.speed / maxSpeed * GoldRatioHi;
+	}
+
 	for (const auto &screenData: screenDatas) {
 		cout
 			<< screenData.ticker << '\t';
@@ -151,8 +149,7 @@ void analyzeQuotess(const Quotess &quotess) {
 		cout
 			<< screenData.acceleration << '\t'
 			<< screenData.speed << '\t'
-			<< screenData.acceleration/maxAcceleration * GoldRatioLo + screenData.speed/maxSpeed * GoldRatioHi
-			<< endl;
+			<< screenData.combined << endl;
 	}
 }
 

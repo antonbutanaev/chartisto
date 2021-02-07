@@ -1,7 +1,7 @@
 #ifndef UTIL_LOG_H_
 #define UTIL_LOG_H_
 
-#define LOG(Msgs) std::cout << Msgs << std::endl;
+#define LOG(Msgs) std::cerr << Msgs << std::endl;
 #define LOGn(Msgs)
 
 #define ERROR(Exception, Msgs) \

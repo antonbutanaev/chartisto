@@ -21,6 +21,8 @@ using Date = year_month_day;
 using Price = float;
 using Volume = float;
 
+constexpr auto epsilon = 1e-6;
+
 struct Quote {
 	Date date;
 	Price open,close,high,low;
@@ -67,7 +69,7 @@ float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 		lastHigh = max(lastHigh, q->high);
 		maxDD = min(maxDD, q->low/lastHigh - 1);
 	}
-	return maxDD == 0 ? -1e-6 : maxDD;
+	return maxDD == 0 ? -epsilon : maxDD;
 }
 
 float calcMaxDD(Date from, Date to, const Quotes &quotes) {
@@ -107,7 +109,7 @@ float calcVol(Date from, Date to, const Quotes &quotes) {
 	for (auto qPrev = qB, q = qB + 1; q < qE; ++q, ++qPrev)
 		changes.push_back(q->close / qPrev->close - 1);
 	if (changes.empty())
-		return 1e-6;
+		return epsilon;
 	const auto meanChange = accumulate(changes.begin(), changes.end(), 0.) / changes.size();
 	const auto variance = accumulate(changes.begin(), changes.end(), 0., [&](auto prev, auto change){
 		const auto deviation = change - meanChange;
