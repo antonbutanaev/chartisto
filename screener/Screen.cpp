@@ -115,7 +115,7 @@ void analyzeQuotess(const Quotess &quotess) {
 		});
 
 		auto relStrength = 1.;
-		const auto step = 99. / screenDataIts.size();
+		const auto step = 99. / (screenDataIts.size() - 1);
 		for (auto &it: screenDataIts) {
 			it->relStrength[pN] = relStrength;
 			relStrength += step;
