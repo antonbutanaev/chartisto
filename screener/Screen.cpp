@@ -28,7 +28,7 @@ TPL(date);
 using Date = year_month_day;
 using Price = float;
 using Volume = float;
-
+using Rate = float;
 
 Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 	Quotess quotess;
@@ -80,23 +80,21 @@ void analyzeQuotess(const Quotess &quotess) {
 
 	LOG("End date " << *endDate);
 
-	using RelStrength = array<float, NumPeriods>;
+	using RelStrength = array<Rate, NumPeriods>;
 	struct ScreenData {
 		string ticker;
 		RelStrength relStrength;
-		float acceleration;
-		float speed;
-		float combined;
+		Rate acceleration;
+		Rate speed;
+		Rate combined;
 	};
 
 	vector<ScreenData> screenDatas;
 	screenDatas.reserve(quotess.size());
 
-	array<size_t, NumPeriods> fibo;
-	fibo[0] = 1;
-	fibo[1] = 1;
-	for (size_t n = 2; n < NumPeriods; ++n)
-		fibo[n] = fibo[n - 1] + fibo[n - 2];
+	array<int, NumPeriods> fibo = {1,1};
+	for (auto i = 2; i < NumPeriods; ++i)
+		fibo[i] = fibo[i - 1] + fibo[i - 2];
 
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({});
@@ -107,38 +105,51 @@ void analyzeQuotess(const Quotess &quotess) {
 			screenData.relStrength[periodNum] = calcRelStrength(e, quotes);
 	}
 
-	for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum) {
+	for (size_t pN = 0; pN != NumPeriods; ++pN) {
 		vector<int> pos;
 		int genVal = 0;
 		generate_n(back_inserter(pos), screenDatas.size(), [&]{return genVal++;});
 		sort(pos.begin(), pos.end(), [&](int a, int b){
-			return screenDatas[a].relStrength[periodNum] < screenDatas[b].relStrength[periodNum];
+			return screenDatas[a].relStrength[pN] < screenDatas[b].relStrength[pN];
 		});
 
 		auto relStrength = 1.;
 		const auto step = 99. / screenDatas.size();
 		for (size_t i = 0; i < screenDatas.size(); ++i, relStrength += step)
-			screenDatas[pos[i]].relStrength[periodNum] = relStrength;
+			screenDatas[pos[i]].relStrength[pN] = relStrength;
 	}
 
-	float maxSpeed = epsilon;
-	float maxAcceleration = epsilon;
+	Rate maxSpeed;
+	Rate maxAcceleration;
+	Rate minAcceleration;
+	bool first = true;
+
 	for (auto &screenData: screenDatas) {
 		screenData.acceleration = 0;
-		for (auto periodNum = NumPeriods - 1, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
-			screenData.acceleration += (screenData.relStrength[periodNum - 1] - screenData.relStrength[periodNum]) * fibo[fiboN];
+		for (auto pN = 0; pN != NumPeriods - 1; ++pN)
+			screenData.acceleration +=
+				(screenData.relStrength[pN] - screenData.relStrength[pN + 1]) * fibo[NumPeriods - pN - 2];
 
 		screenData.speed = 0;
-		for (auto periodNum = NumPeriods, fiboN = 0; periodNum != 0; --periodNum, ++fiboN)
-			screenData.speed += screenData.relStrength[periodNum - 1] * fibo[fiboN];
+		for (auto pN = 0; pN != NumPeriods; ++pN)
+			screenData.speed += screenData.relStrength[pN] * fibo[NumPeriods - pN - 1];
 
-		maxAcceleration = max(maxAcceleration, screenData.acceleration);
-		maxSpeed = max(maxSpeed, screenData.speed);
+		if (first) {
+			maxAcceleration = screenData.acceleration;
+			minAcceleration = screenData.acceleration;
+			maxSpeed = screenData.speed;
+		} else {
+			maxAcceleration = max(maxAcceleration, screenData.acceleration);
+			minAcceleration = min(minAcceleration, screenData.acceleration);
+			maxSpeed = max(maxSpeed, screenData.speed);
+		}
+		first = false;
 	}
 
 	for (auto &screenData: screenDatas) {
 		screenData.combined =
-			screenData.acceleration / maxAcceleration * GoldRatioLo + screenData.speed / maxSpeed * GoldRatioHi;
+			screenData.acceleration / (maxAcceleration - minAcceleration) * .5 +
+			screenData.speed / maxSpeed * .5;
 	}
 
 	for (const auto &screenData: screenDatas) {
