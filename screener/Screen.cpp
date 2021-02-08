@@ -4,69 +4,17 @@
 #include <optional>
 
 #include <json/json.h>
+#include <util/log.h>
 
 #include "Screen.h"
-
-#include <util/log.h>
 #include "Util.h"
 #include "DateDaysOps.h"
+#include "ParseQuotess.h"
 
 using namespace std;
 using namespace date;
 
 namespace screener {
-
-#define TPL(a) const auto a = #a
-TPL(adjClose);
-TPL(adjHigh);
-TPL(adjLow);
-TPL(adjOpen);
-TPL(adjVolume);
-TPL(date);
-#undef TPL
-
-using Date = year_month_day;
-using Price = float;
-using Volume = float;
-using Rate = float;
-
-Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
-	Quotess quotess;
-	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
-		LOG(*tickerIt);
-		ifstream quotesJsonFile(quotesDir + '/' + *tickerIt);
-		Json::Value quotesJson;
-		try {
-			quotesJsonFile >> quotesJson;
-
-			if (!quotesJson.isArray())
-				throw runtime_error("expect array json for " + *tickerIt);
-		} catch (const exception &x) {
-			LOG("Ticker " << *tickerIt << " error: " << x.what() << " skip");
-			continue;
-		}
-		auto &quotes = quotess[*tickerIt];
-		for (const auto &quoteJson: quotesJson) {
-			int yi, mi, di;
-			char dash;
-			stringstream dateStream(quoteJson[date].asCString());
-			dateStream >> yi >> dash >> mi >> dash >> di;
-			if (!dateStream)
-				throw runtime_error("could not parse date for " + *tickerIt);
-			quotes.push_back({
-				year{yi}/mi/di,
-				quoteJson[adjOpen].asFloat(),
-				quoteJson[adjClose].asFloat(),
-				quoteJson[adjHigh].asFloat(),
-				quoteJson[adjLow].asFloat(),
-				quoteJson[adjVolume].asFloat(),
-			});
-			LOGn(*tickerIt << ' ' << quotes.back());
-		}
-	}
-	LOGn("Total" + quotess.size());
-	return quotess;
-}
 
 void analyzeQuotess(const Quotess &quotess) {
 	optional<Date> endDate;
@@ -92,20 +40,17 @@ void analyzeQuotess(const Quotess &quotess) {
 	vector<ScreenData> screenDatas;
 	screenDatas.reserve(quotess.size());
 
-	array<int, NumPeriods> fibo = {1,1};
+	array<int, NumPeriods> fibo = {1, 1};
 	for (auto i = 2; i < NumPeriods; ++i)
 		fibo[i] = fibo[i - 1] + fibo[i - 2];
 
 	for(const auto &[ticker, quotes]: quotess) {
-		screenDatas.push_back({});
-		auto &screenData = screenDatas.back();
-		screenData.ticker = ticker;
-		Date e = *endDate;
-		for (size_t periodNum = 0; periodNum != NumPeriods; ++periodNum, e -= days{Period})
-			screenData.relStrength[periodNum] = calcRelStrength(e, quotes);
+		screenDatas.push_back({ticker});
+		for (auto [pN, e] = make_tuple(0, *endDate); pN != NumPeriods; ++pN, e -= days{Period})
+			screenDatas.back().relStrength[pN] = calcRelStrength(e, quotes);
 	}
 
-	for (size_t pN = 0; pN != NumPeriods; ++pN) {
+	for (auto pN = 0; pN != NumPeriods; ++pN) {
 		vector<decltype(screenDatas.begin())> screenDataIts;
 		screenDataIts.reserve(screenDatas.size());
 		auto genIt = screenDatas.begin();
@@ -115,7 +60,7 @@ void analyzeQuotess(const Quotess &quotess) {
 		});
 
 		auto relStrength = 1.;
-		const auto step = 99. / (screenDataIts.size() - 1);
+		const auto step = screenDataIts.empty()? 0. : 99. / (screenDataIts.size() - 1);
 		for (auto &it: screenDataIts) {
 			it->relStrength[pN] = relStrength;
 			relStrength += step;

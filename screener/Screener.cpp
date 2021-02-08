@@ -9,6 +9,7 @@
 #include "DateDaysOps.h"
 #include "SyncQuotes.h"
 #include "Screen.h"
+#include "ShowRet13612.h"
 
 using namespace std;
 using namespace tiingo;
@@ -20,6 +21,7 @@ int main(int ac, char** av) try {
 		*argHelp = "help",
 		*argSync = "sync",
 		*argScreen = "screen",
+		*argRet13612 = "ret13612",
 		*argTickers = "tickers",
 		*argAuthToken = "auth-token",
 		*argFromDate = "from-date",
@@ -41,6 +43,7 @@ int main(int ac, char** av) try {
 		(argHelp, "Help message")
 		(argSync, "Sync quotes with Tiingo")
 		(argScreen, "Run screener")
+		(argRet13612, "Show ret13612")
 		(argQuotesDir, po::value<string>(&quotesDir)->required(), "Directory with Tiingo cache")
 		(argTickers, po::value<string>(&tickersFile)->required(), "Ticker list file")
 		(argFromDate, po::value<string>()->default_value(fromStr.str()), "From date")
@@ -57,9 +60,13 @@ int main(int ac, char** av) try {
 		cerr << description << endl;
 		return 1;
 	}
-	if (vm.count(argSync) + vm.count(argScreen) > 1) {
+	if (vm.count(argSync) + vm.count(argScreen) + vm.count(argRet13612) > 1) {
 		cerr
-			<< "Only one of --" << argSync << " --" << "argScreen " << " can be specified" << endl
+			<< "Only one of "
+			<< "--" << argSync
+			<< " --" << argScreen
+			<< " --" << argRet13612
+			<< " can be specified" << endl
 			<< description << endl;
 		return 1;
 	}
@@ -88,6 +95,8 @@ int main(int ac, char** av) try {
 		syncQuotes(tickers, quotesDir, authTokens, from, to);
 	} else if (vm.count(argScreen))
 		screen(tickers, quotesDir);
+	else if (vm.count(argRet13612))
+		showRet13612(tickers, quotesDir);
 
 } catch (const exception &x) {
 	cerr << "error: "  << x.what() << endl;

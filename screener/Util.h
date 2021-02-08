@@ -29,7 +29,7 @@ struct Quote {
 	Volume volume;
 };
 
-std::ostream &operator<<(std::ostream &o, const Quote &quote) {
+inline std::ostream &operator<<(std::ostream &o, const Quote &quote) {
 	return o
 		<< quote.date << ' '
 		<< quote.open << ' '
@@ -44,7 +44,7 @@ using Quotes = std::vector<Quote>;
 using QuoteIt = Quotes::const_iterator;
 using Quotess = std::map<Ticker, Quotes>;
 
-auto findQuote(const Quotes &quotes, Date date) {
+inline auto findQuote(const Quotes &quotes, Date date) {
 	auto it = lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
 		return a.date < b.date;
 	});
@@ -53,7 +53,7 @@ auto findQuote(const Quotes &quotes, Date date) {
 	return it;
 }
 
-float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12) {
+inline float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12) {
 	const auto r1 = q0->close / q1->close - 1;
 	const auto r3 = q0->close / q3->close - 1;
 	const auto r6 = q0->close / q6->close - 1;
@@ -62,7 +62,7 @@ float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12)
 	return (12*r1 + 4*r3 + 2*r6 + 1*r12) / 19;
 }
 
-float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
+inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	float maxDD = qB->low / qB->high - 1;
 	float lastHigh = qB->high;
 	for (auto q = qB + 1; q != qE; ++q) {
@@ -72,11 +72,11 @@ float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	return maxDD == 0 ? -epsilon : maxDD;
 }
 
-float calcMaxDD(Date from, Date to, const Quotes &quotes) {
+inline float calcMaxDD(Date from, Date to, const Quotes &quotes) {
 	return calcMaxDD(findQuote(quotes, from), findQuote(quotes, to));
 }
 
-float calcRet13612W(Date date, const Quotes &quotes) {
+inline float calcRet13612W(Date date, const Quotes &quotes) {
 	return calcRet13612W(
 		findQuote(quotes, date),
 		findQuote(quotes, date - months{1}),
@@ -86,7 +86,7 @@ float calcRet13612W(Date date, const Quotes &quotes) {
 	);
 }
 
-float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
+inline float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	const auto q0 = findQuote(quotes, date);
 	const auto q1 = findQuote(quotes, date - months{1});
 	const auto q3 = findQuote(quotes, date - months{3});
@@ -102,7 +102,7 @@ float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	return ret13612W / -maxDDAvg;
 }
 
-float calcVol(Date from, Date to, const Quotes &quotes) {
+inline float calcVol(Date from, Date to, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, from);
 	const auto qE = findQuote(quotes, to);
 	vector<float> changes;
@@ -120,7 +120,7 @@ float calcVol(Date from, Date to, const Quotes &quotes) {
 
 }
 
-float calcRelStrength(Date d, const Quotes &quotes) {
+inline float calcRelStrength(Date d, const Quotes &quotes) {
 	return calcRet13612WAdjMaxDD(d, quotes);
 }
 

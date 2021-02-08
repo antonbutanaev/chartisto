@@ -14,7 +14,7 @@ find_package(Threads REQUIRED)
 
 set(
 	CMAKE_CXX_FLAGS
-	"${CMAKE_CXX_FLAGS} -fpermissive -Wno-missing-field-initializers -Wno-unused-parameter -g -ggdb"
+	"${CMAKE_CXX_FLAGS} -fpermissive -Wno-missing-field-initializers -g -ggdb"
 )
 
 add_executable(screener
@@ -22,6 +22,8 @@ add_executable(screener
 	TiingoApi.cpp TiingoApi.h
 	SyncQuotes.cpp SyncQuotes.h
 	Screen.cpp Screen.h
+	ShowRet13612.cpp ShowRet13612.h
+	ParseQuotess.cpp ParseQuotess.h
 )
 
 target_link_libraries(screener
