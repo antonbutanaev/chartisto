@@ -106,17 +106,20 @@ void analyzeQuotess(const Quotess &quotess) {
 	}
 
 	for (size_t pN = 0; pN != NumPeriods; ++pN) {
-		vector<int> pos;
-		int genVal = 0;
-		generate_n(back_inserter(pos), screenDatas.size(), [&]{return genVal++;});
-		sort(pos.begin(), pos.end(), [&](int a, int b){
-			return screenDatas[a].relStrength[pN] < screenDatas[b].relStrength[pN];
+		vector<decltype(screenDatas.begin())> screenDataIts;
+		screenDataIts.reserve(screenDatas.size());
+		auto genIt = screenDatas.begin();
+		generate_n(back_inserter(screenDataIts), screenDatas.size(), [&]{return genIt++;});
+		sort(screenDataIts.begin(), screenDataIts.end(), [&](auto a, auto b){
+			return a->relStrength[pN] < b->relStrength[pN];
 		});
 
 		auto relStrength = 1.;
-		const auto step = 99. / screenDatas.size();
-		for (size_t i = 0; i < screenDatas.size(); ++i, relStrength += step)
-			screenDatas[pos[i]].relStrength[pN] = relStrength;
+		const auto step = 99. / screenDataIts.size();
+		for (auto &it: screenDataIts) {
+			it->relStrength[pN] = relStrength;
+			relStrength += step;
+		}
 	}
 
 	Rate maxSpeed;
