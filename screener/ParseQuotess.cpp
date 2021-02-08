@@ -51,6 +51,18 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 		}
 	}
 	LOGn("Total" + quotess.size());
+	if (quotess.empty())
+		ERROR(runtime_error, "Empty quotes");
+
+	optional<Date> endDate;
+	for(const auto &[ticker, quotes]: quotess) {
+		const auto tickerEndDate = quotes.back().date;
+		if (!endDate)
+			endDate = tickerEndDate;
+		else if (quotes.back().date != tickerEndDate)
+			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
+	}
+
 	return quotess;
 }
 

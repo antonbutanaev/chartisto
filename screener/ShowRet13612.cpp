@@ -7,17 +7,8 @@ using namespace std;
 namespace screener {
 
 void showRet13612(const Quotess &quotess) {
-	// FIXME eliminate copy paste
-	optional<Date> endDate;
-	for(const auto &[ticker, quotes]: quotess) {
-		const auto tickerEndDate = quotes.back().date;
-		if (!endDate)
-			endDate = tickerEndDate;
-		else if (quotes.back().date != tickerEndDate)
-			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
-	}
-
-	LOG("End date " << *endDate);
+	const auto endDate = quotess.begin()->second.back().date;
+	LOG("End date " << endDate);
 
 	struct Line {
 		string ticker;
@@ -26,7 +17,7 @@ void showRet13612(const Quotess &quotess) {
 	vector<Line> lines;
 
 	for(const auto &[ticker, quotes]: quotess)
-		lines.push_back({ticker, calcRet13612W(*endDate, quotes)});
+		lines.push_back({ticker, calcRet13612W(endDate, quotes)});
 
 	sort(lines.begin(), lines.end(), [](const auto &a, const auto &b){
 		return a.ret13612 > b.ret13612;

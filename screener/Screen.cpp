@@ -16,17 +16,9 @@ using namespace date;
 
 namespace screener {
 
-void analyzeQuotess(const Quotess &quotess) {
-	optional<Date> endDate;
-	for(const auto &[ticker, quotes]: quotess) {
-		const auto tickerEndDate = quotes.back().date;
-		if (!endDate)
-			endDate = tickerEndDate;
-		else if (quotes.back().date != tickerEndDate)
-			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
-	}
-
-	LOG("End date " << *endDate);
+void screen(const Quotess &quotess) {
+	const auto endDate = quotess.begin()->second.back().date;
+	LOG("End date " << endDate);
 
 	using RelStrength = array<Rate, NumPeriods>;
 	struct ScreenData {
@@ -46,7 +38,7 @@ void analyzeQuotess(const Quotess &quotess) {
 
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({ticker});
-		for (auto [pN, e] = make_tuple(0, *endDate); pN != NumPeriods; ++pN, e -= days{Period})
+		for (auto [pN, e] = make_tuple(0, endDate); pN != NumPeriods; ++pN, e -= days{Period})
 			screenDatas.back().relStrength[pN] = calcRelStrength(e, quotes);
 	}
 
@@ -113,7 +105,7 @@ void analyzeQuotess(const Quotess &quotess) {
 }
 
 void screen(std::istream &tickers, const string &quotesDir) {
-	analyzeQuotess(parseQuotess(tickers, quotesDir));
+	screen(parseQuotess(tickers, quotesDir));
 }
 
 }
