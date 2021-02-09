@@ -1,5 +1,4 @@
-#ifndef SCREENER_UTIL_H_
-#define SCREENER_UTIL_H_
+#pragma once
 
 #include <vector>
 #include <numeric>
@@ -59,7 +58,7 @@ inline float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, Quote
 	const auto r6 = q0->close / q6->close - 1;
 	const auto r12 = q0->close / q12->close - 1;
 
-	return (12*r1 + 4*r3 + 2*r6 + 1*r12) / 19;
+	return (12 * r1 + 4 * r3 + 2 * r6 + 1 * r12) / 19;
 }
 
 inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
@@ -67,7 +66,7 @@ inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	float lastHigh = qB->high;
 	for (auto q = qB + 1; q != qE; ++q) {
 		lastHigh = max(lastHigh, q->high);
-		maxDD = min(maxDD, q->low/lastHigh - 1);
+		maxDD = min(maxDD, q->low / lastHigh - 1);
 	}
 	return maxDD == 0 ? -epsilon : maxDD;
 }
@@ -97,8 +96,7 @@ inline float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	const auto dd3 = calcMaxDD(q3, q0);
 	const auto dd6 = calcMaxDD(q6, q0);
 	const auto dd12 = calcMaxDD(q12, q0);
-	const auto maxDDAvg = (12*dd1 + 4*dd3 + 2*dd6 + 1*dd12) / 19;
-
+	const auto maxDDAvg = (12 * dd1 + 4 * dd3 + 2 * dd6 + 1 * dd12) / 19;
 	return ret13612W / -maxDDAvg;
 }
 
@@ -125,5 +123,3 @@ inline float calcRelStrength(Date d, const Quotes &quotes) {
 }
 
 }
-
-#endif

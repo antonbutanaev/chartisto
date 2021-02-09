@@ -62,8 +62,8 @@ int main(int ac, char** av) try {
 	}
 	if (vm.count(argSync) + vm.count(argScreen) + vm.count(argRet13612) > 1) {
 		cerr
-			<< "Only one of "
-			<< "--" << argSync
+			<< "Only one of"
+			<< " --" << argSync
 			<< " --" << argScreen
 			<< " --" << argRet13612
 			<< " can be specified" << endl
