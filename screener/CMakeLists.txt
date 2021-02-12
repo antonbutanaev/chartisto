@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.19)
 project(screener)
 
-find_package(Boost 1.75 COMPONENTS program_options system REQUIRED)
+find_package(Boost 1.75 COMPONENTS program_options system filesystem REQUIRED)
 find_package(OpenSSL)
 add_definitions(-DBOOST_BEAST_USE_OPENSSL=1)
 
@@ -29,6 +29,7 @@ add_executable(screener
 target_link_libraries(screener
 	PRIVATE
 	Boost::program_options
+	Boost::filesystem
 	Boost::system
 	Threads::Threads
 	OpenSSL::SSL

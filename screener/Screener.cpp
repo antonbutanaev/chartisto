@@ -6,6 +6,8 @@
 
 #include <boost/program_options.hpp>
 #include <date/date.h>
+#include <util/log.h>
+
 #include "DateDaysOps.h"
 #include "SyncQuotes.h"
 #include "Screen.h"
@@ -27,17 +29,15 @@ int main(int ac, char** av) try {
 		*argFromDate = "from-date",
 		*argQuotesDir = "quotes-dir";
 
-	Date to = floor<days>(chrono::system_clock::now());
-	Date from = to - years{1} - days{Period * NumPeriods + 1};
-
+	const Date to = floor<days>(chrono::system_clock::now());
+	const Date from = to - years{1} - days{Period * NumPeriods + ExtraDays};
 	stringstream fromStr;
 	fromStr << from;
-
-	namespace po = boost::program_options;
 
 	string quotesDir;
 	string tickersFile;
 
+	namespace po = boost::program_options;
 	po::options_description description("Screener");
 	description.add_options()
 		(argHelp, "Help message")
@@ -57,17 +57,18 @@ int main(int ac, char** av) try {
 	);
 
 	if (vm.count(argHelp) > 0) {
-		cerr << description << endl;
+		LOG(description);
 		return 1;
 	}
 	if (vm.count(argSync) + vm.count(argScreen) + vm.count(argRet13612) > 1) {
-		cerr
-			<< "Only one of"
+		LOG(
+			"Only one of"
 			<< " --" << argSync
 			<< " --" << argScreen
 			<< " --" << argRet13612
 			<< " can be specified" << endl
-			<< description << endl;
+			<< description
+		);
 		return 1;
 	}
 
@@ -75,14 +76,14 @@ int main(int ac, char** av) try {
 
 	const auto getArg = [&](const char *argName) {
 		if (vm.count(argName) != 1)
-			throw runtime_error(string("missing or duplicate argument --") + argName);
+			ERROR(runtime_error, "missing or duplicate argument --" << argName);
 		return vm[argName];
 	};
 
 	const auto getStream = [](const char *fileName) {
 		ifstream stream(fileName);
 		if (!stream)
-			throw runtime_error(string("cannot open file: ") + fileName);
+			ERROR(runtime_error, "cannot open file: " << fileName);
 		return stream;
 	};
 
@@ -99,6 +100,6 @@ int main(int ac, char** av) try {
 		showRet13612(tickers, quotesDir);
 
 } catch (const exception &x) {
-	cerr << "error: "  << x.what() << endl;
+	LOG("error: "  << x.what());
 	return 1;
 }

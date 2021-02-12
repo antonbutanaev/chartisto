@@ -7,7 +7,8 @@
 namespace screener {
 
 constexpr auto Period = 7;
-constexpr auto NumPeriods = 7;
+constexpr auto NumPeriods = 10;
+constexpr auto ExtraDays = 30;
 constexpr auto GoldenRatioLo = .38;
 constexpr auto GoldenRatioHi = .62;
 

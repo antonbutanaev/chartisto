@@ -2,6 +2,9 @@
 #include <iterator>
 #include <date/date.h>
 #include <util/log.h>
+#include <boost/filesystem.hpp>
+
+#include <util/log.h>
 
 #include "SyncQuotes.h"
 #include "TiingoApi.h"
@@ -18,10 +21,15 @@ void syncQuotes(istream &tickers, const string &cacheDir, const vector<string> &
 	tickers.seekg(0);
 	int i = 0;
 	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
-		ofstream quotesStream(cacheDir + "/" + *tickerIt);
+		LOG(++i << '/' << total << '\t' << *tickerIt);
+
+		const auto fileName = cacheDir + "/" + *tickerIt;
+		if (boost::filesystem::exists(fileName))
+			continue;
+		ofstream quotesStream(fileName);
 		for (const auto &authToken: authTokens)
 			try {
-				cout << ++i << '/' << total << '\t' << *tickerIt << '\t' << authToken << endl;
+				LOG('\t' << authToken);
 				TiingoApi tiingoApi(authToken);
 				quotesStream << tiingoApi.getData(*tickerIt, from, to);
 				break;
