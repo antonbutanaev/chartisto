@@ -10,7 +10,7 @@ constexpr auto Period = 7;
 constexpr auto NumPeriods = 10;
 constexpr auto ExtraDays = 30;
 constexpr auto GoldenRatioLo = .38;
-constexpr auto GoldenRatioHi = .62;
+constexpr auto GoldenRatioHi = 1. - GoldenRatioLo;
 
 void screen(std::istream &, const std::string &quotesDir);
 }

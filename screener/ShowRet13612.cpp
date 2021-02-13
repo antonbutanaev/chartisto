@@ -15,7 +15,7 @@ void showRet13612(const Quotess &quotess) {
 		Rate ret13612;
 	};
 	vector<Line> lines;
-	lines.resize(quotess.size());
+	lines.reserve(quotess.size());
 
 	for(const auto &[ticker, quotes]: quotess)
 		lines.push_back({ticker, calcRet13612W(endDate, quotes)});

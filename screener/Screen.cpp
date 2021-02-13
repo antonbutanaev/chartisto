@@ -88,8 +88,8 @@ void screen(const Quotess &quotess) {
 
 	for (auto &screenData: screenDatas) {
 		screenData.combined =
-			screenData.acceleration / (maxAcceleration - minAcceleration) * .5 +
-			screenData.speed / maxSpeed * .5;
+			screenData.acceleration / (maxAcceleration - minAcceleration) * GoldenRatioHi +
+			screenData.speed / maxSpeed * GoldenRatioLo;
 	}
 
 	for (const auto &screenData: screenDatas) {
