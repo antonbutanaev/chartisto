@@ -1,8 +1,10 @@
-#ifndef SCREENER_SCREEN_H_
-#define SCREENER_SCREEN_H_
+#pragma once
 
+#include <optional>
 #include <iostream>
 #include <string>
+
+#include "Util.h"
 
 namespace screener {
 
@@ -12,7 +14,11 @@ constexpr auto ExtraDays = 30;
 constexpr auto GoldenRatioLo = .38;
 constexpr auto GoldenRatioHi = 1. - GoldenRatioLo;
 
-void screen(std::istream &, const std::string &quotesDir);
-}
+struct ScreenParams {
+	std::optional<Date> toDate;
+	double accelerationRate;
+};
 
-#endif
+void screen(std::istream &, const std::string &quotesDir, const ScreenParams&);
+
+}

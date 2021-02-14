@@ -5,9 +5,7 @@
 #include <map>
 #include <iostream>
 #include <chrono>
-
 #include <date/date.h>
-
 #include <util/log.h>
 
 namespace screener {

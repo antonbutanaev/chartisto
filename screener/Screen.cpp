@@ -16,9 +16,11 @@ using namespace date;
 
 namespace screener {
 
-void screen(const Quotess &quotess) {
-	const auto endDate = quotess.begin()->second.back().date;
-	LOG("End date " << endDate);
+void screen(const Quotess &quotess, const ScreenParams &screenParams) {
+	const auto endDate = screenParams.toDate? *screenParams.toDate : quotess.begin()->second.back().date;
+	LOG("End date: " << endDate);
+	if (screenParams.toDate)
+		LOG(" Actual: " << findQuote(quotess.begin()->second, endDate)->date);
 
 	using RelStrength = array<Rate, NumPeriods>;
 	struct ScreenData {
@@ -88,10 +90,13 @@ void screen(const Quotess &quotess) {
 
 	for (auto &screenData: screenDatas) {
 		screenData.combined =
-			GoldenRatioHi * screenData.acceleration / (maxAcceleration - minAcceleration) +
-			GoldenRatioLo * screenData.speed / maxSpeed;
+			screenParams.accelerationRate * screenData.acceleration / (maxAcceleration - minAcceleration) +
+			(1 - screenParams.accelerationRate) * screenData.speed / maxSpeed;
 	}
 
+	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
+		return a.combined > b.combined;
+	});
 	for (const auto &screenData: screenDatas) {
 		cout
 			<< screenData.ticker << '\t';
@@ -104,8 +109,8 @@ void screen(const Quotess &quotess) {
 	}
 }
 
-void screen(std::istream &tickers, const string &quotesDir) {
-	screen(parseQuotess(tickers, quotesDir));
+void screen(std::istream &tickers, const string &quotesDir, const ScreenParams &screenParams) {
+	screen(parseQuotess(tickers, quotesDir), screenParams);
 }
 
 }

@@ -26,16 +26,18 @@ int main(int ac, char** av) try {
 		*argRet13612 = "ret13612",
 		*argTickers = "tickers",
 		*argAuthToken = "auth-token",
-		*argFromDate = "from-date",
+		*argEndDate = "end-date",
+		*argAcclelRate = "acceleration-rate",
 		*argQuotesDir = "quotes-dir";
 
-	const Date to = floor<days>(chrono::system_clock::now());
-	const Date from = to - years{1} - days{Period * NumPeriods + ExtraDays};
-	stringstream fromStr;
-	fromStr << from;
+	Date to = floor<days>(chrono::system_clock::now());
+	stringstream toStr;
+	toStr << to;
 
+	ScreenParams screenParams;
 	string quotesDir;
 	string tickersFile;
+	screenParams.accelerationRate = GoldenRatioHi;
 
 	namespace po = boost::program_options;
 	po::options_description description("Screener");
@@ -46,7 +48,9 @@ int main(int ac, char** av) try {
 		(argRet13612, "Show ret13612")
 		(argQuotesDir, po::value<string>(&quotesDir)->required(), "Directory with Tiingo cache")
 		(argTickers, po::value<string>(&tickersFile)->required(), "Ticker list file")
-		(argFromDate, po::value<string>()->default_value(fromStr.str()), "From date")
+		(argEndDate, po::value<string>(), "End date")
+		(argAcclelRate, po::value<double>(&screenParams.accelerationRate)->
+			default_value(screenParams.accelerationRate), "Acceleration rate")
 		(argAuthToken, po::value<string>(), "Tiingo auth token file")
 		;
 
@@ -74,6 +78,12 @@ int main(int ac, char** av) try {
 
 	po::notify(vm);
 
+	if (vm.count(argEndDate)) {
+		to = stringToDate(vm[argEndDate].as<string>());
+		screenParams.toDate = to;
+	}
+	Date from = to - years{1} - days{Period * NumPeriods + ExtraDays};
+
 	const auto getArg = [&](const char *argName) {
 		if (vm.count(argName) != 1)
 			ERROR(runtime_error, "missing or duplicate argument --" << argName);
@@ -95,7 +105,7 @@ int main(int ac, char** av) try {
 		copy(istream_iterator<string>(stream), istream_iterator<string>(), back_inserter(authTokens));
 		syncQuotes(tickers, quotesDir, authTokens, from, to);
 	} else if (vm.count(argScreen))
-		screen(tickers, quotesDir);
+		screen(tickers, quotesDir, screenParams);
 	else if (vm.count(argRet13612))
 		showRet13612(tickers, quotesDir);
 

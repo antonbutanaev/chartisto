@@ -4,6 +4,7 @@
 
 #include "Util.h"
 #include "ParseQuotess.h"
+#include "DateDaysOps.h"
 
 namespace screener {
 
@@ -33,14 +34,8 @@ Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
 		}
 		auto &quotes = quotess[*tickerIt];
 		for (const auto &quoteJson: quotesJson) {
-			int yi, mi, di;
-			char dash;
-			stringstream dateStream(quoteJson[date].asCString());
-			dateStream >> yi >> dash >> mi >> dash >> di;
-			if (!dateStream)
-				throw runtime_error("could not parse date for " + *tickerIt);
 			quotes.push_back({
-				year{yi}/mi/di,
+				stringToDate(quoteJson[date].asString()),
 				quoteJson[adjOpen].asFloat(),
 				quoteJson[adjClose].asFloat(),
 				quoteJson[adjHigh].asFloat(),
