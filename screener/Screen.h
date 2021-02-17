@@ -15,7 +15,7 @@ constexpr auto GoldenRatioLo = .38;
 constexpr auto GoldenRatioHi = 1. - GoldenRatioLo;
 
 struct ScreenParams {
-	std::optional<Date> toDate;
+	Date toDate;
 	double accelerationRate;
 };
 

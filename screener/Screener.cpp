@@ -30,14 +30,11 @@ int main(int ac, char** av) try {
 		*argAcclelRate = "acceleration-rate",
 		*argQuotesDir = "quotes-dir";
 
-	Date to = floor<days>(chrono::system_clock::now());
-	stringstream toStr;
-	toStr << to;
-
 	ScreenParams screenParams;
+	screenParams.accelerationRate = GoldenRatioHi;
+	screenParams.toDate = floor<days>(chrono::system_clock::now());
 	string quotesDir;
 	string tickersFile;
-	screenParams.accelerationRate = GoldenRatioHi;
 
 	namespace po = boost::program_options;
 	po::options_description description("Screener");
@@ -78,11 +75,8 @@ int main(int ac, char** av) try {
 
 	po::notify(vm);
 
-	if (vm.count(argEndDate)) {
-		to = stringToDate(vm[argEndDate].as<string>());
-		screenParams.toDate = to;
-	}
-	Date from = to - years{1} - days{Period * NumPeriods + ExtraDays};
+	if (vm.count(argEndDate))
+		screenParams.toDate = stringToDate(vm[argEndDate].as<string>());
 
 	const auto getArg = [&](const char *argName) {
 		if (vm.count(argName) != 1)
@@ -103,7 +97,8 @@ int main(int ac, char** av) try {
 		vector<string> authTokens;
 		auto stream = getStream(getArg(argAuthToken).as<string>().c_str());
 		copy(istream_iterator<string>(stream), istream_iterator<string>(), back_inserter(authTokens));
-		syncQuotes(tickers, quotesDir, authTokens, from, to);
+		Date from = screenParams.toDate - years{1} - days{Period * NumPeriods + ExtraDays};
+		syncQuotes(tickers, quotesDir, authTokens, from, screenParams.toDate);
 	} else if (vm.count(argScreen))
 		screen(tickers, quotesDir, screenParams);
 	else if (vm.count(argRet13612))

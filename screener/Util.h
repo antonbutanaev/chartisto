@@ -41,12 +41,17 @@ using Quotes = std::vector<Quote>;
 using QuoteIt = Quotes::const_iterator;
 using Quotess = std::map<Ticker, Quotes>;
 
-inline auto findQuote(const Quotes &quotes, Date date) {
+enum class FindQuoteMode {Exact, GetLastIfNotFound};
+inline auto findQuote(const Quotes &quotes, Date date, FindQuoteMode mode = FindQuoteMode::Exact) {
 	auto it = lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
 		return a.date < b.date;
 	});
-	if (it == quotes.end())
-		ERROR(runtime_error, "Quote for " << date << " not found");
+	if (it == quotes.end()) {
+		if (mode == FindQuoteMode::Exact)
+			ERROR(runtime_error, "Quote for " << date << " not found")
+		else
+			return --it;
+	}
 	return it;
 }
 

@@ -17,10 +17,8 @@ using namespace date;
 namespace screener {
 
 void screen(const Quotess &quotess, const ScreenParams &screenParams) {
-	const auto endDate = screenParams.toDate? *screenParams.toDate : quotess.begin()->second.back().date;
-	LOG("End date: " << endDate);
-	if (screenParams.toDate)
-		LOG(" Actual: " << findQuote(quotess.begin()->second, endDate)->date);
+	const auto endDate = findQuote(quotess.begin()->second, screenParams.toDate, FindQuoteMode::GetLastIfNotFound)->date;
+	LOG("End date: " << screenParams.toDate << " Actual: " << endDate);
 
 	using RelStrength = array<Rate, NumPeriods>;
 	struct ScreenData {
