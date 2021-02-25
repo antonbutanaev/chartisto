@@ -87,9 +87,11 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	}
 
 	for (auto &screenData: screenDatas) {
+		screenData.acceleration /= maxAcceleration - minAcceleration;
+		screenData.speed /= maxSpeed;
 		screenData.combined =
-			screenParams.accelerationRate * screenData.acceleration / (maxAcceleration - minAcceleration) +
-			(1 - screenParams.accelerationRate) * screenData.speed / maxSpeed;
+			screenParams.accelerationRate * screenData.acceleration +
+			(1 - screenParams.accelerationRate) * screenData.speed;
 	}
 
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
