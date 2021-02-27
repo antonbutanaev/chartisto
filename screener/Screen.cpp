@@ -18,7 +18,7 @@ namespace screener {
 
 void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	const auto endDate = findQuote(quotess.begin()->second, screenParams.toDate, FindQuoteMode::GetLastIfNotFound)->date;
-	LOG("End date: " << screenParams.toDate << " Actual: " << endDate);
+	LOG("On date: " << screenParams.toDate << " Actual: " << endDate);
 
 	using RelStrength = array<Rate, NumPeriods>;
 	struct ScreenData {
@@ -59,9 +59,10 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		}
 	}
 
-	Rate maxSpeed;
-	Rate maxAcceleration;
-	Rate minAcceleration;
+	Rate maxSpeed = 0;
+	Rate minSpeed = 0;
+	Rate maxAcceleration = 0;
+	Rate minAcceleration = 0;
 	bool first = true;
 
 	for (auto &screenData: screenDatas) {
@@ -78,17 +79,26 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			maxAcceleration = screenData.acceleration;
 			minAcceleration = screenData.acceleration;
 			maxSpeed = screenData.speed;
+			minSpeed = screenData.speed;
 		} else {
 			maxAcceleration = max(maxAcceleration, screenData.acceleration);
 			minAcceleration = min(minAcceleration, screenData.acceleration);
 			maxSpeed = max(maxSpeed, screenData.speed);
+			minSpeed = min(minSpeed, screenData.speed);
 		}
 		first = false;
 	}
 
+	const auto speedSpan = maxSpeed - minSpeed;
+	const auto accelerationSpan = maxAcceleration - minAcceleration;
+
+	if (accelerationSpan == 0 || speedSpan == 0)
+		ERROR(runtime_error, "Impossible to normalize, span is zero");
+
 	for (auto &screenData: screenDatas) {
-		screenData.acceleration /= maxAcceleration - minAcceleration;
-		screenData.speed /= maxSpeed;
+		screenData.acceleration /= accelerationSpan;
+		screenData.speed -= minSpeed;
+		screenData.speed /= speedSpan;
 		screenData.combined =
 			screenParams.accelerationRate * screenData.acceleration +
 			(1 - screenParams.accelerationRate) * screenData.speed;
