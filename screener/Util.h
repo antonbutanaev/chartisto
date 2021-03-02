@@ -67,7 +67,7 @@ inline float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, Quote
 inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	float maxDD = qB->low / qB->high - 1;
 	float lastHigh = qB->high;
-	for (auto q = qB + 1; q != qE; ++q) {
+	for (auto q = qB + 1; q < qE; ++q) {
 		lastHigh = max(lastHigh, q->high);
 		maxDD = min(maxDD, q->low / lastHigh - 1);
 	}
