@@ -3,6 +3,7 @@
 #include <date/date.h>
 #include <util/log.h>
 #include <boost/filesystem.hpp>
+#include <json/json.h>
 
 #include <util/log.h>
 
@@ -28,15 +29,22 @@ void syncQuotes(istream &tickers, const string &cacheDir, const vector<string> &
 		const auto fileName = cacheDir + "/" + *tickerIt;
 		if (boost::filesystem::exists(fileName))
 			continue;
-		ofstream quotesStream(fileName);
 		bool failed = true;
 		for (const auto &authToken: authTokens)
 			try {
 				LOG('\t' << authToken);
 				TiingoApi tiingoApi(authToken);
-				quotesStream << tiingoApi.getData(*tickerIt, from, to);
-				failed = false;
-				break;
+				ofstream quotesStreamOut(fileName);
+				quotesStreamOut << tiingoApi.getData(*tickerIt, from, to);
+				quotesStreamOut.close();
+				ifstream quotesStreamIn(fileName);
+				Json::Value quotesJson;
+				quotesStreamIn >> quotesJson;
+				if (quotesJson.isArray()) {
+					failed = false;
+					break;
+				}
+				LOG("Ticker " << *tickerIt << " not array");
 			} catch (const exception &x) {
 				++nErrors;
 				LOG("Ticker " << *tickerIt << " error " << nErrors << " " << x.what());
