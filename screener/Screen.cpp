@@ -1,13 +1,8 @@
-#include <fstream>
-#include <sstream>
-#include <iterator>
-#include <optional>
-
-#include <json/json.h>
 #include <util/log.h>
 
 #include "Screen.h"
-#include "Util.h"
+
+#include "Calcs.h"
 #include "DateDaysOps.h"
 #include "ParseQuotess.h"
 
@@ -39,7 +34,12 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({ticker});
 		for (auto [pN, e] = make_tuple(0, endDate); pN != NumPeriods; ++pN, e -= days{Period})
-			screenDatas.back().relStrength[pN] = calcRelStrength(e, quotes);
+			try {
+				screenDatas.back().relStrength[pN] = calcRelStrength(e, quotes);
+			} catch (const exception &x) {
+				LOG("Error for " << ticker << ": " << x.what());
+				throw;
+			}
 	}
 
 	for (auto pN = 0; pN != NumPeriods; ++pN) {
@@ -76,10 +76,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			screenData.speed += screenData.relStrength[pN] * fibo[NumPeriods - pN - 1];
 
 		if (first) {
-			maxAcceleration = screenData.acceleration;
-			minAcceleration = screenData.acceleration;
-			maxSpeed = screenData.speed;
-			minSpeed = screenData.speed;
+			minAcceleration = maxAcceleration = screenData.acceleration;
+			minSpeed = maxSpeed = screenData.speed;
 		} else {
 			maxAcceleration = max(maxAcceleration, screenData.acceleration);
 			minAcceleration = min(minAcceleration, screenData.acceleration);

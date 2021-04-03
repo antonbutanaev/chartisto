@@ -2,8 +2,9 @@
 #include <json/json.h>
 #include <util/log.h>
 
-#include "Util.h"
 #include "ParseQuotess.h"
+
+#include "Calcs.h"
 #include "DateDaysOps.h"
 
 namespace screener {

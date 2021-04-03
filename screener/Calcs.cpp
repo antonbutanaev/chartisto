@@ -1,48 +1,10 @@
-#pragma once
-
-#include <vector>
 #include <numeric>
-#include <map>
-#include <iostream>
-#include <chrono>
-#include <date/date.h>
-#include <util/log.h>
+
+#include "Calcs.h"
 
 namespace screener {
 
-using namespace date;
-using namespace std;
-using namespace std::chrono;
-
-using Date = year_month_day;
-using Price = float;
-using Volume = float;
-
-constexpr auto epsilon = 1e-6;
-
-struct Quote {
-	Date date;
-	Price open,close,high,low;
-	Volume volume;
-};
-
-inline std::ostream &operator<<(std::ostream &o, const Quote &quote) {
-	return o
-		<< quote.date << ' '
-		<< quote.open << ' '
-		<< quote.close << ' '
-		<< quote.high << ' '
-		<< quote.low << ' '
-		<< quote.volume;
-}
-
-using Ticker = std::string;
-using Quotes = std::vector<Quote>;
-using QuoteIt = Quotes::const_iterator;
-using Quotess = std::map<Ticker, Quotes>;
-
-enum class FindQuoteMode {Exact, GetLastIfNotFound};
-inline auto findQuote(const Quotes &quotes, Date date, FindQuoteMode mode = FindQuoteMode::Exact) {
+QuoteIt findQuote(const Quotes &quotes, Date date, FindQuoteMode mode) {
 	auto it = lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
 		return a.date < b.date;
 	});
@@ -55,7 +17,7 @@ inline auto findQuote(const Quotes &quotes, Date date, FindQuoteMode mode = Find
 	return it;
 }
 
-inline float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12) {
+float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12) {
 	const auto r1 = q0->close / q1->close - 1;
 	const auto r3 = q0->close / q3->close - 1;
 	const auto r6 = q0->close / q6->close - 1;
@@ -64,7 +26,7 @@ inline float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, Quote
 	return (12 * r1 + 4 * r3 + 2 * r6 + 1 * r12) / 19;
 }
 
-inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
+float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	float maxDD = qB->low / qB->high - 1;
 	float lastHigh = qB->high;
 	for (auto q = qB + 1; q < qE; ++q) {
@@ -74,11 +36,11 @@ inline float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	return maxDD == 0 ? -epsilon : maxDD;
 }
 
-inline float calcMaxDD(Date from, Date to, const Quotes &quotes) {
+float calcMaxDD(Date from, Date to, const Quotes &quotes) {
 	return calcMaxDD(findQuote(quotes, from), findQuote(quotes, to));
 }
 
-inline float calcRet13612W(Date date, const Quotes &quotes) {
+float calcRet13612W(Date date, const Quotes &quotes) {
 	return calcRet13612W(
 		findQuote(quotes, date),
 		findQuote(quotes, date - months{1}),
@@ -88,7 +50,7 @@ inline float calcRet13612W(Date date, const Quotes &quotes) {
 	);
 }
 
-inline float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
+float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	const auto q0 = findQuote(quotes, date);
 	const auto q1 = findQuote(quotes, date - months{1});
 	const auto q3 = findQuote(quotes, date - months{3});
@@ -103,7 +65,7 @@ inline float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	return ret13612W / -maxDDAvg;
 }
 
-inline float calcVol(Date from, Date to, const Quotes &quotes) {
+float calcVol(Date from, Date to, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, from);
 	const auto qE = findQuote(quotes, to);
 	vector<float> changes;
@@ -121,7 +83,7 @@ inline float calcVol(Date from, Date to, const Quotes &quotes) {
 
 }
 
-inline float calcRelStrength(Date d, const Quotes &quotes) {
+float calcRelStrength(Date d, const Quotes &quotes) {
 	return calcRet13612WAdjMaxDD(d, quotes);
 }
 

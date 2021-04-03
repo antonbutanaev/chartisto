@@ -24,6 +24,7 @@ add_executable(screener
 	Screen.cpp Screen.h
 	ShowRet13612.cpp ShowRet13612.h
 	ParseQuotess.cpp ParseQuotess.h
+	Calcs.cpp Calcs.h
 )
 
 target_link_libraries(screener
