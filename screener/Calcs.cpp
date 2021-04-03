@@ -2,6 +2,11 @@
 
 #include "Calcs.h"
 
+using namespace date;
+using namespace std;
+using namespace std::chrono;
+
+
 namespace screener {
 
 QuoteIt findQuote(const Quotes &quotes, Date date, FindQuoteMode mode) {

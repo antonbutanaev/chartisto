@@ -7,6 +7,9 @@
 #include "Calcs.h"
 #include "DateDaysOps.h"
 
+using namespace std;
+using namespace date;
+
 namespace screener {
 
 #define TPL(a) const auto a = #a
@@ -18,7 +21,7 @@ TPL(adjVolume);
 TPL(date);
 #undef TPL
 
-Quotess parseQuotess(std::istream &tickers, const string &quotesDir) {
+Quotess parseQuotess(istream &tickers, const string &quotesDir) {
 	Quotess quotess;
 	for (auto tickerIt = istream_iterator<string>(tickers), end = istream_iterator<string>(); tickerIt != end; ++tickerIt) {
 		LOGn(*tickerIt);

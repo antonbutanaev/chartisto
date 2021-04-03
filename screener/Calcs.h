@@ -9,11 +9,7 @@
 
 namespace screener {
 
-using namespace date;
-using namespace std;
-using namespace std::chrono;
-
-using Date = year_month_day;
+using Date = date::year_month_day;
 using Price = float;
 using Volume = float;
 

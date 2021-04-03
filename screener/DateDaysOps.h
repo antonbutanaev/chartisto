@@ -25,10 +25,10 @@ inline year_month_day &operator-=(year_month_day &a, days b) {
 inline year_month_day stringToDate(const std::string &dateStr) {
 	std::stringstream dateStream(dateStr);
 	int yi, mi, di;
-	char dash;
-	dateStream >> yi >> dash >> mi >> dash >> di;
-	if (!dateStream)
-		ERROR(runtime_error, "could not parse date " << dateStr);
+	char dash1, dash2;
+	dateStream >> yi >> dash1 >> mi >> dash2 >> di;
+	if (!dateStream || dash1 != '-' || dash2 != '-')
+		ERROR(runtime_error, "Could not parse date " << dateStr);
 	return year{yi}/mi/di;
 }
 
