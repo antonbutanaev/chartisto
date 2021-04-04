@@ -92,4 +92,24 @@ float calcRelStrength(Date d, const Quotes &quotes) {
 	return calcRet13612WAdjMaxDD(d, quotes);
 }
 
+float calcChange(Date date, const Quotes &quotes) {
+	const auto q0 = findQuote(quotes, date);
+	if (q0 == quotes.begin())
+		return 0;
+	const auto q1 = q0 - 1;
+	return q0->close / q1->close - 1;
+}
+
+float calcRelativeVolume(Date b, Date e, const Quotes &quotes) {
+	float sumVolume = 0;
+	int n = 0;
+	const auto qE = findQuote(quotes, e);
+	for (auto q = findQuote(quotes, b); q < qE; ++q) {
+		++n;
+		sumVolume += q->volume;
+	}
+	const auto avgVolume = n == 0? 0. : sumVolume / n;
+	return avgVolume == 0? 0. : qE->volume / avgVolume;
+}
+
 }

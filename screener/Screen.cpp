@@ -27,6 +27,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		Rate speed;
 		Rate combined;
 		Rate accelerationFlatDiff;
+		Rate change;
+		Rate relativeVolume;
 	};
 
 	vector<ScreenData> screenDatas;
@@ -38,13 +40,18 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({ticker});
-		for (auto [pN, e] = make_tuple(0, endDate); pN != NumPeriods; ++pN, e -= days{Period})
+		auto &screenData = screenDatas.back();
+		for (auto [pN, e] = make_tuple(0, endDate); pN != NumPeriods; ++pN, e -= days{Period}) {
 			try {
-				screenDatas.back().relStrength[pN] = calcRelStrength(e, quotes);
+				screenData.relStrength[pN] = calcRelStrength(e, quotes);
 			} catch (const exception &x) {
 				LOG("Error for " << ticker << ": " << x.what());
 				throw;
 			}
+		}
+
+		screenData.change = calcChange(endDate, quotes);
+		screenData.relativeVolume = calcRelativeVolume(endDate - RelativeVolumePeriod, endDate, quotes);
 	}
 
 	for (auto pN = 0; pN != NumPeriods; ++pN) {
@@ -122,16 +129,20 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
 		return a.combined > b.combined;
 	});
+	const auto tab = '\t';
 	for (const auto &screenData: screenDatas) {
 		cout
-			<< screenData.ticker << '\t';
+			<< screenData.ticker << tab;
 		for (const auto &rs: screenData.relStrength)
-			cout << rs << '\t';
+			cout << rs << tab;
 		cout
-			<< screenData.acceleration << '\t'
-			<< screenData.accelerationFlatDiff << '\t'
-			<< screenData.speed << '\t'
-			<< screenData.combined << endl;
+			<< screenData.acceleration << tab
+			<< screenData.accelerationFlatDiff << tab
+			<< screenData.speed << tab
+			<< screenData.combined << tab
+			<< screenData.change << tab
+			<< screenData.relativeVolume << tab
+			<< endl;
 	}
 }
 
