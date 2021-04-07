@@ -11,10 +11,6 @@ using namespace date;
 
 namespace screener {
 
-float flatDiff(float v) {
-	return fabs(v) < epsilon? 0. : v > 0 ? 1. : -1.;
-}
-
 void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	const auto endDate = findQuote(quotess.begin()->second, screenParams.toDate, FindQuoteMode::GetLastIfNotFound)->date;
 	LOG("On date: " << screenParams.toDate << " Actual: " << endDate);
@@ -26,7 +22,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		Rate acceleration;
 		Rate speed;
 		Rate combined;
-		Rate accelerationFlatDiff;
+		Rate acceleration1;
 		Rate change;
 		Rate relativeVolume;
 	};
@@ -75,8 +71,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	Rate minSpeed = 0;
 	Rate maxAcceleration = 0;
 	Rate minAcceleration = 0;
-	Rate maxAccelerationFlatDiff = 0;
-	Rate minAccelerationFlatDiff = 0;
+	Rate maxAcceleration1 = 0;
+	Rate minAcceleration1 = 0;
 	bool first = true;
 
 	for (auto &screenData: screenDatas) {
@@ -85,10 +81,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			screenData.acceleration +=
 				(screenData.relStrength[pN] - screenData.relStrength[pN + 1]) * fibo[NumPeriods - pN - 2];
 
-		screenData.accelerationFlatDiff = 0;
-		for (auto pN = 0; pN != NumPeriods - 1; ++pN)
-			screenData.accelerationFlatDiff +=
-				flatDiff(screenData.relStrength[pN] - screenData.relStrength[pN + 1]) * fibo[NumPeriods - pN - 2];
+		screenData.acceleration1 = screenData.relStrength[0] - screenData.relStrength[1];
 
 		screenData.speed = 0;
 		for (auto pN = 0; pN != NumPeriods; ++pN)
@@ -96,13 +89,13 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 
 		if (first) {
 			minAcceleration = maxAcceleration = screenData.acceleration;
-			minAccelerationFlatDiff = maxAccelerationFlatDiff = screenData.accelerationFlatDiff;
+			minAcceleration1 = maxAcceleration1 = screenData.acceleration1;
 			minSpeed = maxSpeed = screenData.speed;
 		} else {
 			maxAcceleration = max(maxAcceleration, screenData.acceleration);
 			minAcceleration = min(minAcceleration, screenData.acceleration);
-			maxAccelerationFlatDiff = max(maxAccelerationFlatDiff, screenData.accelerationFlatDiff);
-			minAccelerationFlatDiff = min(minAccelerationFlatDiff, screenData.accelerationFlatDiff);
+			maxAcceleration1 = max(maxAcceleration1, screenData.acceleration1);
+			minAcceleration1 = min(minAcceleration1, screenData.acceleration1);
 			maxSpeed = max(maxSpeed, screenData.speed);
 			minSpeed = min(minSpeed, screenData.speed);
 		}
@@ -111,14 +104,14 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 
 	const auto speedSpan = maxSpeed - minSpeed;
 	const auto accelerationSpan = maxAcceleration - minAcceleration;
-	const auto accelerationFlatDiffSpan = maxAccelerationFlatDiff - minAccelerationFlatDiff;
+	const auto acceleration1Span = maxAcceleration1 - minAcceleration1;
 
-	if (accelerationFlatDiffSpan == 0 || accelerationSpan == 0 || speedSpan == 0)
+	if (acceleration1Span == 0 || accelerationSpan == 0 || speedSpan == 0)
 		ERROR(runtime_error, "Impossible to normalize, span is zero");
 
 	for (auto &screenData: screenDatas) {
 		screenData.acceleration /= accelerationSpan;
-		screenData.accelerationFlatDiff /= accelerationFlatDiffSpan;
+		screenData.acceleration1 /= acceleration1Span;
 		screenData.speed -= minSpeed;
 		screenData.speed /= speedSpan;
 		screenData.combined =
@@ -127,22 +120,22 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	}
 
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
-		return a.combined > b.combined;
+		return a.change > b.change;
 	});
 	const auto tab = '\t';
 	for (const auto &screenData: screenDatas) {
 		cout
 			<< screenData.ticker << tab;
-		for (const auto &rs: screenData.relStrength)
-			cout << rs << tab;
 		cout
-			<< screenData.acceleration << tab
-			<< screenData.accelerationFlatDiff << tab
-			<< screenData.speed << tab
-			<< screenData.combined << tab
 			<< screenData.change << tab
 			<< screenData.relativeVolume << tab
-			<< endl;
+			<< screenData.acceleration1 << tab
+			<< screenData.acceleration << tab
+			<< screenData.speed << tab
+			<< screenData.combined << tab;
+		for (const auto &rs: screenData.relStrength)
+			cout << rs << tab;
+		cout << endl;
 	}
 }
 
