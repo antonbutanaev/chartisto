@@ -25,6 +25,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		Rate acceleration1;
 		Rate change;
 		Rate relativeVolume;
+		Rate relativeChange;
 	};
 
 	vector<ScreenData> screenDatas;
@@ -48,6 +49,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 
 		screenData.change = calcChange(endDate, quotes);
 		screenData.relativeVolume = calcRelativeVolume(endDate - RelativeVolumePeriod, endDate, quotes);
+		screenData.relativeChange = calcRelativeChange(endDate - RelativeChangePeriod, endDate, quotes);
 	}
 
 	for (auto pN = 0; pN != NumPeriods; ++pN) {
@@ -120,7 +122,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	}
 
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
-		return a.change > b.change;
+		const auto relVol = [](auto a) {return a.relativeVolume > 1;};
+		return relVol(a) != relVol(b)? relVol(a) > relVol(b) : a.change > b.change;
 	});
 	const auto tab = '\t';
 	for (const auto &screenData: screenDatas) {
@@ -128,6 +131,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			<< screenData.ticker << tab;
 		cout
 			<< screenData.change << tab
+			<< screenData.relativeChange << tab
 			<< screenData.relativeVolume << tab
 			<< screenData.acceleration1 << tab
 			<< screenData.acceleration << tab

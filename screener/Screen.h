@@ -9,6 +9,7 @@
 namespace screener {
 
 const auto RelativeVolumePeriod = date::days{20};
+const auto RelativeChangePeriod = date::days{20};
 constexpr auto Period = 7;
 constexpr auto NumPeriods = 13;
 constexpr auto ExtraDays = 30;

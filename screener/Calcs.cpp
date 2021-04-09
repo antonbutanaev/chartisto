@@ -34,7 +34,7 @@ float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12)
 float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
 	float maxDD = qB->low / qB->high - 1;
 	float lastHigh = qB->high;
-	for (auto q = qB + 1; q < qE; ++q) {
+	for (auto q = qB + 1; q <= qE; ++q) {
 		lastHigh = max(lastHigh, q->high);
 		maxDD = min(maxDD, q->low / lastHigh - 1);
 	}
@@ -74,7 +74,7 @@ float calcVol(Date from, Date to, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, from);
 	const auto qE = findQuote(quotes, to);
 	vector<float> changes;
-	for (auto qPrev = qB, q = qB + 1; q < qE; ++q, ++qPrev)
+	for (auto qPrev = qB, q = qB + 1; q <= qE; ++q, ++qPrev)
 		changes.push_back(q->close / qPrev->close - 1);
 	if (changes.empty())
 		return epsilon;
@@ -96,20 +96,37 @@ float calcChange(Date date, const Quotes &quotes) {
 	const auto q0 = findQuote(quotes, date);
 	if (q0 == quotes.begin())
 		return 0;
-	const auto q1 = q0 - 1;
-	return q0->close / q1->close - 1;
+	return q0->close / (q0 - 1)->close - 1;
 }
 
 float calcRelativeVolume(Date b, Date e, const Quotes &quotes) {
 	float sumVolume = 0;
 	int n = 0;
 	const auto qE = findQuote(quotes, e);
-	for (auto q = findQuote(quotes, b); q < qE; ++q) {
+	for (auto q = findQuote(quotes, b); q <= qE; ++q) {
 		++n;
 		sumVolume += q->volume;
 	}
 	const auto avgVolume = n == 0? 0. : sumVolume / n;
 	return avgVolume == 0? 0. : qE->volume / avgVolume;
+}
+
+float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
+	const auto qB = findQuote(quotes, b);
+	const auto qE = findQuote(quotes, e);
+	if (qB == qE)
+		return 0.;
+
+	const auto change = [](auto q) { return fabs(q->close / (q - 1)->close - 1); };
+	float sumChange = 0;
+	int n = 0;
+
+	for (auto q = qB + 1; q <= qE; ++q) {
+		++n;
+		sumChange += change(q);
+	}
+	const auto avgChange = n == 0? 0. : sumChange / n;
+	return avgChange == 0? 0. : change(qE) / avgChange;
 }
 
 }
