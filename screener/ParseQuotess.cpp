@@ -63,9 +63,9 @@ Quotess parseQuotess(istream &tickers, const string &quotesDir) {
 		else if (quotes.back().date != tickerEndDate)
 			ERROR(runtime_error, "End date mismatch " << *endDate << tickerEndDate);
 	}
-	LOG("End date:" << *endDate << ' ' << quotess.size())
+	LOG("End date:" << *endDate << ' ' << quotess.size());
 	for (const auto &[date, count]: beginDates)
-		LOG("Begin date:" << date << ' ' << count)
+		LOG("Begin date:" << date << ' ' << count);
 
 	return quotess;
 }

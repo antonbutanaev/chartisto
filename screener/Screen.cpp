@@ -122,8 +122,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	}
 
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
-		const auto relative = [](auto a) {return a.relativeVolume > 1 && a.relativeChange > 1? 1 : 0;};
-		return relative(a) != relative(b)? relative(a) > relative(b) : a.change > b.change;
+		return a.change > b.change;
 	});
 	const auto tab = '\t';
 	for (const auto &screenData: screenDatas) {

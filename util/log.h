@@ -1,6 +1,6 @@
 #pragma once
 
-#define LOG(Msgs) std::cerr << Msgs << std::endl;
+#define LOG(Msgs) std::cerr << Msgs << std::endl
 #define LOGn(Msgs)
 
 #define ERROR(Exception, Msgs) \
