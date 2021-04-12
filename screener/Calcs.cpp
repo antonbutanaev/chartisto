@@ -121,7 +121,7 @@ float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
 	float sumChange = 0;
 	int n = 0;
 
-	for (auto q = qB + 1; q <= qE; ++q) {
+	for (auto q = qB + 1; q < qE; ++q) {
 		++n;
 		sumChange += fabs(change(q));
 	}
