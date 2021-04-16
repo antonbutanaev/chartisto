@@ -26,6 +26,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		Rate change;
 		Rate relativeVolume;
 		Rate relativeChange;
+		int stableGrowth;
 	};
 
 	vector<ScreenData> screenDatas;
@@ -78,6 +79,10 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	bool first = true;
 
 	for (auto &screenData: screenDatas) {
+		screenData.stableGrowth = 0;
+		for (auto pN = 0; pN < StableGrowthPeriod && pN < NumPeriods - 1; ++pN)
+			screenData.stableGrowth += screenData.relStrength[pN] > screenData.relStrength[pN + 1];
+
 		screenData.acceleration = 0;
 		for (auto pN = 0; pN != NumPeriods - 1; ++pN)
 			screenData.acceleration +=
@@ -135,7 +140,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			<< screenData.acceleration1 << tab
 			<< screenData.acceleration << tab
 			<< screenData.speed << tab
-			<< screenData.combined << tab;
+			<< screenData.combined << tab
+			<< screenData.stableGrowth << tab;
 		for (const auto &rs: screenData.relStrength)
 			cout << rs << tab;
 		cout << endl;
