@@ -122,12 +122,13 @@ float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
 	int n = 0;
 
 	for (auto qPrev = qB, q = qB + 1; q <= qE; ++q, ++qPrev) {
-		const auto ch1 = fabs(q->high / qPrev->close - 1);
-		const auto ch2 = fabs(q->low / qPrev->close - 1);
-		const auto ch3 = fabs(q->high / q->low - 1);
-		auto chMax = max(max(ch1, ch2), ch3);
+		const auto ch = {
+			fabs(q->high / qPrev->close - 1),
+			fabs(q->low / qPrev->close - 1),
+			fabs(q->high / q->low - 1),
+		};
+		sumChange += *max_element(begin(ch), end(ch));
 		++n;
-		sumChange += chMax;
 	}
 	if (n == 0)
 		return 0;
