@@ -80,8 +80,12 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 
 	for (auto &screenData: screenDatas) {
 		screenData.stableGrowth = 0;
-		for (auto pN = 0; pN < StableGrowthPeriod && pN < NumPeriods - 1; ++pN)
-			screenData.stableGrowth += screenData.relStrength[pN] > screenData.relStrength[pN + 1];
+		for (auto pN = 0; pN < StableGrowthPeriod && pN < NumPeriods - 1; ++pN) {
+			const auto k = 1 << (StableGrowthPeriod - pN - 1);
+			screenData.stableGrowth +=
+				screenData.relStrength[pN] > screenData.relStrength[pN + 1] ? k :
+				screenData.relStrength[pN] < screenData.relStrength[pN + 1] ? -k : 0;
+		}
 
 		screenData.acceleration = 0;
 		for (auto pN = 0; pN != NumPeriods - 1; ++pN)
