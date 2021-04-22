@@ -31,7 +31,7 @@ int main(int ac, char** av) try {
 		*argQuotesDir = "quotes-dir";
 
 	ScreenParams screenParams;
-	screenParams.accelerationRate = GoldenRatioHi;
+	screenParams.accelerationRate = .5;
 	screenParams.toDate = floor<days>(chrono::system_clock::now());
 	string quotesDir;
 	string tickersFile;

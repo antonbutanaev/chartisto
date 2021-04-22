@@ -32,9 +32,9 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	vector<ScreenData> screenDatas;
 	screenDatas.reserve(quotess.size());
 
-	array<int, NumPeriods> fibo = {1, 1};
-	for (auto i = 2; i < NumPeriods; ++i)
-		fibo[i] = fibo[i - 1] + fibo[i - 2];
+	array<float, NumPeriods> weights = {1};
+	for (auto i = 1; i < NumPeriods; ++i)
+		weights[i] = weights[i - 1] * WeightPowerRate;
 
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({ticker});
@@ -90,13 +90,13 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		screenData.acceleration = 0;
 		for (auto pN = 0; pN != NumPeriods - 1; ++pN)
 			screenData.acceleration +=
-				(screenData.relStrength[pN] - screenData.relStrength[pN + 1]) * fibo[NumPeriods - pN - 2];
+				(screenData.relStrength[pN] - screenData.relStrength[pN + 1]) * weights[NumPeriods - pN - 2];
 
 		screenData.acceleration1 = screenData.relStrength[0] - screenData.relStrength[1];
 
 		screenData.speed = 0;
 		for (auto pN = 0; pN != NumPeriods; ++pN)
-			screenData.speed += screenData.relStrength[pN] * fibo[NumPeriods - pN - 1];
+			screenData.speed += screenData.relStrength[pN] * weights[NumPeriods - pN - 1];
 
 		if (first) {
 			minAcceleration = maxAcceleration = screenData.acceleration;

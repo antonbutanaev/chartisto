@@ -8,14 +8,13 @@
 
 namespace screener {
 
-const auto RelativeVolumePeriod = date::days{30};
-const auto RelativeChangePeriod = date::days{90};
-const auto StableGrowthPeriod = 4;
+constexpr auto RelativeVolumePeriod = date::days{30};
+constexpr auto RelativeChangePeriod = date::days{90};
+constexpr auto StableGrowthPeriod = 4;
 constexpr auto Period = 7;
 constexpr auto NumPeriods = 13;
 constexpr auto ExtraDays = 30;
-constexpr auto GoldenRatioHi = .6180339887;
-constexpr auto GoldenRatioLo = 1 - GoldenRatioHi;
+constexpr auto WeightPowerRate = 1.575;
 
 struct ScreenParams {
 	Date toDate;
