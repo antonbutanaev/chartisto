@@ -33,8 +33,8 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	screenDatas.reserve(quotess.size());
 
 	array<float, NumPeriods> weights = {1};
-	for (auto i = 1; i < NumPeriods; ++i)
-		weights[i] = weights[i - 1] * WeightPowerRate;
+	for (auto pN = 1; pN < NumPeriods; ++pN)
+		weights[pN] = weights[pN - 1] * WeightPowerRate;
 
 	for(const auto &[ticker, quotes]: quotess) {
 		screenDatas.push_back({ticker});
