@@ -115,13 +115,12 @@ float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, b);
 	const auto qE = findQuote(quotes, e);
 	if (qB == qE)
-		return 0.;
+		return 0;
 
-	const auto change = [](auto q) { return q->close / (q - 1)->close - 1; };
 	float sumChange = 0;
 	int n = 0;
 
-	for (auto qPrev = qB, q = qB + 1; q <= qE; ++q, ++qPrev) {
+	for (auto qPrev = qB, q = qB + 1; q < qE; ++q, ++qPrev) {
 		const auto changes = {
 			fabs(q->high / qPrev->close - 1),
 			fabs(q->low / qPrev->close - 1),
@@ -135,7 +134,8 @@ float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
 	const auto avgChange = sumChange / n;
 	if (avgChange == 0)
 		return 0;
-	return change(qE) / avgChange;
+	const auto lastChange = qE->close / (qE - 1)->close - 1;
+	return lastChange / avgChange;
 }
 
 }
