@@ -13,8 +13,10 @@ constexpr auto RelativeChangePeriod = date::days{90};
 constexpr auto StableGrowthPeriod = 4;
 constexpr auto Period = 7;
 constexpr auto NumPeriods = 13;
+constexpr auto NumChanges = 5;
 constexpr auto ExtraDays = 30;
 constexpr auto WeightPowerRate = 1.5;
+constexpr auto WeightATRRate = 1.25;
 
 struct ScreenParams {
 	Date toDate;

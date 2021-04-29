@@ -45,8 +45,8 @@ float calcRet13612W(Date date, const Quotes &quotes);
 float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes);
 float calcVol(Date from, Date to, const Quotes &quotes);
 float calcRelStrength(Date d, const Quotes &quotes);
-float calcChange(Date d, const Quotes &quotes);
+float calcChange(Date d, int offset, const Quotes &quotes);
 float calcRelativeVolume(Date b, Date e, const Quotes &quotes);
-float calcRelativeChange(Date b, Date e, const Quotes &quotes);
+float calcATR(float weightATRRate, Date b, Date e, const Quotes &quotes);
 
 }

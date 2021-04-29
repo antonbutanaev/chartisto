@@ -16,6 +16,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	LOG("On date: " << screenParams.toDate << " Actual: " << endDate);
 
 	using RelStrength = array<Rate, NumPeriods>;
+	using RelChange = array<Rate, NumChanges>;
 	struct ScreenData {
 		string ticker;
 		RelStrength relStrength;
@@ -23,9 +24,7 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 		Rate speed;
 		Rate combined;
 		Rate acceleration1;
-		Rate change;
-		Rate relativeVolume;
-		Rate relativeChange;
+		RelChange relChange;
 		int stableGrowth;
 	};
 
@@ -48,9 +47,11 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 			}
 		}
 
-		screenData.change = calcChange(endDate, quotes);
-		screenData.relativeVolume = calcRelativeVolume(endDate - RelativeVolumePeriod, endDate, quotes);
-		screenData.relativeChange = calcRelativeChange(endDate - RelativeChangePeriod, endDate, quotes);
+		const auto ATR = calcATR(WeightATRRate, endDate - days{RelativeChangePeriod}, endDate, quotes);
+		for (auto dN = 0; dN != NumChanges; ++dN) {
+			const auto change = calcChange(endDate, dN, quotes);
+			screenData.relChange[dN] = ATR? change / ATR : 0;
+		}
 	}
 
 	for (auto pN = 0; pN != NumPeriods; ++pN) {
@@ -117,30 +118,30 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	const auto accelerationSpan = maxAcceleration - minAcceleration;
 	const auto acceleration1Span = maxAcceleration1 - minAcceleration1;
 
-	if (acceleration1Span == 0 || accelerationSpan == 0 || speedSpan == 0)
-		ERROR(runtime_error, "Impossible to normalize, span is zero");
-
 	for (auto &screenData: screenDatas) {
-		screenData.acceleration /= accelerationSpan;
-		screenData.acceleration1 /= acceleration1Span;
-		screenData.speed -= minSpeed;
-		screenData.speed /= speedSpan;
+		if (accelerationSpan)
+			screenData.acceleration /= accelerationSpan;
+		if (acceleration1Span)
+			screenData.acceleration1 /= acceleration1Span;
+		if (speedSpan) {
+			screenData.speed -= minSpeed;
+			screenData.speed /= speedSpan;
+		}
 		screenData.combined =
 			screenParams.accelerationRate * screenData.acceleration +
 			(1 - screenParams.accelerationRate) * screenData.speed;
 	}
 
 	sort(screenDatas.begin(), screenDatas.end(), [](const auto &a, const auto &b){
-		return a.change > b.change;
+		return a.relChange[0] > b.relChange[0];
 	});
 	const auto tab = '\t';
 	for (const auto &screenData: screenDatas) {
 		cout
 			<< screenData.ticker << tab;
+		for (auto dN = 0; dN != NumChanges; ++dN)
+			cout << screenData.relChange[dN] << tab;
 		cout
-			<< screenData.change << tab
-			<< screenData.relativeChange << tab
-			<< screenData.relativeVolume << tab
 			<< screenData.acceleration1 << tab
 			<< screenData.acceleration << tab
 			<< screenData.speed << tab

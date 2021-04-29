@@ -9,6 +9,26 @@ using namespace std::chrono;
 
 namespace screener {
 
+class ExpWeighter {
+public:
+	ExpWeighter(float exp) : exp_(exp) {}
+
+	void add(float v) {
+		totalVal_ += currExp_ * v;
+		totalWeight_ += currExp_;
+		currExp_ *= exp_;
+	}
+
+	float result() const {
+		return totalWeight_? totalVal_ / totalWeight_ : 0;
+	}
+private:
+	float exp_;
+	float currExp_{1};
+	float totalVal_{0};
+	float totalWeight_{0};
+};
+
 QuoteIt findQuote(const Quotes &quotes, Date date, FindQuoteMode mode) {
 	auto it = lower_bound(quotes.begin(), quotes.end(), Quote{date}, [](const Quote &a, const Quote &b) {
 		return a.date < b.date;
@@ -92,10 +112,11 @@ float calcRelStrength(Date d, const Quotes &quotes) {
 	return calcRet13612WAdjMaxDD(d, quotes);
 }
 
-float calcChange(Date date, const Quotes &quotes) {
-	const auto q0 = findQuote(quotes, date);
-	if (q0 == quotes.begin())
+float calcChange(Date date, int offset, const Quotes &quotes) {
+	auto q0 = findQuote(quotes, date);
+	if (distance(quotes.begin(), q0) < offset + 1)
 		return 0;
+	q0 -= offset;
 	return q0->close / (q0 - 1)->close - 1;
 }
 
@@ -111,31 +132,20 @@ float calcRelativeVolume(Date b, Date e, const Quotes &quotes) {
 	return avgVolume == 0? 0. : qE->volume / avgVolume;
 }
 
-float calcRelativeChange(Date b, Date e, const Quotes &quotes) {
+float calcATR(float weightATRRate, Date b, Date e, const Quotes &quotes) {
 	const auto qB = findQuote(quotes, b);
 	const auto qE = findQuote(quotes, e);
-	if (qB == qE)
-		return 0;
 
-	float sumChange = 0;
-	int n = 0;
-
-	for (auto qPrev = qB, q = qB + 1; q < qE; ++q, ++qPrev) {
+	ExpWeighter expWeighter(weightATRRate);
+	for (auto qPrev = qB, q = qB + 1; q <= qE; ++q, ++qPrev) {
 		const auto changes = {
 			fabs(q->high / qPrev->close - 1),
 			fabs(q->low / qPrev->close - 1),
 			fabs(q->high / q->low - 1),
 		};
-		sumChange += *max_element(begin(changes), end(changes));
-		++n;
+		expWeighter.add(*max_element(begin(changes), end(changes)));
 	}
-	if (n == 0)
-		return 0;
-	const auto avgChange = sumChange / n;
-	if (avgChange == 0)
-		return 0;
-	const auto lastChange = qE->close / (qE - 1)->close - 1;
-	return lastChange / avgChange;
+	return expWeighter.result();
 }
 
 }
