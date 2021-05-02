@@ -16,7 +16,7 @@ constexpr auto NumPeriods = 13;
 constexpr auto NumChanges = 5;
 constexpr auto ExtraDays = 30;
 constexpr auto WeightPowerRate = 1.5;
-constexpr auto WeightATRRate = 1.25;
+constexpr auto WeightATRRate = 1.02;
 
 struct ScreenParams {
 	Date toDate;
