@@ -139,9 +139,13 @@ void screen(const Quotess &quotess, const ScreenParams &screenParams) {
 	for (const auto &screenData: screenDatas) {
 		cout
 			<< screenData.ticker << tab;
-		for (auto dN = 0; dN != NumChanges; ++dN)
-			cout << screenData.relChange[dN] << tab;
+		float totalRelChange = 0;
+		for (const auto change: screenData.relChange) {
+			cout << change << tab;
+			totalRelChange += change;
+		}
 		cout
+			<< totalRelChange << tab
 			<< screenData.acceleration1 << tab
 			<< screenData.acceleration << tab
 			<< screenData.speed << tab
