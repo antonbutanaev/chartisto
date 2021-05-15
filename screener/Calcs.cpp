@@ -43,12 +43,19 @@ QuoteIt findQuote(const Quotes &quotes, Date date, FindQuoteMode mode) {
 }
 
 float calcRet13612W(QuoteIt q0, QuoteIt q1, QuoteIt q3, QuoteIt q6, QuoteIt q12) {
-	const auto r1 = q0->close / q1->close - 1;
-	const auto r3 = q0->close / q3->close - 1;
-	const auto r6 = q0->close / q6->close - 1;
-	const auto r12 = q0->close / q12->close - 1;
+	const auto ret = [](auto qE, auto qB) {return qE->close / qB->close - 1;};
 
-	return (12 * r1 + 4 * r3 + 2 * r6 + 1 * r12) / 19;
+	const auto r1 = ret(q0, q1);
+	const auto r3 = ret(q0, q3);
+	const auto r6 = ret(q0, q6);
+	const auto r12 = ret(q0, q12);
+
+	return (
+		12 * r1 +
+		4 * r3 +
+		2 * r6 +
+		1 * r12
+	) / 19;
 }
 
 float calcMaxDD(QuoteIt qB,  QuoteIt qE) {
@@ -95,11 +102,11 @@ float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	const auto dd12 = calcMaxDD(q12, q0);
 
 	return (
-			12 * (r1 / -dd1) +
-			4 * (r3 / -dd3) +
-			2 * (r6 / -dd6) +
-			1 * (r12 / -dd12)
-		) / 19;
+		12 * (r1 / -dd1) +
+		4 * (r3 / -dd3) +
+		2 * (r6 / -dd6) +
+		1 * (r12 / -dd12)
+	) / 19;
 }
 
 float calcVol(Date from, Date to, const Quotes &quotes) {
