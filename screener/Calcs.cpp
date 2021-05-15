@@ -81,13 +81,25 @@ float calcRet13612WAdjMaxDD(Date date, const Quotes &quotes) {
 	const auto q3 = findQuote(quotes, date - months{3});
 	const auto q6 = findQuote(quotes, date - months{6});
 	const auto q12 = findQuote(quotes, date - months{12});
-	const auto ret13612W = calcRet13612W(q0, q1, q3, q6, q12);
+
+	const auto ret = [](auto qE, auto qB) {return qE->close / qB->close - 1;};
+
+	const auto r1 = ret(q0, q1);
+	const auto r3 = ret(q0, q3);
+	const auto r6 = ret(q0, q6);
+	const auto r12 = ret(q0, q12);
+
 	const auto dd1 = calcMaxDD(q1, q0);
 	const auto dd3 = calcMaxDD(q3, q0);
 	const auto dd6 = calcMaxDD(q6, q0);
 	const auto dd12 = calcMaxDD(q12, q0);
-	const auto maxDDAvg = (12 * dd1 + 4 * dd3 + 2 * dd6 + 1 * dd12) / 19;
-	return ret13612W / -maxDDAvg;
+
+	return (
+			12 * (r1 / -dd1) +
+			4 * (r3 / -dd3) +
+			2 * (r6 / -dd6) +
+			1 * (r12 / -dd12)
+		) / 19;
 }
 
 float calcVol(Date from, Date to, const Quotes &quotes) {
